@@ -50,6 +50,9 @@ func _ready() -> void:
 			var capture_z := clampf(float(argument.trim_prefix("--screenshot-z=")), -TRACK_LENGTH, 0.0)
 			car.global_position = Vector3(center_x(capture_z), track_y(capture_z) + 0.55, capture_z)
 			car.rotation.y = track_heading(capture_z)
+			var capture_basis := car.global_transform.basis
+			chase_camera.global_position = car.global_position + capture_basis.z * 10.5 + Vector3.UP * 5.2
+			chase_camera.look_at(car.global_position - capture_basis.z * 5.0 + Vector3.UP * 0.55, Vector3.UP)
 		if argument.begins_with("--screenshot="):
 			capture_qa_screenshot.call_deferred(argument.trim_prefix("--screenshot="))
 
@@ -75,7 +78,9 @@ func center_x(z: float) -> float:
 
 func track_y(z: float) -> float:
 	var d := maxf(0.0, -z)
-	var height := sin(d / 410.0) * 2.2
+	# Never let a valley dip below the terrain plane; buried road meshes caused the
+	# reported apparent fall-through around 1.68 km.
+	var height := maxf(0.3, sin(d / 410.0) * 2.2)
 	# Mountain climb, high bridge/viaduct, then a controlled descent.
 	height += smoothstep(1800.0, 2500.0, d) * 8.0
 	height -= smoothstep(3650.0, 4400.0, d) * 8.0
@@ -546,10 +551,35 @@ func update_car(delta: float) -> void:
 			var step_collision := car.get_slide_collision(collision_index)
 			if step_collision.get_collider() is Node and step_collision.get_collider().is_in_group("obstacle"):
 				handle_obstacle_hit()
-	# Settle the arcade chassis onto steep modular road pieces and banking.
-	var road_height := track_y(car.global_position.z) + 0.55
-	if absf(car.global_position.x - center_x(car.global_position.z)) < ROAD_WIDTH * 0.65:
-		car.global_position.y = lerpf(car.global_position.y, road_height, 1.0 - exp(-delta * 18.0))
+	enforce_track_safety(delta)
+
+
+func enforce_track_safety(delta: float) -> void:
+	var z := clampf(car.global_position.z, -TRACK_LENGTH, START_Z)
+	var heading := track_heading(z)
+	var lateral_axis := Vector3(cos(heading), 0.0, -sin(heading)).normalized()
+	var center := Vector3(center_x(z), track_y(z) + 0.55, z)
+	var lateral_distance := (car.global_position - center).dot(lateral_axis)
+	var soft_edge := ROAD_WIDTH * 0.43
+	var hard_edge := ROAD_WIDTH * 0.7
+	if absf(lateral_distance) > hard_edge:
+		# Recover from a missed modular seam or an extreme collision without losing progress.
+		car.global_position = center
+		car.rotation.y = heading
+		speed *= 0.35
+		status_label.text = "TRACK RECOVERY | CAR RETURNED TO RACING LINE"
+	elif absf(lateral_distance) > soft_edge:
+		var clamped_lateral := clampf(lateral_distance, -soft_edge, soft_edge)
+		car.global_position -= lateral_axis * (lateral_distance - clamped_lateral)
+		speed *= 0.985
+	# The modular course is an arcade surface, so keep the chassis attached to its
+	# analytical height. This prevents tunneling through pitched road seams.
+	var target_height := track_y(car.global_position.z) + 0.55
+	if car.global_position.y < target_height - 1.0 or car.global_position.y > target_height + 2.5:
+		car.global_position.y = target_height
+		car.velocity.y = 0.0
+	else:
+		car.global_position.y = lerpf(car.global_position.y, target_height, 1.0 - exp(-delta * 24.0))
 
 
 func compute_drive_speed(current_speed: float, throttle: float, reverse_pressed: bool, hard_braking: bool, progress: float, delta: float) -> float:
