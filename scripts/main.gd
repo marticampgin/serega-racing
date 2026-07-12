@@ -15,6 +15,7 @@ var distance := 0.0
 var race_active := true
 var shield_hits := 1
 var collision_cooldown := 0.0
+var collision_stop_time := 0.0
 var boost_time := 0.0
 var ghost_time := 0.0
 var refuel_request: HTTPRequest
@@ -151,6 +152,51 @@ func add_cylinder(parent: Node, radius: float, height: float, position: Vector3,
 	return instance
 
 
+func is_water_crossing(z: float) -> bool:
+	var d := absf(z)
+	return (d > 1250.0 and d < 1650.0) or (d > 3500.0 and d < 3950.0) or (d > 6000.0 and d < 6550.0) or (d > 8800.0 and d < 9250.0)
+
+
+func add_palm(position: Vector3, scale_factor: float, trunk: Material, leaves: Material, accent: Material) -> void:
+	var height := 5.2 * scale_factor
+	var palm := add_cylinder(self, 0.22 * scale_factor, height, position + Vector3.UP * height * 0.5, trunk, 0.13 * scale_factor)
+	palm.add_to_group("palm_scenery")
+	for blade in range(5):
+		var angle := TAU * float(blade) / 5.0
+		var crown := position + Vector3.UP * (height + 0.1)
+		var frond := add_box(self, Vector3(0.42, 0.12, 3.7) * scale_factor, crown + Vector3(cos(angle), -0.15, sin(angle)) * 1.25 * scale_factor, leaves)
+		frond.rotation.y = -angle
+		frond.rotation.x = 0.13
+	add_cylinder(self, 0.34 * scale_factor, 0.25 * scale_factor, position + Vector3.UP * height, accent, 0.18 * scale_factor)
+
+
+func add_lamp(position: Vector3, neon: Material, steel: Material) -> void:
+	var lamp := add_cylinder(self, 0.1, 4.6, position + Vector3.UP * 2.3, steel, 0.07)
+	lamp.add_to_group("lamp_scenery")
+	add_box(self, Vector3(1.5, 0.12, 0.12), position + Vector3(0.62, 4.45, 0), steel)
+	add_box(self, Vector3(0.52, 0.18, 0.32), position + Vector3(1.28, 4.32, 0), neon)
+
+
+func add_beach_house(position: Vector3, heading: float, body: Material, accent: Material, glass: Material, roof: Material, large := false) -> void:
+	var width := 11.0 if large else 6.5
+	var height := 12.0 if large else 5.0
+	var depth := 8.0 if large else 5.5
+	var house := add_box(self, Vector3(width, height, depth), position + Vector3.UP * height * 0.5, body, false, heading)
+	house.add_to_group("hotel_scenery" if large else "house_scenery")
+	# Flat stepped roof and canopy give the buildings an unmistakable Miami/art-deco profile.
+	add_box(self, Vector3(width + 0.8, 0.45, depth + 0.8), position + Vector3.UP * (height + 0.2), roof, false, heading)
+	add_box(self, Vector3(width * 0.58, 0.55, depth * 0.65), position + Vector3.UP * (height + 0.7), accent, false, heading)
+	var floors := 4 if large else 2
+	for floor_index in range(floors):
+		var y := 1.35 + floor_index * 2.35
+		for window_index in [-1, 0, 1]:
+			var window_offset := Vector3(window_index * width * 0.25, y, -depth * 0.51).rotated(Vector3.UP, heading)
+			add_box(self, Vector3(1.15, 1.25, 0.16), position + window_offset, glass, false, heading)
+		if large or floor_index == 1:
+			var balcony_offset := Vector3(0, y - 0.75, -depth * 0.62).rotated(Vector3.UP, heading)
+			add_box(self, Vector3(width * 0.75, 0.18, 1.35), position + balcony_offset, accent, false, heading)
+
+
 func build_world() -> void:
 	var environment := WorldEnvironment.new()
 	var env := Environment.new()
@@ -167,8 +213,16 @@ func build_world() -> void:
 	sun.light_energy = 1.25
 	sun.shadow_enabled = true
 	add_child(sun)
-	var ground_mat := make_material(Color("2d6a3f"))
-	add_box(self, Vector3(300, 0.4, TRACK_LENGTH + 250), Vector3(0, -0.35, -TRACK_LENGTH * 0.5 + 30), ground_mat)
+	var sea := make_material(Color("087f9f"), 0.15, 0.2)
+	var sand := make_material(Color("c58b48"), 0.0, 0.92)
+	# The ocean is continuous; sandy keys follow the circuit and deliberately break
+	# at bridge sectors so water is clearly visible below the car.
+	var ocean := add_box(self, Vector3(360, 0.3, TRACK_LENGTH + 300), Vector3(0, -1.35, -TRACK_LENGTH * 0.5 + 30), sea)
+	ocean.add_to_group("ocean_scenery")
+	for z in range(0, -int(TRACK_LENGTH), -60):
+		var sample_z := float(z) - 30.0
+		if not is_water_crossing(sample_z):
+			add_box(self, Vector3(94, 0.34, 64), Vector3(center_x(sample_z), -0.45, sample_z), sand, false, track_heading(sample_z))
 
 
 func build_track() -> void:
@@ -224,9 +278,9 @@ func orient_track_piece(piece: Node3D, target: Vector3, bank: float) -> void:
 
 
 func build_scenery() -> void:
-	var trunk := make_material(Color("6b4328"))
-	var leaves_dark := make_material(Color("174f35"), 0.0, 0.9)
-	var leaves_light := make_material(Color("2f8952"), 0.0, 0.9)
+	var trunk := make_material(Color("8d542f"))
+	var leaves_dark := make_material(Color("087f65"), 0.0, 0.75)
+	var leaves_light := make_material(Color("19d39b"), 0.05, 0.55)
 	var steel := make_material(Color("202936"), 0.55, 0.35)
 	var yellow := make_material(Color("ffd43b"), 0.15, 0.45)
 	var red := make_material(Color("e52c3c"), 0.15, 0.45)
@@ -247,49 +301,76 @@ func build_scenery() -> void:
 			for seat in range(6):
 				var seat_mat: Material = [red, yellow, blue][(seat + tier) % 3]
 				add_box(self, Vector3(1.2, 0.5, 0.8), Vector3(stand_x - 4.8 + seat * 1.9, 1.0 + tier * 0.75, -58.0 + side * tier * 1.5), seat_mat)
-	# Sparse low-poly trees create speed cues without cluttering the racing line.
+	var neon_pink := make_material(Color("ff3fcf"), 0.25, 0.25)
+	# Palms and neon lamps establish the island boulevard throughout the full lap.
 	var scenery_z := -115.0
 	var tree_index := 0
 	while scenery_z > -TRACK_LENGTH:
 		var heading := track_heading(scenery_z)
 		var lateral := Vector3(cos(heading), 0.0, -sin(heading))
 		for side in [-1.0, 1.0]:
-			var offset := float(side) * (15.0 + rng.randf_range(0.0, 11.0))
-			var tree_position := Vector3(center_x(scenery_z), 0, scenery_z) + lateral * offset
-			var height := rng.randf_range(3.8, 6.4)
-			add_cylinder(self, 0.25, height * 0.42, tree_position + Vector3.UP * height * 0.21, trunk)
-			add_cylinder(self, height * 0.27, height * 0.68, tree_position + Vector3.UP * height * 0.64, leaves_light if tree_index % 3 == 0 else leaves_dark, 0.05)
+			var offset := float(side) * (15.0 + rng.randf_range(0.0, 8.0))
+			var tree_position := Vector3(center_x(scenery_z), -0.25, scenery_z) + lateral * offset
+			if not is_water_crossing(scenery_z):
+				add_palm(tree_position, rng.randf_range(0.82, 1.2), trunk, leaves_light if tree_index % 3 == 0 else leaves_dark, neon_pink)
 			tree_index += 1
-		scenery_z -= rng.randf_range(75.0, 125.0)
+		if tree_index % 2 == 0:
+			add_lamp(Vector3(center_x(scenery_z), track_y(scenery_z), scenery_z) + lateral * 10.7, neon_pink if tree_index % 4 == 0 else blue, steel)
+		scenery_z -= rng.randf_range(95.0, 125.0)
 	build_portrait_scenery(steel, red, yellow, blue)
 	build_landmarks(steel, yellow, red, blue)
 
 
 func build_landmarks(steel: Material, yellow: Material, red: Material, blue: Material) -> void:
-	# Rock formations, tunnel portals, a high viaduct, wind turbines and city towers
-	# make each part of the lap readable at racing speed.
+	# Beach houses, hotels, tunnels and island bridges make every sector readable.
 	var rock := make_material(Color("785f49"), 0.0, 1.0)
-	var concrete := make_material(Color("66717c"), 0.05, 0.85)
+	var concrete := make_material(Color("5c507d"), 0.05, 0.75)
+	var pink := make_material(Color("d94888"), 0.05, 0.55)
+	var mint := make_material(Color("32bfa1"), 0.05, 0.55)
+	var peach := make_material(Color("dc765b"), 0.05, 0.65)
+	var cream := make_material(Color("d8c69f"), 0.0, 0.75)
+	var glass := make_material(Color("143a68"), 0.45, 0.16)
+	var purple := make_material(Color("863dba"), 0.2, 0.35)
 	for z in [-2050.0, -2250.0, -2450.0, -6800.0, -7100.0, -7450.0]:
 		for side in [-1.0, 1.0]:
 			var p := Vector3(center_x(z) + side * 22.0, track_y(z), z)
 			var formation := add_cylinder(self, 5.0, 10.0, p + Vector3.UP * 5.0, rock, 1.5)
 			formation.add_to_group("rock_scenery")
-	# Two open-ended tunnel sequences; repeated arches read as a tunnel without trapping camera.
-	for tunnel_z in [-3050.0, -9300.0]:
-		for arch_index in range(10):
+	# Five long neon tunnel sequences distributed across the course.
+	for tunnel_z in [-1750.0, -3150.0, -5050.0, -7350.0, -10150.0]:
+		for arch_index in range(18):
 			var z: float = tunnel_z - arch_index * 7.0
 			var x := center_x(z); var y := track_y(z); var heading := track_heading(z)
 			for arch_part in [
 				add_box(self, Vector3(1.2, 7.0, 1.0), Vector3(x - 9.2, y + 3.4, z), concrete, false, heading),
 				add_box(self, Vector3(1.2, 7.0, 1.0), Vector3(x + 9.2, y + 3.4, z), concrete, false, heading),
-				add_box(self, Vector3(19.6, 1.0, 1.0), Vector3(x, y + 7.0, z), concrete, false, heading),
+				add_box(self, Vector3(19.6, 1.0, 1.0), Vector3(x, y + 7.0, z), pink if arch_index % 3 == 0 else concrete, false, heading),
 			]:
 				arch_part.add_to_group("tunnel")
-	# Bridge piers underneath the elevated approach.
-	for z in range(-5900, -7900, -100):
-		var ground_to_road := maxf(2.0, track_y(float(z)))
-		add_cylinder(self, 1.2, ground_to_road, Vector3(center_x(float(z)), ground_to_road * 0.5 - 0.2, float(z)), concrete)
+	# Four obvious water crossings: closely spaced piers and luminous gateway pylons.
+	for crossing in [[-1250, -1650], [-3500, -3950], [-6000, -6550], [-8800, -9250]]:
+		for z in range(crossing[0], crossing[1], -55):
+			var road_y := track_y(float(z))
+			for side in [-1.0, 1.0]:
+				add_cylinder(self, 0.65, road_y + 1.0, Vector3(center_x(float(z)) + side * 7.2, (road_y - 1.0) * 0.5, float(z)), concrete)
+				add_box(self, Vector3(0.35, 0.35, 7.0), Vector3(center_x(float(z)) + side * 8.7, road_y + 1.15, float(z)), pink, false, track_heading(float(z)))
+		for gateway_z in [float(crossing[0]) - 18.0, float(crossing[1]) + 18.0]:
+			var gx := center_x(gateway_z); var gy := track_y(gateway_z)
+			add_box(self, Vector3(1.1, 8.0, 1.1), Vector3(gx - 10.0, gy + 4.0, gateway_z), purple)
+			add_box(self, Vector3(1.1, 8.0, 1.1), Vector3(gx + 10.0, gy + 4.0, gateway_z), purple)
+			add_box(self, Vector3(21.0, 0.55, 1.1), Vector3(gx, gy + 7.7, gateway_z), pink)
+	# Colorful beach homes and periodic larger art-deco hotels.
+	for z in range(-500, -11800, -320):
+		if is_water_crossing(float(z)):
+			continue
+		var heading := track_heading(float(z))
+		var lateral := Vector3(cos(heading), 0, -sin(heading))
+		var house_index := int(abs(z) / 320)
+		var side := -1.0 if house_index % 2 == 0 else 1.0
+		var p := Vector3(center_x(float(z)), -0.25, float(z)) + lateral * side * (25.0 + float(abs(z) % 7))
+		var large: bool = absi(z) % 1200 == 500
+		var palette: Array[Material] = [pink, mint, peach, blue]
+		add_beach_house(p, heading - side * PI * 0.5, palette[house_index % palette.size()], cream, glass, purple, large)
 	# Varied silhouettes: turbines and cylindrical city structures.
 	for z in [-4500.0, -4800.0, -10200.0, -10700.0]:
 		var side := -1.0 if int(absf(z)) % 2 == 0 else 1.0
@@ -479,6 +560,7 @@ func _physics_process(delta: float) -> void:
 	if not is_instance_valid(car):
 		return
 	collision_cooldown = maxf(0.0, collision_cooldown - delta)
+	collision_stop_time = maxf(0.0, collision_stop_time - delta)
 	boost_time = maxf(0.0, boost_time - delta)
 	ghost_time = maxf(0.0, ghost_time - delta)
 	refuel_cooldown = maxf(0.0, refuel_cooldown - delta)
@@ -517,6 +599,11 @@ func _physics_process(delta: float) -> void:
 
 
 func update_car(delta: float) -> void:
+	if collision_stop_time > 0.0:
+		speed = 0.0
+		car.velocity = Vector3.ZERO
+		enforce_track_safety(delta)
+		return
 	if refuel_in_progress:
 		speed = move_toward(speed, 0.0, 28.0 * delta)
 		car.velocity = -car.global_transform.basis.z.normalized() * speed
@@ -606,14 +693,16 @@ func handle_obstacle_hit() -> void:
 	if collision_cooldown > 0.0:
 		return
 	collision_cooldown = 0.9
+	collision_stop_time = 0.7
+	speed = 0.0
+	car.velocity = Vector3.ZERO
 	if shield_hits > 0:
 		shield_hits -= 1
-		status_label.text = "SHIELD ABSORBED THE HIT!"
+		status_label.text = "SHIELD ABSORBED DAMAGE | CAR STOPPED"
 	else:
-		speed *= 0.28
 		fuel = maxf(0.0, fuel - 8.0)
 		elapsed += 2.0
-		status_label.text = "COLLISION  +2.0 SEC"
+		status_label.text = "COLLISION | FULL STOP | +2.0 SEC"
 
 
 func update_progress(delta: float) -> void:
@@ -666,6 +755,8 @@ func reset_car() -> void:
 	shield_hits = 1
 	boost_time = 0.0
 	ghost_time = 0.0
+	collision_cooldown = 0.0
+	collision_stop_time = 0.0
 	race_active = true
 	finish_portrait.visible = false
 	status_label.text = "WASD DRIVE (S BRAKE/REVERSE) | SPACE BRAKE | F CAMERA FUEL | G DEBUG FILL | R RESET"

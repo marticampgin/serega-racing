@@ -40,7 +40,9 @@ Controls: `W` accelerate, `S`/`Space` brake, `A`/`D` steer, `F` record and analy
 
 `S` brakes while moving forward and engages reverse near a standstill. Forward acceleration has no normal gameplay cap; steering becomes less responsive and collision movement is sub-stepped as speed rises.
 
-The 12 km course includes technical esses, a mountain spiral, major elevation changes, a bridge/viaduct sector, two tunnel sequences, rocks, turbines, city structures, trees, grandstands, and personalized portrait billboards.
+The 12 km course includes technical esses, a mountain spiral, major elevation changes, repeated bridges and tunnels, rocks, turbines, coastal buildings, grandstands, and personalized portrait billboards.
+
+The setting is a retro-synthwave island with a continuous ocean, sandy keys, palms, neon lamp posts, Miami-inspired beach houses and hotels, five extended tunnel sequences, and four visually exposed water-crossing bridges. Obstacle impacts force a full stop with a short control lockout to prevent collision catapulting.
 
 ## API response
 
