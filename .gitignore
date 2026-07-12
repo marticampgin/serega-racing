@@ -23,3 +23,6 @@ Thumbs.db
 # Exports
 build/
 artifacts/
+
+# Private source photos; only approved/stylized derivatives are committed.
+/assets/source/

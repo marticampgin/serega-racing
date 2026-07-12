@@ -28,6 +28,7 @@ var timer_label: Label
 var distance_label: Label
 var status_label: Label
 var fuel_bar: ProgressBar
+var finish_portrait: TextureRect
 var start_position := Vector3.ZERO
 var countdown_label: Label
 var countdown_time := 3.2
@@ -201,6 +202,36 @@ func build_scenery() -> void:
 			add_cylinder(self, height * 0.27, height * 0.68, tree_position + Vector3.UP * height * 0.64, leaves_light if tree_index % 3 == 0 else leaves_dark, 0.05)
 			tree_index += 1
 		scenery_z -= rng.randf_range(75.0, 125.0)
+	build_portrait_scenery(steel, red, yellow, blue)
+
+
+func build_portrait_scenery(steel: Material, red: Material, yellow: Material, blue: Material) -> void:
+	var portraits := [
+		"res://assets/generated/friends/friend-glasses-racing.png",
+		"res://assets/generated/friends/friend-beard-racing.png",
+		"res://assets/generated/friends/friend-dark-hair-racing.png",
+	]
+	var placements := [
+		Vector3(-14.0, 5.2, -18.0),
+		Vector3(14.0, 5.2, -24.0),
+		Vector3(-15.0, 5.2, -70.0),
+		Vector3(15.0, 5.2, -170.0),
+		Vector3(-15.5, 5.2, -290.0),
+		Vector3(15.5, 5.2, -420.0),
+	]
+	var frame_materials := [red, yellow, blue]
+	for index in range(placements.size()):
+		var position: Vector3 = placements[index]
+		position.x += center_x(position.z)
+		add_box(self, Vector3(7.5, 0.4, 0.45), position + Vector3(0, 5.0, -0.1), frame_materials[index % 3])
+		add_box(self, Vector3(0.4, 2.2, 0.4), position + Vector3(0, -5.8, -0.1), steel)
+		var portrait := Sprite3D.new()
+		portrait.texture = load(portraits[index % portraits.size()])
+		portrait.pixel_size = 0.006
+		portrait.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		portrait.shaded = false
+		portrait.position = position + Vector3(0, 0, 0.05)
+		add_child(portrait)
 
 
 func build_car() -> void:
@@ -312,6 +343,20 @@ func build_hud() -> void:
 	status_label.offset_bottom = -18.0
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	layer.add_child(status_label)
+	finish_portrait = TextureRect.new()
+	finish_portrait.texture = load("res://assets/generated/friends/friend-dark-hair-racing.png")
+	finish_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	finish_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	finish_portrait.anchor_left = 1.0
+	finish_portrait.anchor_top = 1.0
+	finish_portrait.anchor_right = 1.0
+	finish_portrait.anchor_bottom = 1.0
+	finish_portrait.offset_left = -220.0
+	finish_portrait.offset_top = -280.0
+	finish_portrait.offset_right = -24.0
+	finish_portrait.offset_bottom = -70.0
+	finish_portrait.visible = false
+	layer.add_child(finish_portrait)
 	# Keep the countdown on a separate, modest font atlas for broad GL compatibility.
 	countdown_label = Label.new()
 	countdown_label.text = "3"
@@ -433,6 +478,7 @@ func update_progress(delta: float) -> void:
 	if car.global_position.z <= -TRACK_LENGTH:
 		race_active = false
 		speed = 0.0
+		finish_portrait.visible = true
 		status_label.text = "FINISH!  %s  |  PRESS R TO RACE AGAIN" % format_time(elapsed)
 
 
@@ -476,6 +522,7 @@ func reset_car() -> void:
 	boost_time = 0.0
 	ghost_time = 0.0
 	race_active = true
+	finish_portrait.visible = false
 	status_label.text = "WASD DRIVE | SPACE BRAKE | F CAMERA FUEL | G DEBUG FILL | R RESET"
 	refuel_in_progress = false
 	refuel_cooldown = 0.0
