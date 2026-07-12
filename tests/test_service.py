@@ -24,6 +24,18 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["status"], "ok")
 
+    def test_control_panel_is_self_contained_and_exposes_both_modes(self) -> None:
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/html", response.headers["content-type"])
+        self.assertIn("Fuel Recognition Lab", response.text)
+        self.assertIn("Run safe dry test", response.text)
+        self.assertIn("Record &amp; analyze 5s", response.text)
+        self.assertIn("/analyze-drink", response.text)
+        self.assertIn("?dry_run=true", response.text)
+        self.assertNotIn("<script src=", response.text)
+        self.assertNotIn("<link rel=", response.text)
+
     def test_dry_run_never_records_or_calls_api(self) -> None:
         with patch.object(service, "_record_clip") as record, patch.object(
             service, "_analyze_video"

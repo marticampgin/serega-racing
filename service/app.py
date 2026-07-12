@@ -10,6 +10,7 @@ from typing import Literal
 import cv2
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import HTMLResponse
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
@@ -49,6 +50,48 @@ MOCK_RESULT = DrinkAnalysis(
     confidence=0.95,
     reason="Dry-run drinking gesture with a blue bottle.",
 )
+
+CONTROL_PANEL = r"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Serega Racing · Fuel Lab</title>
+  <style>
+    :root{color-scheme:dark;--ink:#f4f5f7;--muted:#999fa9;--line:#2b3038;--red:#ff3b30;--green:#40e07c}
+    *{box-sizing:border-box} body{margin:0;min-height:100vh;font:15px/1.5 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:#090a0c;display:grid;place-items:center;padding:28px}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 70% 0,#39100d 0,transparent 34%),linear-gradient(120deg,transparent 50%,#11151a 50%)}
+    main{position:relative;width:min(760px,100%);background:#111318eF;border:1px solid var(--line);border-radius:22px;box-shadow:0 30px 80px #0009;overflow:hidden}
+    header{padding:27px 30px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:20px;align-items:center}
+    .eyebrow{color:var(--red);font-weight:800;letter-spacing:.16em;font-size:11px;text-transform:uppercase}.title{font-size:26px;font-weight:800;letter-spacing:-.035em;margin:3px 0 0}
+    .mode{border:1px solid #58433e;background:#251816;border-radius:999px;padding:7px 12px;font-size:12px;font-weight:800;letter-spacing:.08em}.mode.dry{border-color:#325141;background:#10291b;color:#7bf2a4}.mode.live{color:#ff8b82}
+    section{padding:26px 30px}.status{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px}.tile{border:1px solid var(--line);background:#171a20;border-radius:12px;padding:13px}.label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}.value{font-weight:700;margin-top:3px}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}button{border:0;border-radius:12px;padding:14px 16px;font:700 14px inherit;cursor:pointer;transition:.15s transform,.15s opacity}button:hover:not(:disabled){transform:translateY(-1px)}button:disabled{cursor:not-allowed;opacity:.45}.primary{background:var(--red);color:white}.secondary{background:#262b33;color:white;border:1px solid #39404a}
+    .hint{color:var(--muted);font-size:12px;margin:10px 1px 20px}.output{border:1px solid var(--line);border-radius:13px;background:#090b0e;min-height:178px;overflow:hidden}.output-head{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.1em}pre{margin:0;padding:16px;white-space:pre-wrap;word-break:break-word;color:#b9f7cc;font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace}.pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:6px;box-shadow:0 0 10px var(--green)}
+    @media(max-width:580px){header{align-items:flex-start}.status{grid-template-columns:1fr}.actions{grid-template-columns:1fr}section,header{padding-left:20px;padding-right:20px}}
+  </style>
+</head>
+<body><main>
+  <header><div><div class="eyebrow">Race engineering</div><h1 class="title">Fuel Recognition Lab</h1></div><div id="mode" class="mode">CHECKING</div></header>
+  <section>
+    <div class="status">
+      <div class="tile"><div class="label">Service</div><div class="value" id="service"><span class="pulse"></span>Connecting</div></div>
+      <div class="tile"><div class="label">Gemini API</div><div class="value" id="gemini">—</div></div>
+      <div class="tile"><div class="label">Camera</div><div class="value" id="camera">—</div></div>
+    </div>
+    <div class="actions">
+      <button class="secondary" id="dry">Run safe dry test</button>
+      <button class="primary" id="live">Record &amp; analyze 5s</button>
+    </div>
+    <div class="hint" id="hint">Dry test never opens the camera or spends API quota.</div>
+    <div class="output"><div class="output-head"><span>Analysis response</span><span id="state">Ready</span></div><pre id="result">Choose a test above.</pre></div>
+  </section>
+</main><script>
+const $=id=>document.getElementById(id), result=$('result'), state=$('state'); let health={};
+async function refresh(){try{let r=await fetch('/health');health=await r.json();$('service').innerHTML='<span class="pulse"></span>Online';$('gemini').textContent=health.gemini_configured?'Configured':'Missing key';$('camera').textContent='Index '+health.camera_index;$('mode').textContent=health.dry_run?'DRY RUN':'LIVE CAPABLE';$('mode').className='mode '+(health.dry_run?'dry':'live');$('live').disabled=!health.gemini_configured||health.dry_run;$('hint').textContent=health.dry_run?'Global DRY_RUN is enabled. Live requests are locked out.':health.gemini_configured?'Live mode records the camera, uploads one clip, then deletes it.':'Add GEMINI_API_KEY to enable live analysis.'}catch(e){$('service').textContent='Offline';$('live').disabled=true;$('mode').textContent='OFFLINE';}}
+async function run(dry){document.querySelectorAll('button').forEach(b=>b.disabled=true);state.textContent=dry?'Dry test':'Recording / analyzing';result.textContent=dry?'Generating mock result…':'Camera recording starts now. Drink naturally…';try{let r=await fetch('/analyze-drink'+(dry?'?dry_run=true':''),{method:'POST'}),data=await r.json();if(!r.ok)throw Error(data.detail||'Request failed');result.textContent=JSON.stringify(data,null,2);state.textContent='Complete'}catch(e){result.textContent=JSON.stringify({error:e.message},null,2);state.textContent='Failed'}finally{await refresh();$('dry').disabled=false}}
+$('dry').onclick=()=>run(true);$('live').onclick=()=>run(false);refresh();
+  </script></body></html>"""
 
 
 def _env_float(name: str, default: float, minimum: float, maximum: float) -> float:
@@ -139,6 +182,11 @@ def _analyze_video(video_path: Path) -> DrinkAnalysis:
 
 def _dry_run_enabled(requested: bool) -> bool:
     return requested or os.getenv("DRY_RUN", "").lower() in {"1", "true", "yes"}
+
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+def control_panel() -> HTMLResponse:
+    return HTMLResponse(CONTROL_PANEL)
 
 
 @app.get("/health")
