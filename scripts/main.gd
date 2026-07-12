@@ -17,6 +17,10 @@ var shield_hits := 1
 var collision_cooldown := 0.0
 var boost_time := 0.0
 var ghost_time := 0.0
+var refuel_request: HTTPRequest
+var refuel_in_progress := false
+var refuel_key_down := false
+var refuel_cooldown := 0.0
 var rng := RandomNumberGenerator.new()
 var speed_label: Label
 var timer_label: Label
@@ -33,7 +37,21 @@ func _ready() -> void:
 	build_car()
 	build_obstacles()
 	build_hud()
+	build_refuel_client()
 	print("Serega Racing: playable race initialized")
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--screenshot="):
+			capture_qa_screenshot.call_deferred(argument.trim_prefix("--screenshot="))
+
+
+func capture_qa_screenshot(path: String) -> void:
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().create_timer(1.0).timeout
+	var image := get_viewport().get_texture().get_image()
+	var error := image.save_png(path)
+	print("QA screenshot: %s (%s)" % [path, error_string(error)])
+	get_tree().quit(0 if error == OK else 1)
 
 
 func center_x(z: float) -> float:
@@ -109,7 +127,7 @@ func build_track() -> void:
 		var z := START_Z - i * SEGMENT_LENGTH
 		var x := center_x(z)
 		var heading := track_heading(z)
-		add_box(self, Vector3(ROAD_WIDTH, 0.25, SEGMENT_LENGTH + 0.6), Vector3(x, -0.12, z), asphalt, false, heading)
+		add_box(self, Vector3(ROAD_WIDTH, 0.25, SEGMENT_LENGTH + 0.6), Vector3(x, -0.12, z), asphalt, true, heading)
 		for side in [-1.0, 1.0]:
 			var lateral: Vector3 = Vector3(cos(heading), 0, -sin(heading)) * float(side)
 			var curb_color := curb_red if i % 2 == 0 else curb_white
@@ -198,7 +216,8 @@ func build_hud() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	var margin := MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.position = Vector2.ZERO
+	margin.size = Vector2(350, 265)
 	margin.add_theme_constant_override("margin_left", 28)
 	margin.add_theme_constant_override("margin_right", 28)
 	margin.add_theme_constant_override("margin_top", 22)
@@ -223,12 +242,21 @@ func build_hud() -> void:
 	fuel_bar.value = fuel
 	fuel_bar.show_percentage = true
 	column.add_child(fuel_bar)
-	status_label = make_label("WASD TO DRIVE  •  SPACE TO BRAKE  •  R TO RESET", 16, Color("f2f4f6"))
-	status_label.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	status_label.position = Vector2(0, -45)
+	status_label = make_label("WASD DRIVE  |  SPACE BRAKE  |  F REFUEL  |  R RESET", 16, Color("f2f4f6"))
+	status_label.anchor_right = 1.0
+	status_label.anchor_top = 1.0
+	status_label.anchor_bottom = 1.0
+	status_label.offset_top = -52.0
+	status_label.offset_bottom = -18.0
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	status_label.size = Vector2(1280, 32)
 	layer.add_child(status_label)
+
+
+func build_refuel_client() -> void:
+	refuel_request = HTTPRequest.new()
+	refuel_request.timeout = 75.0
+	refuel_request.request_completed.connect(_on_refuel_request_completed)
+	add_child(refuel_request)
 
 
 func _physics_process(delta: float) -> void:
@@ -237,7 +265,12 @@ func _physics_process(delta: float) -> void:
 	collision_cooldown = maxf(0.0, collision_cooldown - delta)
 	boost_time = maxf(0.0, boost_time - delta)
 	ghost_time = maxf(0.0, ghost_time - delta)
+	refuel_cooldown = maxf(0.0, refuel_cooldown - delta)
 	car.collision_mask = 0 if ghost_time > 0.0 else 1
+	var refuel_pressed := Input.is_key_pressed(KEY_F)
+	if refuel_pressed and not refuel_key_down:
+		request_refuel()
+	refuel_key_down = refuel_pressed
 	if Input.is_key_pressed(KEY_R):
 		reset_car()
 	if race_active:
@@ -249,6 +282,12 @@ func _physics_process(delta: float) -> void:
 
 
 func update_car(delta: float) -> void:
+	if refuel_in_progress:
+		speed = move_toward(speed, 0.0, 28.0 * delta)
+		car.velocity = -car.global_transform.basis.z.normalized() * speed
+		car.velocity.y = -1.0
+		car.move_and_slide()
+		return
 	var throttle := 1.0 if Input.is_key_pressed(KEY_W) else 0.0
 	var braking := Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_SPACE)
 	var steer := 0.0
@@ -304,7 +343,7 @@ func update_progress(delta: float) -> void:
 	if car.global_position.z <= -TRACK_LENGTH:
 		race_active = false
 		speed = 0.0
-		status_label.text = "FINISH!  %s  •  PRESS R TO RACE AGAIN" % format_time(elapsed)
+		status_label.text = "FINISH!  %s  |  PRESS R TO RACE AGAIN" % format_time(elapsed)
 
 
 func update_camera(delta: float) -> void:
@@ -347,7 +386,9 @@ func reset_car() -> void:
 	boost_time = 0.0
 	ghost_time = 0.0
 	race_active = true
-	status_label.text = "WASD TO DRIVE  •  SPACE TO BRAKE  •  R TO RESET"
+	status_label.text = "WASD DRIVE  |  SPACE BRAKE  |  F REFUEL  |  R RESET"
+	refuel_in_progress = false
+	refuel_cooldown = 0.0
 
 
 # Public hook for the webcam/Gemini service integration.
@@ -357,15 +398,53 @@ func apply_drink_result(color_name: String) -> void:
 	match normalized:
 		"blue", "cyan":
 			shield_hits += 1
-			status_label.text = "BLUE FUEL  •  SHIELD CHARGED"
+			status_label.text = "BLUE FUEL  |  SHIELD CHARGED"
 		"red", "orange":
 			boost_time = 12.0
-			status_label.text = "RED FUEL  •  TURBO BOOST"
+			status_label.text = "RED FUEL  |  TURBO BOOST"
 		"purple", "violet":
 			ghost_time = 12.0
-			status_label.text = "PURPLE FUEL  •  GHOST MODE"
+			status_label.text = "PURPLE FUEL  |  GHOST MODE"
 		"green":
 			fuel = minf(100.0, fuel + 20.0)
-			status_label.text = "GREEN FUEL  •  EXTRA REFILL"
+			status_label.text = "GREEN FUEL  |  EXTRA REFILL"
 		_:
 			status_label.text = "FUEL ADDED"
+
+
+func request_refuel() -> void:
+	if refuel_in_progress:
+		status_label.text = "RACE CONTROL IS ALREADY ANALYZING..."
+		return
+	if refuel_cooldown > 0.0:
+		status_label.text = "REFUEL SYSTEM COOLING DOWN"
+		return
+	refuel_in_progress = true
+	status_label.text = "PIT LIMITER | DRINK NOW | RECORDING 5 SECONDS..."
+	var error := refuel_request.request(
+		"http://127.0.0.1:8765/analyze-drink",
+		PackedStringArray(["Accept: application/json"]),
+		HTTPClient.METHOD_POST,
+		""
+	)
+	if error != OK:
+		refuel_in_progress = false
+		status_label.text = "REFUEL SERVICE OFFLINE | START THE PYTHON SERVICE"
+
+
+func _on_refuel_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	refuel_in_progress = false
+	refuel_cooldown = 8.0
+	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
+		fuel = minf(100.0, fuel + 10.0)
+		status_label.text = "RACE CONTROL ERROR | EMERGENCY FUEL +10"
+		return
+	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
+	if not parsed is Dictionary:
+		status_label.text = "INVALID FUEL REPORT | TRY AGAIN"
+		return
+	var report: Dictionary = parsed
+	if not bool(report.get("drinking_detected", false)):
+		status_label.text = "NO DRINK DETECTED | TRY AGAIN"
+		return
+	apply_drink_result(str(report.get("selected_color", "unknown")))

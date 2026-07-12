@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import tempfile
 import threading
 import unittest
@@ -13,6 +14,9 @@ from service import app as service
 
 class ServiceTests(unittest.TestCase):
     def setUp(self) -> None:
+        self.environment = patch.dict(os.environ, {"DRY_RUN": ""})
+        self.environment.start()
+        self.addCleanup(self.environment.stop)
         self.client = TestClient(service.app)
 
     def test_health(self) -> None:

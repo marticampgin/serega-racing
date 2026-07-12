@@ -30,9 +30,13 @@ uvicorn service.app:app --reload --port 8765
 
 Check `http://127.0.0.1:8765/health`. To record and analyze a clip, send a POST request to `http://127.0.0.1:8765/analyze-drink`.
 
+Set `DRY_RUN=true` in `.env` while developing to return a deterministic blue-bottle result without opening the camera or calling Gemini. Remove it for a real run.
+
 ### Godot
 
 Open the repository root in Godot 4.7 and run the project. The downloaded Godot executables under `godot/` are local-only and ignored by Git.
+
+Controls: `W` accelerate, `S`/`Space` brake, `A`/`D` steer, `F` record and analyze a refuelling video, and `R` reset. Start the Python service before using `F`.
 
 ## API response
 
@@ -49,4 +53,3 @@ Open the repository root in Godot 4.7 and run the project. The downloaded Godot 
 ```
 
 Never commit `.env` or recorded webcam clips.
-
