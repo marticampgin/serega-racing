@@ -2,13 +2,13 @@ extends Node3D
 
 const TRACK_LENGTH := 12000.0
 const ROAD_WIDTH := 17.0
-const SEGMENT_LENGTH := 20.0
+const SEGMENT_LENGTH := 12.0
 const START_Z := 10.0
 
 var car: CharacterBody3D
 var chase_camera: Camera3D
 var speed := 0.0
-var base_max_speed := 43.0
+var base_max_speed := 43.0 # Retained for QA/API compatibility; forward speed has no hard cap.
 var fuel := 100.0
 var elapsed := 0.0
 var distance := 0.0
@@ -46,6 +46,10 @@ func _ready() -> void:
 	build_refuel_client()
 	print("Serega Racing: playable race initialized")
 	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--screenshot-z="):
+			var capture_z := clampf(float(argument.trim_prefix("--screenshot-z=")), -TRACK_LENGTH, 0.0)
+			car.global_position = Vector3(center_x(capture_z), track_y(capture_z) + 0.55, capture_z)
+			car.rotation.y = track_heading(capture_z)
 		if argument.begins_with("--screenshot="):
 			capture_qa_screenshot.call_deferred(argument.trim_prefix("--screenshot="))
 
@@ -62,13 +66,39 @@ func capture_qa_screenshot(path: String) -> void:
 
 func center_x(z: float) -> float:
 	var d := maxf(0.0, -z)
-	return sin(d / 115.0) * 15.0 + sin(d / 47.0) * 3.0
+	# Layer broad sweepers, technical esses, and a long spiral-like mountain section.
+	var x := sin(d / 155.0) * 22.0 + sin(d / 61.0) * 7.0
+	if d > 6500.0 and d < 8050.0:
+		x += sin((d - 6500.0) / 92.0) * 24.0
+	return x
+
+
+func track_y(z: float) -> float:
+	var d := maxf(0.0, -z)
+	var height := sin(d / 410.0) * 2.2
+	# Mountain climb, high bridge/viaduct, then a controlled descent.
+	height += smoothstep(1800.0, 2500.0, d) * 8.0
+	height -= smoothstep(3650.0, 4400.0, d) * 8.0
+	height += smoothstep(5700.0, 6500.0, d) * 15.0
+	height -= smoothstep(8050.0, 9000.0, d) * 15.0
+	return height
+
+
+func track_bank(z: float) -> float:
+	var d := maxf(0.0, -z)
+	var dx := center_x(z - 8.0) - center_x(z + 8.0)
+	return clampf(-dx * 0.018 + sin(d / 230.0) * 0.035, -0.18, 0.18)
 
 
 func track_heading(z: float) -> float:
 	var sample := 1.0
 	var dx := center_x(z - sample) - center_x(z + sample)
 	return -atan2(dx, sample * 2.0)
+
+
+func track_pitch(z: float) -> float:
+	var sample := 8.0
+	return atan2(track_y(z - sample) - track_y(z + sample), sample * 2.0)
 
 
 func make_material(color: Color, metallic := 0.0, roughness := 0.8) -> StandardMaterial3D:
@@ -144,24 +174,48 @@ func build_track() -> void:
 	var barrier_mat := make_material(Color("a8b3bd"), 0.55, 0.35)
 	var segments := int(TRACK_LENGTH / SEGMENT_LENGTH) + 2
 	for i in range(segments):
-		var z := START_Z - i * SEGMENT_LENGTH
-		var x := center_x(z)
-		var heading := track_heading(z)
-		add_box(self, Vector3(ROAD_WIDTH, 0.25, SEGMENT_LENGTH + 0.6), Vector3(x, -0.12, z), asphalt, true, heading)
+		var z_start := START_Z - i * SEGMENT_LENGTH
+		var z_end := z_start - SEGMENT_LENGTH
+		var start := Vector3(center_x(z_start), track_y(z_start), z_start)
+		var end := Vector3(center_x(z_end), track_y(z_end), z_end)
+		var midpoint := (start + end) * 0.5
+		var forward := (end - start).normalized()
+		var lateral := forward.cross(Vector3.UP).normalized()
+		var piece_length := start.distance_to(end) + 0.8
+		# Keep modular road surfaces level across their width; camera/chassis roll
+		# communicates banking without opening seams between adjacent colliders.
+		var bank := 0.0
+		# A wider overlapping asphalt skirt hides the triangular seams produced by
+		# modular rectangles on tight 3D curves while the road collider stays precise.
+		var underlay := add_box(self, Vector3(ROAD_WIDTH + 6.0, 0.18, piece_length + 6.0), midpoint - Vector3.UP * 0.25, asphalt)
+		orient_track_piece(underlay, end, bank)
+		var road := add_box(self, Vector3(ROAD_WIDTH, 0.25, piece_length), midpoint - Vector3.UP * 0.12, asphalt, true)
+		orient_track_piece(road, end, bank)
+		road.add_to_group("bridge" if absf(midpoint.y) > 8.0 else "track")
 		for side in [-1.0, 1.0]:
-			var lateral: Vector3 = Vector3(cos(heading), 0, -sin(heading)) * float(side)
 			var curb_color := curb_red if i % 2 == 0 else curb_white
-			add_box(self, Vector3(0.65, 0.16, SEGMENT_LENGTH), Vector3(x, 0.02, z) + lateral * (ROAD_WIDTH * 0.5), curb_color, false, heading)
-			add_box(self, Vector3(0.35, 1.1, SEGMENT_LENGTH), Vector3(x, 0.48, z) + lateral * (ROAD_WIDTH * 0.5 + 1.05), barrier_mat, true, heading)
+			var side_offset := lateral * float(side)
+			var curb_position := midpoint + Vector3.UP * 0.02 + side_offset * (ROAD_WIDTH * 0.5)
+			var curb := add_box(self, Vector3(0.65, 0.16, piece_length), curb_position, curb_color)
+			orient_track_piece(curb, end + side_offset * (ROAD_WIDTH * 0.5), bank)
+			var barrier_position := midpoint + Vector3.UP * 0.48 + side_offset * (ROAD_WIDTH * 0.5 + 1.05)
+			var barrier := add_box(self, Vector3(0.35, 1.1, piece_length), barrier_position, barrier_mat, true)
+			orient_track_piece(barrier, end + side_offset * (ROAD_WIDTH * 0.5 + 1.05), bank)
 		if i % 2 == 0:
-			add_box(self, Vector3(0.12, 0.025, 5.0), Vector3(x, 0.02, z), line_mat, false, heading)
+			var line := add_box(self, Vector3(0.12, 0.025, minf(5.0, piece_length)), midpoint + Vector3.UP * 0.02, line_mat)
+			orient_track_piece(line, end, bank)
 	# Start and finish markings.
 	for lane in range(-4, 5):
 		var start_color := Color.WHITE if lane % 2 == 0 else Color("111111")
-		add_box(self, Vector3(1.8, 0.04, 1.2), Vector3(center_x(-4.0) + lane * 1.8, 0.04, -4.0), make_material(start_color))
+		add_box(self, Vector3(1.8, 0.04, 1.2), Vector3(center_x(-4.0) + lane * 1.8, track_y(-4.0) + 0.04, -4.0), make_material(start_color))
 	for lane in range(-4, 5):
 		var color := Color.WHITE if lane % 2 == 0 else Color("111111")
-		add_box(self, Vector3(1.8, 0.04, 1.2), Vector3(center_x(-TRACK_LENGTH) + lane * 1.8, 0.04, -TRACK_LENGTH), make_material(color))
+		add_box(self, Vector3(1.8, 0.04, 1.2), Vector3(center_x(-TRACK_LENGTH) + lane * 1.8, track_y(-TRACK_LENGTH) + 0.04, -TRACK_LENGTH), make_material(color))
+
+
+func orient_track_piece(piece: Node3D, target: Vector3, bank: float) -> void:
+	piece.look_at(target, Vector3.UP)
+	piece.rotate_object_local(Vector3.BACK, bank)
 
 
 func build_scenery() -> void:
@@ -203,6 +257,44 @@ func build_scenery() -> void:
 			tree_index += 1
 		scenery_z -= rng.randf_range(75.0, 125.0)
 	build_portrait_scenery(steel, red, yellow, blue)
+	build_landmarks(steel, yellow, red, blue)
+
+
+func build_landmarks(steel: Material, yellow: Material, red: Material, blue: Material) -> void:
+	# Rock formations, tunnel portals, a high viaduct, wind turbines and city towers
+	# make each part of the lap readable at racing speed.
+	var rock := make_material(Color("785f49"), 0.0, 1.0)
+	var concrete := make_material(Color("66717c"), 0.05, 0.85)
+	for z in [-2050.0, -2250.0, -2450.0, -6800.0, -7100.0, -7450.0]:
+		for side in [-1.0, 1.0]:
+			var p := Vector3(center_x(z) + side * 22.0, track_y(z), z)
+			var formation := add_cylinder(self, 5.0, 10.0, p + Vector3.UP * 5.0, rock, 1.5)
+			formation.add_to_group("rock_scenery")
+	# Two open-ended tunnel sequences; repeated arches read as a tunnel without trapping camera.
+	for tunnel_z in [-3050.0, -9300.0]:
+		for arch_index in range(10):
+			var z: float = tunnel_z - arch_index * 7.0
+			var x := center_x(z); var y := track_y(z); var heading := track_heading(z)
+			for arch_part in [
+				add_box(self, Vector3(1.2, 7.0, 1.0), Vector3(x - 9.2, y + 3.4, z), concrete, false, heading),
+				add_box(self, Vector3(1.2, 7.0, 1.0), Vector3(x + 9.2, y + 3.4, z), concrete, false, heading),
+				add_box(self, Vector3(19.6, 1.0, 1.0), Vector3(x, y + 7.0, z), concrete, false, heading),
+			]:
+				arch_part.add_to_group("tunnel")
+	# Bridge piers underneath the elevated approach.
+	for z in range(-5900, -7900, -100):
+		var ground_to_road := maxf(2.0, track_y(float(z)))
+		add_cylinder(self, 1.2, ground_to_road, Vector3(center_x(float(z)), ground_to_road * 0.5 - 0.2, float(z)), concrete)
+	# Varied silhouettes: turbines and cylindrical city structures.
+	for z in [-4500.0, -4800.0, -10200.0, -10700.0]:
+		var side := -1.0 if int(absf(z)) % 2 == 0 else 1.0
+		var p := Vector3(center_x(z) + side * 28.0, track_y(z), z)
+		add_cylinder(self, 0.55, 14.0, p + Vector3.UP * 7.0, steel, 0.25)
+		add_box(self, Vector3(9.0, 0.35, 0.35), p + Vector3.UP * 13.5, yellow, false, track_heading(z))
+	for z in [-10800.0, -11000.0, -11300.0]:
+		for side in [-1.0, 1.0]:
+			var p := Vector3(center_x(z) + side * 25.0, 0.0, z)
+			add_cylinder(self, 4.0, 12.0 + fmod(absf(z), 9.0), p + Vector3.UP * 6.0, [red, blue, steel][int(absf(z)) % 3])
 
 
 func build_portrait_scenery(steel: Material, red: Material, yellow: Material, blue: Material) -> void:
@@ -239,7 +331,7 @@ func build_car() -> void:
 	car.name = "PlayerCar"
 	car.collision_layer = 1
 	car.collision_mask = 1
-	start_position = Vector3(center_x(0), 0.55, 0)
+	start_position = Vector3(center_x(0), track_y(0) + 0.55, 0)
 	car.position = start_position
 	add_child(car)
 	var collider := CollisionShape3D.new()
@@ -285,9 +377,12 @@ func build_obstacles() -> void:
 		lanes.shuffle()
 		for index in range(blocked_count):
 			var lane := lanes[index]
-			var x: float = center_x(z) + float(lane_offsets[lane])
+			var heading := track_heading(z)
+			var lateral := Vector3(cos(heading), 0.0, -sin(heading))
+			var obstacle_position := Vector3(center_x(z), track_y(z), z) + lateral * float(lane_offsets[lane])
 			var size := Vector3(2.2, 1.65, 2.2) if row % 3 else Vector3(2.8, 1.25, 1.7)
-			var obstacle := add_box(self, size, Vector3(x, size.y * 0.5, z), obstacle_materials[row % obstacle_materials.size()], true)
+			obstacle_position.y += size.y * 0.5
+			var obstacle := add_box(self, size, obstacle_position, obstacle_materials[row % obstacle_materials.size()], true, heading)
 			obstacle.add_to_group("obstacle")
 		row += 1
 		# Spacing narrows gradually, while every row still has a guaranteed open lane.
@@ -335,7 +430,7 @@ func build_hud() -> void:
 	fuel_bar.value = fuel
 	fuel_bar.show_percentage = true
 	column.add_child(fuel_bar)
-	status_label = make_label("WASD DRIVE | SPACE BRAKE | F CAMERA FUEL | G DEBUG FILL | R RESET", 16, Color("f2f4f6"))
+	status_label = make_label("WASD DRIVE (S BRAKE/REVERSE) | SPACE BRAKE | F CAMERA FUEL | G DEBUG FILL | R RESET", 16, Color("f2f4f6"))
 	status_label.anchor_right = 1.0
 	status_label.anchor_top = 1.0
 	status_label.anchor_bottom = 1.0
@@ -424,38 +519,57 @@ func update_car(delta: float) -> void:
 		car.move_and_slide()
 		return
 	var throttle := 1.0 if Input.is_key_pressed(KEY_W) else 0.0
-	var braking := Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_SPACE)
+	var reverse_pressed := Input.is_key_pressed(KEY_S)
+	var hard_braking := Input.is_key_pressed(KEY_SPACE)
 	var steer := 0.0
 	if Input.is_key_pressed(KEY_A): steer -= 1.0
 	if Input.is_key_pressed(KEY_D): steer += 1.0
 	var progress := clampf(distance / TRACK_LENGTH, 0.0, 1.0)
-	var current_max := base_max_speed + progress * 22.0
-	if boost_time > 0.0:
-		current_max += 17.0
-	if fuel <= 0.0:
-		current_max = 12.0
-		throttle = minf(throttle, 0.35)
-	if throttle > 0:
-		speed = move_toward(speed, current_max, (18.0 + progress * 3.0) * delta)
-	else:
-		speed = move_toward(speed, 0.0, 7.0 * delta)
-	if braking:
-		speed = move_toward(speed, 0.0, 36.0 * delta)
-	var speed_ratio := clampf(speed / maxf(current_max, 1.0), 0.0, 1.0)
-	var steering_rate := lerpf(2.25, 1.25, speed_ratio)
-	if absf(steer) > 0.01 and speed > 1.0:
-		car.rotate_y(-steer * steering_rate * delta)
+	speed = compute_drive_speed(speed, throttle, reverse_pressed, hard_braking, progress, delta)
+	var speed_ratio := clampf(absf(speed) / 110.0, 0.0, 1.0)
+	var steering_rate := lerpf(2.35, 0.78, speed_ratio)
+	if absf(steer) > 0.01 and absf(speed) > 0.6:
+		var reverse_steering := -1.0 if speed < 0.0 else 1.0
+		car.rotate_y(-steer * reverse_steering * steering_rate * delta)
 	# Arcade stability gently aligns the car to the road while preserving sharp player input.
 	var desired_heading := track_heading(car.global_position.z)
 	car.rotation.y = lerp_angle(car.rotation.y, desired_heading, delta * (0.18 if absf(steer) > 0.1 else 0.7))
 	var forward := -car.global_transform.basis.z.normalized()
-	car.velocity = forward * speed
-	car.velocity.y = -1.0
-	car.move_and_slide()
-	for index in range(car.get_slide_collision_count()):
-		var collision := car.get_slide_collision(index)
-		if collision.get_collider() is Node and collision.get_collider().is_in_group("obstacle"):
-			handle_obstacle_hit()
+	# Substep at very high speed so thin obstacles cannot be skipped between ticks.
+	var movement_steps := maxi(1, ceili(absf(speed) * delta / 1.25))
+	for movement_step in range(movement_steps):
+		car.velocity = forward * speed
+		car.velocity.y = -7.0
+		car.velocity /= float(movement_steps)
+		car.move_and_slide()
+		for collision_index in range(car.get_slide_collision_count()):
+			var step_collision := car.get_slide_collision(collision_index)
+			if step_collision.get_collider() is Node and step_collision.get_collider().is_in_group("obstacle"):
+				handle_obstacle_hit()
+	# Settle the arcade chassis onto steep modular road pieces and banking.
+	var road_height := track_y(car.global_position.z) + 0.55
+	if absf(car.global_position.x - center_x(car.global_position.z)) < ROAD_WIDTH * 0.65:
+		car.global_position.y = lerpf(car.global_position.y, road_height, 1.0 - exp(-delta * 18.0))
+
+
+func compute_drive_speed(current_speed: float, throttle: float, reverse_pressed: bool, hard_braking: bool, progress: float, delta: float) -> float:
+	# Holding W continues to accelerate; tapering keeps extreme speeds controllable.
+	var acceleration := (18.0 + progress * 3.0) / (1.0 + maxf(current_speed, 0.0) / 105.0)
+	if boost_time > 0.0:
+		acceleration *= 1.75
+	if fuel <= 0.0:
+		throttle = minf(throttle, 0.35)
+	if throttle > 0.0:
+		current_speed = move_toward(current_speed, 0.0, 34.0 * delta) if current_speed < 0.0 else current_speed + acceleration * delta
+	elif reverse_pressed:
+		# S brakes forward motion first and only selects reverse near a standstill.
+		current_speed = move_toward(current_speed, 0.0, 42.0 * delta) if current_speed > 0.5 else move_toward(current_speed, -15.0, 11.0 * delta)
+	else:
+		current_speed = move_toward(current_speed, 0.0, 5.5 * delta)
+	if hard_braking:
+		current_speed = move_toward(current_speed, 0.0, 55.0 * delta)
+	# Numerical/physics guard only; normal play never reaches this value.
+	return clampf(current_speed, -15.0, 300.0)
 
 
 func handle_obstacle_hit() -> void:
@@ -488,10 +602,11 @@ func update_camera(delta: float) -> void:
 	chase_camera.global_position = chase_camera.global_position.lerp(target_position, 1.0 - exp(-delta * 7.0))
 	var look_target := car.global_position - basis.z * 5.0 + Vector3.UP * 0.55
 	chase_camera.look_at(look_target, Vector3.UP)
+	chase_camera.rotate_object_local(Vector3.BACK, track_bank(car.global_position.z) * 0.65)
 
 
 func update_hud() -> void:
-	speed_label.text = "%03d KM/H" % int(speed * 3.6)
+	speed_label.text = ("REV %03d KM/H" % int(absf(speed) * 3.6)) if speed < -0.5 else ("%03d KM/H" % int(speed * 3.6))
 	timer_label.text = format_time(elapsed)
 	distance_label.text = "%04d / %d M" % [int(distance), int(TRACK_LENGTH)]
 	fuel_bar.value = fuel
@@ -523,7 +638,7 @@ func reset_car() -> void:
 	ghost_time = 0.0
 	race_active = true
 	finish_portrait.visible = false
-	status_label.text = "WASD DRIVE | SPACE BRAKE | F CAMERA FUEL | G DEBUG FILL | R RESET"
+	status_label.text = "WASD DRIVE (S BRAKE/REVERSE) | SPACE BRAKE | F CAMERA FUEL | G DEBUG FILL | R RESET"
 	refuel_in_progress = false
 	refuel_cooldown = 0.0
 	countdown_time = 3.2

@@ -38,6 +38,10 @@ Open the repository root in Godot 4.7 and run the project. The downloaded Godot 
 
 Controls: `W` accelerate, `S`/`Space` brake, `A`/`D` steer, `F` record and analyze a refuelling video, `G` instantly refill to 100% for debugging, and `R` reset. Start the Python service before using `F`; `G` works without it.
 
+`S` brakes while moving forward and engages reverse near a standstill. Forward acceleration has no normal gameplay cap; steering becomes less responsive and collision movement is sub-stepped as speed rises.
+
+The 12 km course includes technical esses, a mountain spiral, major elevation changes, a bridge/viaduct sector, two tunnel sequences, rocks, turbines, city structures, trees, grandstands, and personalized portrait billboards.
+
 ## API response
 
 ```json
