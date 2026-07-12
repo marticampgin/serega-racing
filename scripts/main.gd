@@ -16,6 +16,8 @@ var race_active := true
 var shield_hits := 1
 var collision_cooldown := 0.0
 var collision_stop_time := 0.0
+var obstacle_slide_time := 0.0
+var obstacle_block_normal := Vector3.ZERO
 var boost_time := 0.0
 var ghost_time := 0.0
 var refuel_request: HTTPRequest
@@ -68,10 +70,18 @@ func capture_qa_screenshot(path: String) -> void:
 	get_tree().quit(0 if error == OK else 1)
 
 
+func sector_window(distance: float, start: float, finish: float, fade: float) -> float:
+	return smoothstep(start, start + fade, distance) * (1.0 - smoothstep(finish - fade, finish, distance))
+
+
 func center_x(z: float) -> float:
 	var d := maxf(0.0, -z)
 	# Layer broad sweepers, technical esses, and a long spiral-like mountain section.
 	var x := sin(d / 155.0) * 22.0 + sin(d / 61.0) * 7.0
+	# Localized omega and marina-crescent sectors create roundabout/loop-like arcs
+	# without reversing Z progress, which keeps grounding and finish logic reliable.
+	x += sector_window(d, 2600.0, 3350.0, 140.0) * sin((d - 2600.0) / 70.0) * 22.0
+	x += sector_window(d, 7900.0, 9000.0, 180.0) * (sin((d - 7900.0) / 110.0) * 30.0 + sin((d - 7900.0) / 52.0) * 6.0)
 	if d > 6500.0 and d < 8050.0:
 		x += sin((d - 6500.0) / 92.0) * 24.0
 	return x
@@ -157,14 +167,21 @@ func is_water_crossing(z: float) -> bool:
 	return (d > 1250.0 and d < 1650.0) or (d > 3500.0 and d < 3950.0) or (d > 6000.0 and d < 6550.0) or (d > 8800.0 and d < 9250.0)
 
 
-func add_palm(position: Vector3, scale_factor: float, trunk: Material, leaves: Material, accent: Material) -> void:
+func add_palm(position: Vector3, scale_factor: float, trunk: Material, leaves: Material, accent: Material, variant := 0) -> void:
 	var height := 5.2 * scale_factor
+	if variant == 1:
+		height *= 1.28
+	elif variant == 2:
+		height *= 0.78
 	var palm := add_cylinder(self, 0.22 * scale_factor, height, position + Vector3.UP * height * 0.5, trunk, 0.13 * scale_factor)
 	palm.add_to_group("palm_scenery")
-	for blade in range(5):
-		var angle := TAU * float(blade) / 5.0
+	palm.add_to_group("scenery_variant_%d" % variant)
+	var blade_count := 7 if variant == 2 else 5
+	for blade in range(blade_count):
+		var angle := TAU * float(blade) / float(blade_count)
 		var crown := position + Vector3.UP * (height + 0.1)
-		var frond := add_box(self, Vector3(0.42, 0.12, 3.7) * scale_factor, crown + Vector3(cos(angle), -0.15, sin(angle)) * 1.25 * scale_factor, leaves)
+		var frond_length := 2.9 if variant == 1 else (4.1 if variant == 2 else 3.7)
+		var frond := add_box(self, Vector3(0.42, 0.12, frond_length) * scale_factor, crown + Vector3(cos(angle), -0.15, sin(angle)) * 1.25 * scale_factor, leaves)
 		frond.rotation.y = -angle
 		frond.rotation.x = 0.13
 	add_cylinder(self, 0.34 * scale_factor, 0.25 * scale_factor, position + Vector3.UP * height, accent, 0.18 * scale_factor)
@@ -197,14 +214,42 @@ func add_beach_house(position: Vector3, heading: float, body: Material, accent: 
 			add_box(self, Vector3(width * 0.75, 0.18, 1.35), position + balcony_offset, accent, false, heading)
 
 
+func add_shop(position: Vector3, heading: float, body: Material, awning: Material, glass: Material, sign_color: Material, variant := 0) -> void:
+	var width := 7.5 + variant * 1.5
+	var shop := add_box(self, Vector3(width, 4.1, 6.0), position + Vector3.UP * 2.05, body, false, heading)
+	shop.add_to_group("shop_scenery")
+	shop.add_to_group("neighborhood_scenery")
+	var front := Vector3(0, 1.7, -3.08).rotated(Vector3.UP, heading)
+	add_box(self, Vector3(width * 0.72, 2.25, 0.16), position + front, glass, false, heading)
+	var canopy := Vector3(0, 3.15, -3.65).rotated(Vector3.UP, heading)
+	add_box(self, Vector3(width + 0.45, 0.26, 1.25), position + canopy, awning, false, heading)
+	var sign_offset := Vector3(0, 4.55, -3.1).rotated(Vector3.UP, heading)
+	add_box(self, Vector3(width * 0.78, 0.72, 0.22), position + sign_offset, sign_color, false, heading)
+	if variant == 2:
+		add_cylinder(self, 0.9, 0.25, position + Vector3.UP * 5.1, sign_color)
+
+
+func add_islet(position: Vector3, radius: float, sand: Material, trunk: Material, leaves: Material, accent: Material) -> void:
+	var island := add_cylinder(self, radius, 0.45, position, sand, radius * 0.78)
+	island.add_to_group("offshore_islet_scenery")
+	for index in range(3):
+		var offset := Vector3(cos(index * 2.1), 0.25, sin(index * 2.1)) * radius * 0.38
+		add_palm(position + offset, 0.58 + index * 0.08, trunk, leaves, accent, index % 3)
+
+
 func build_world() -> void:
 	var environment := WorldEnvironment.new()
 	var env := Environment.new()
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color("87bce8")
+	var panorama := PanoramaSkyMaterial.new()
+	panorama.panorama = load("res://assets/generated/backgrounds/synthwave-island-horizon.png")
+	panorama.energy_multiplier = 0.85
+	var synthwave_sky := Sky.new()
+	synthwave_sky.sky_material = panorama
+	env.sky = synthwave_sky
+	env.background_mode = Environment.BG_SKY
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color("d9e7ff")
-	env.ambient_light_energy = 0.75
+	env.ambient_light_color = Color("c9b5ff")
+	env.ambient_light_energy = 0.62
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	environment.environment = env
 	add_child(environment)
@@ -302,28 +347,32 @@ func build_scenery() -> void:
 				var seat_mat: Material = [red, yellow, blue][(seat + tier) % 3]
 				add_box(self, Vector3(1.2, 0.5, 0.8), Vector3(stand_x - 4.8 + seat * 1.9, 1.0 + tier * 0.75, -58.0 + side * tier * 1.5), seat_mat)
 	var neon_pink := make_material(Color("ff3fcf"), 0.25, 0.25)
-	# Palms and neon lamps establish the island boulevard throughout the full lap.
+	# Palms gather into recognizable groves with quieter beach gaps between them.
 	var scenery_z := -115.0
 	var tree_index := 0
 	while scenery_z > -TRACK_LENGTH:
 		var heading := track_heading(scenery_z)
 		var lateral := Vector3(cos(heading), 0.0, -sin(heading))
+		var district := int(absf(scenery_z) / 700.0) % 4
 		for side in [-1.0, 1.0]:
 			var offset := float(side) * (15.0 + rng.randf_range(0.0, 8.0))
 			var tree_position := Vector3(center_x(scenery_z), -0.25, scenery_z) + lateral * offset
-			if not is_water_crossing(scenery_z):
-				add_palm(tree_position, rng.randf_range(0.82, 1.2), trunk, leaves_light if tree_index % 3 == 0 else leaves_dark, neon_pink)
+			if not is_water_crossing(scenery_z) and district != 3:
+				var variant := tree_index % 3
+				add_palm(tree_position, rng.randf_range(0.72, 1.24), trunk, leaves_light if variant == 2 else leaves_dark, neon_pink, variant)
+				# Occasional close pairs create a grove silhouette without filling every beach.
+				if district == 1 and tree_index % 4 == 0:
+					add_palm(tree_position + lateral * side * 3.5 + Vector3(0, 0, -4), rng.randf_range(0.62, 0.88), trunk, leaves_light, neon_pink, 2)
 			tree_index += 1
-		if tree_index % 2 == 0:
+		if tree_index % 3 == 0:
 			add_lamp(Vector3(center_x(scenery_z), track_y(scenery_z), scenery_z) + lateral * 10.7, neon_pink if tree_index % 4 == 0 else blue, steel)
-		scenery_z -= rng.randf_range(95.0, 125.0)
+		scenery_z -= rng.randf_range(105.0, 145.0)
 	build_portrait_scenery(steel, red, yellow, blue)
 	build_landmarks(steel, yellow, red, blue)
 
 
 func build_landmarks(steel: Material, yellow: Material, red: Material, blue: Material) -> void:
 	# Beach houses, hotels, tunnels and island bridges make every sector readable.
-	var rock := make_material(Color("785f49"), 0.0, 1.0)
 	var concrete := make_material(Color("5c507d"), 0.05, 0.75)
 	var pink := make_material(Color("d94888"), 0.05, 0.55)
 	var mint := make_material(Color("32bfa1"), 0.05, 0.55)
@@ -331,11 +380,22 @@ func build_landmarks(steel: Material, yellow: Material, red: Material, blue: Mat
 	var cream := make_material(Color("d8c69f"), 0.0, 0.75)
 	var glass := make_material(Color("143a68"), 0.45, 0.16)
 	var purple := make_material(Color("863dba"), 0.2, 0.35)
-	for z in [-2050.0, -2250.0, -2450.0, -6800.0, -7100.0, -7450.0]:
-		for side in [-1.0, 1.0]:
-			var p := Vector3(center_x(z) + side * 22.0, track_y(z), z)
-			var formation := add_cylinder(self, 5.0, 10.0, p + Vector3.UP * 5.0, rock, 1.5)
-			formation.add_to_group("rock_scenery")
+	var coral := make_material(Color("ff8066"), 0.02, 0.6)
+	var aqua := make_material(Color("35e0dd"), 0.08, 0.42)
+	var sand := make_material(Color("d9ae65"), 0.0, 0.92)
+	var trunk := make_material(Color("8d542f"))
+	var leaves := make_material(Color("0c9b70"), 0.0, 0.72)
+	# Offshore keys and tiny marinas replace the old giant tapered formations that
+	# looked like floating traffic cones.
+	for z in [-900.0, -2750.0, -4650.0, -8200.0, -10900.0]:
+		var side := -1.0 if int(absf(z) / 100.0) % 2 == 0 else 1.0
+		var island_pos := Vector3(center_x(z) + side * 70.0, -0.85, z)
+		add_islet(island_pos, 12.0 + fmod(absf(z), 7.0), sand, trunk, leaves, coral)
+		var dock := add_box(self, Vector3(2.2, 0.25, 14.0), island_pos + Vector3(-side * 10.0, 0.25, 8.0), concrete, false, 0.18 * side)
+		dock.add_to_group("marina_scenery")
+		for boat_index in range(2):
+			var boat := add_box(self, Vector3(2.0, 0.55, 4.2), island_pos + Vector3(-side * (14.0 + boat_index * 3.5), 0.0, 6.0 + boat_index * 5.0), coral if boat_index == 0 else aqua, false, 0.12 * side)
+			boat.add_to_group("marina_scenery")
 	# Five long neon tunnel sequences distributed across the course.
 	for tunnel_z in [-1750.0, -3150.0, -5050.0, -7350.0, -10150.0]:
 		for arch_index in range(18):
@@ -359,18 +419,62 @@ func build_landmarks(steel: Material, yellow: Material, red: Material, blue: Mat
 			add_box(self, Vector3(1.1, 8.0, 1.1), Vector3(gx - 10.0, gy + 4.0, gateway_z), purple)
 			add_box(self, Vector3(1.1, 8.0, 1.1), Vector3(gx + 10.0, gy + 4.0, gateway_z), purple)
 			add_box(self, Vector3(21.0, 0.55, 1.1), Vector3(gx, gy + 7.7, gateway_z), pink)
-	# Colorful beach homes and periodic larger art-deco hotels.
-	for z in range(-500, -11800, -320):
-		if is_water_crossing(float(z)):
+	# Build dense little neighborhoods separated by open beaches. Rows, alleys and
+	# courtyards read as places rather than evenly spaced procedural props.
+	var neighborhood_centers := [-620.0, -2350.0, -4250.0, -5520.0, -7820.0, -9650.0, -11300.0]
+	var palette: Array[Material] = [pink, mint, peach, blue, cream]
+	for neighborhood_index in range(neighborhood_centers.size()):
+		var center_z: float = neighborhood_centers[neighborhood_index]
+		if is_water_crossing(center_z):
 			continue
-		var heading := track_heading(float(z))
+		var heading := track_heading(center_z)
 		var lateral := Vector3(cos(heading), 0, -sin(heading))
-		var house_index := int(abs(z) / 320)
-		var side := -1.0 if house_index % 2 == 0 else 1.0
-		var p := Vector3(center_x(float(z)), -0.25, float(z)) + lateral * side * (25.0 + float(abs(z) % 7))
-		var large: bool = absi(z) % 1200 == 500
-		var palette: Array[Material] = [pink, mint, peach, blue]
-		add_beach_house(p, heading - side * PI * 0.5, palette[house_index % palette.size()], cream, glass, purple, large)
+		var side := -1.0 if neighborhood_index % 2 == 0 else 1.0
+		var anchor := Vector3(center_x(center_z), -0.25, center_z) + lateral * side * 22.0
+		var district_root := Node3D.new()
+		district_root.name = "Neighborhood_%02d" % neighborhood_index
+		district_root.add_to_group("neighborhood_scenery")
+		add_child(district_root)
+		# Three storefronts make a lively main street frontage.
+		for shop_index in range(3):
+			var shop_z := center_z + (shop_index - 1) * 10.5
+			var shop_pos := Vector3(center_x(shop_z), -0.25, shop_z) + lateral * side * 20.0
+			add_shop(shop_pos, heading - side * PI * 0.5, palette[(neighborhood_index + shop_index) % palette.size()], coral if shop_index % 2 == 0 else aqua, glass, yellow if shop_index == 1 else purple, shop_index)
+		# Homes step back to form an alley and a palm-lined courtyard.
+		for house_index in range(3):
+			var row_offset := Vector3(0, 0, (house_index - 1) * 13.0).rotated(Vector3.UP, heading)
+			var setback := lateral * side * (10.0 + (house_index % 2) * 6.0)
+			var house_pos := anchor + setback + row_offset
+			add_beach_house(house_pos, heading - side * PI * 0.5, palette[(neighborhood_index + house_index + 2) % palette.size()], cream, glass, coral, false)
+			if house_index != 1:
+				add_palm(house_pos - lateral * side * 7.0, 0.72 + house_index * 0.12, trunk, leaves, coral, (neighborhood_index + house_index) % 3)
+		# A shorter row on the opposite side turns each district into a real street
+		# while leaving sightline gaps between neighborhoods.
+		var opposite := -side
+		for opposite_index in range(2):
+			var opposite_z := center_z + (opposite_index - 0.5) * 12.0
+			var opposite_shop := Vector3(center_x(opposite_z), -0.25, opposite_z) + lateral * opposite * 21.0
+			add_shop(opposite_shop, heading - opposite * PI * 0.5, palette[(neighborhood_index + opposite_index + 1) % palette.size()], aqua, glass, coral, opposite_index)
+			var opposite_house := opposite_shop + lateral * opposite * 12.0 + Vector3(0, 0, -10.0)
+			add_beach_house(opposite_house, heading - opposite * PI * 0.5, palette[(neighborhood_index + opposite_index + 3) % palette.size()], cream, glass, purple, false)
+		var alley_position := anchor + lateral * side * 12.0
+		var alley := add_box(self, Vector3(3.2, 0.12, 28.0), alley_position + Vector3.UP * 0.02, concrete, false, heading)
+		alley.add_to_group("alley_scenery")
+		var courtyard := add_cylinder(self, 4.6, 0.16, anchor + lateral * side * 20.0 + Vector3.UP * 0.05, aqua, 4.6)
+		courtyard.add_to_group("courtyard_scenery")
+		# A landmark hotel punctuates every other neighborhood.
+		if neighborhood_index % 2 == 1:
+			var hotel_pos := anchor + lateral * side * 28.0 + Vector3(0, 0, -8.0)
+			add_beach_house(hotel_pos, heading - side * PI * 0.5, cream, coral, glass, purple, true)
+	# Standalone towers create a distant skyline at two urban sectors.
+	for z in [-4400.0, -9850.0]:
+		for tower_index in range(3):
+			var side := -1.0 if tower_index % 2 == 0 else 1.0
+			var p := Vector3(center_x(z) + side * (48.0 + tower_index * 13.0), 0.0, z - tower_index * 18.0)
+			var tower := add_box(self, Vector3(9.0 + tower_index, 17.0 + tower_index * 6.0, 10.0), p + Vector3.UP * (8.5 + tower_index * 3.0), palette[tower_index], false, track_heading(z))
+			tower.add_to_group("skyline_scenery")
+			for floor_index in range(3 + tower_index):
+				add_box(self, Vector3(6.2, 0.55, 0.18), p + Vector3(0, 3.0 + floor_index * 4.2, -5.1), aqua if floor_index % 2 == 0 else coral, false, track_heading(z))
 	# Varied silhouettes: turbines and cylindrical city structures.
 	for z in [-4500.0, -4800.0, -10200.0, -10700.0]:
 		var side := -1.0 if int(absf(z)) % 2 == 0 else 1.0
@@ -561,6 +665,7 @@ func _physics_process(delta: float) -> void:
 		return
 	collision_cooldown = maxf(0.0, collision_cooldown - delta)
 	collision_stop_time = maxf(0.0, collision_stop_time - delta)
+	obstacle_slide_time = maxf(0.0, obstacle_slide_time - delta)
 	boost_time = maxf(0.0, boost_time - delta)
 	ghost_time = maxf(0.0, ghost_time - delta)
 	refuel_cooldown = maxf(0.0, refuel_cooldown - delta)
@@ -620,25 +725,42 @@ func update_car(delta: float) -> void:
 	speed = compute_drive_speed(speed, throttle, reverse_pressed, hard_braking, progress, delta)
 	var speed_ratio := clampf(absf(speed) / 110.0, 0.0, 1.0)
 	var steering_rate := lerpf(2.35, 0.78, speed_ratio)
-	if absf(steer) > 0.01 and absf(speed) > 0.6:
+	if absf(steer) > 0.01 and (absf(speed) > 0.6 or (obstacle_slide_time > 0.0 and throttle > 0.0)):
 		var reverse_steering := -1.0 if speed < 0.0 else 1.0
 		car.rotate_y(-steer * reverse_steering * steering_rate * delta)
 	# Arcade stability gently aligns the car to the road while preserving sharp player input.
 	var desired_heading := track_heading(car.global_position.z)
 	car.rotation.y = lerp_angle(car.rotation.y, desired_heading, delta * (0.18 if absf(steer) > 0.1 else 0.7))
 	var forward := -car.global_transform.basis.z.normalized()
+	var intended_motion := forward * speed
+	if obstacle_slide_time > 0.0 and obstacle_block_normal.length_squared() > 0.1:
+		intended_motion = project_motion_along_obstacle(intended_motion, obstacle_block_normal)
+		var tangent := Vector3.UP.cross(obstacle_block_normal).normalized()
+		var alignment := absf(forward.dot(tangent))
+		speed = signf(speed) * minf(absf(speed), 3.0 + 28.0 * alignment)
+		if intended_motion.length() > absf(speed):
+			intended_motion = intended_motion.normalized() * absf(speed)
 	# Substep at very high speed so thin obstacles cannot be skipped between ticks.
 	var movement_steps := maxi(1, ceili(absf(speed) * delta / 1.25))
 	for movement_step in range(movement_steps):
-		car.velocity = forward * speed
+		car.velocity = intended_motion
 		car.velocity.y = -7.0
 		car.velocity /= float(movement_steps)
 		car.move_and_slide()
 		for collision_index in range(car.get_slide_collision_count()):
 			var step_collision := car.get_slide_collision(collision_index)
 			if step_collision.get_collider() is Node and step_collision.get_collider().is_in_group("obstacle"):
-				handle_obstacle_hit()
+				handle_obstacle_hit(step_collision.get_normal(), intended_motion)
+				break
 	enforce_track_safety(delta)
+
+
+func project_motion_along_obstacle(intended: Vector3, normal: Vector3) -> Vector3:
+	var flat_normal := Vector3(normal.x, 0.0, normal.z)
+	if flat_normal.length_squared() < 0.001:
+		return intended
+	flat_normal = flat_normal.normalized()
+	return intended.slide(flat_normal) if intended.dot(flat_normal) < 0.0 else intended
 
 
 func enforce_track_safety(delta: float) -> void:
@@ -689,11 +811,16 @@ func compute_drive_speed(current_speed: float, throttle: float, reverse_pressed:
 	return clampf(current_speed, -15.0, 300.0)
 
 
-func handle_obstacle_hit() -> void:
+func handle_obstacle_hit(normal := Vector3.ZERO, _incoming := Vector3.ZERO) -> void:
+	var flat_normal := Vector3(normal.x, 0.0, normal.z)
+	if flat_normal.length_squared() > 0.001:
+		obstacle_block_normal = flat_normal.normalized()
 	if collision_cooldown > 0.0:
+		obstacle_slide_time = maxf(obstacle_slide_time, 0.25)
 		return
 	collision_cooldown = 0.9
-	collision_stop_time = 0.7
+	collision_stop_time = 0.14
+	obstacle_slide_time = 0.9
 	speed = 0.0
 	car.velocity = Vector3.ZERO
 	if shield_hits > 0:
@@ -757,6 +884,8 @@ func reset_car() -> void:
 	ghost_time = 0.0
 	collision_cooldown = 0.0
 	collision_stop_time = 0.0
+	obstacle_slide_time = 0.0
+	obstacle_block_normal = Vector3.ZERO
 	race_active = true
 	finish_portrait.visible = false
 	status_label.text = "WASD DRIVE (S BRAKE/REVERSE) | SPACE BRAKE | F CAMERA FUEL | G DEBUG FILL | R RESET"

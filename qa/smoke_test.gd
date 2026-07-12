@@ -17,6 +17,34 @@ func check(condition: bool, message: String) -> void:
 		push_error("FAIL: " + message)
 
 
+func mesh_bottom_y(node: MeshInstance3D) -> float:
+	var bounds := node.mesh.get_aabb()
+	return node.global_position.y + bounds.position.y * node.global_basis.get_scale().y
+
+
+func count_floating_roots(nodes: Array[Node], race: Node) -> int:
+	var floating := 0
+	for node in nodes:
+		if not node is MeshInstance3D:
+			continue
+		var mesh_node := node as MeshInstance3D
+		var expected_ground := float(race.call("track_y", mesh_node.global_position.z))
+		if absf(mesh_bottom_y(mesh_node) - expected_ground) > 1.1:
+			floating += 1
+	return floating
+
+
+func count_oversized_cones(race: Node) -> int:
+	var cones := 0
+	for node in race.find_children("*", "MeshInstance3D", true, false):
+		var mesh_node := node as MeshInstance3D
+		if mesh_node.mesh is CylinderMesh:
+			var cylinder := mesh_node.mesh as CylinderMesh
+			if cylinder.height > 5.0 and cylinder.bottom_radius > 3.0 and cylinder.top_radius < cylinder.bottom_radius * 0.5:
+				cones += 1
+	return cones
+
+
 func _run() -> void:
 	var packed := load("res://scenes/main.tscn") as PackedScene
 	check(packed != null, "main scene loads")
@@ -37,12 +65,25 @@ func _run() -> void:
 	check(get_nodes_in_group("obstacle").size() > 10, "randomized obstacle course is populated")
 	check(get_nodes_in_group("bridge").size() > 10, "elevated bridge road and supports exist")
 	check(get_nodes_in_group("tunnel").size() > 10, "tunnel arch sequences exist")
-	check(get_nodes_in_group("rock_scenery").size() > 5, "non-box rock scenery exists")
+	check(get_nodes_in_group("rock_scenery").is_empty(), "legacy giant rock-cone scenery is absent")
+	check(count_oversized_cones(race) == 0, "no oversized cone meshes masquerade as scenery")
 	check(get_nodes_in_group("ocean_scenery").size() == 1, "continuous island ocean exists")
 	check(get_nodes_in_group("palm_scenery").size() > 40, "palms populate the island course")
+	check(get_nodes_in_group("scenery_variant_0").size() >= 8, "short palms form a visible scenery variant")
+	check(get_nodes_in_group("scenery_variant_1").size() >= 8, "tall palms form a visible scenery variant")
+	check(get_nodes_in_group("scenery_variant_2").size() >= 8, "wide palms form a visible scenery variant")
 	check(get_nodes_in_group("lamp_scenery").size() > 20, "neon lamp posts populate the course")
 	check(get_nodes_in_group("house_scenery").size() > 20, "Miami-style beach houses populate the course")
 	check(get_nodes_in_group("hotel_scenery").size() >= 2, "larger art-deco hotels punctuate the skyline")
+	check(get_nodes_in_group("shop_scenery").size() >= 8, "multiple storefronts make commercial sectors lively")
+	check(get_nodes_in_group("neighborhood_scenery").size() >= 12, "building rows create recognizable neighborhoods")
+	check(get_nodes_in_group("alley_scenery").size() >= 3, "alleys break up the building rows")
+	check(get_nodes_in_group("offshore_islet_scenery").size() >= 4, "offshore islets remain visible from the course")
+	var grounded_buildings: Array[Node] = []
+	grounded_buildings.append_array(get_nodes_in_group("house_scenery"))
+	grounded_buildings.append_array(get_nodes_in_group("hotel_scenery"))
+	grounded_buildings.append_array(get_nodes_in_group("shop_scenery"))
+	check(count_floating_roots(grounded_buildings, race) == 0, "houses, hotels, and shops sit on their local ground")
 	check(race.find_children("*", "Sprite3D", true, false).size() >= 6, "personalized portrait billboards remain placed")
 	check(race.get("fuel_bar") is ProgressBar, "fuel HUD exists")
 	check(race.get("status_label") is Label, "race status HUD exists")
@@ -70,6 +111,12 @@ func _run() -> void:
 	race.call("handle_obstacle_hit")
 	check(is_zero_approx(float(race.get("speed"))) and car.velocity.is_zero_approx(), "obstacle collision forces a complete stop")
 	check(float(race.get("collision_stop_time")) > 0.0, "collision lockout prevents steering catapult")
+	var head_on := race.call("project_motion_along_obstacle", Vector3(0, 0, -20), Vector3(0, 0, 1)) as Vector3
+	var glancing := race.call("project_motion_along_obstacle", Vector3(10, 0, -20), Vector3(0, 0, 1)) as Vector3
+	var outward := race.call("project_motion_along_obstacle", Vector3(0, 0, 20), Vector3(0, 0, 1)) as Vector3
+	check(head_on.is_zero_approx(), "head-on motion remains blocked after impact")
+	check(is_equal_approx(glancing.x, 10.0) and is_zero_approx(glancing.z), "glancing motion slides sideways along obstacles")
+	check(outward.is_equal_approx(Vector3(0, 0, 20)), "motion away from an obstacle remains unrestricted")
 	race.set("fuel", 12.0)
 	race.call("debug_refill")
 	check(is_equal_approx(float(race.get("fuel")), 100.0), "debug refill restores full fuel")

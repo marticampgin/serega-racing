@@ -44,6 +44,10 @@ The 12 km course includes technical esses, a mountain spiral, major elevation ch
 
 The setting is a retro-synthwave island with a continuous ocean, sandy keys, palms, neon lamp posts, Miami-inspired beach houses and hotels, five extended tunnel sequences, and four visually exposed water-crossing bridges. Obstacle impacts force a full stop with a short control lockout to prevent collision catapulting.
 
+The skyline uses an original generated synthwave sunset panorama. Seven neighborhood districts add storefront rows, awnings, homes, hotels, alleys and courtyards; offshore islets, docks and boats create depth between denser districts and quieter beaches. The track adds localized omega and marina-crescent curve sectors while preserving reliable forward progress.
+
+Obstacle contact stops the initial impact. After the brief pause, motion into the obstacle remains blocked while steering can build controlled tangential motion to slide around its side.
+
 ## API response
 
 ```json

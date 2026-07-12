@@ -72,6 +72,23 @@ func _run() -> void:
 	if car.global_position.distance_to(expected) > 0.2:
 		fail("off-track recovery did not return car to the road")
 
+	var previous_heading := float(race.call("track_heading", 0.0))
+	var max_heading_step := 0.0
+	var min_center := INF
+	var max_center := -INF
+	for distance in range(12, int(race.TRACK_LENGTH) + 1, 12):
+		var sample_z := -float(distance)
+		var heading := float(race.call("track_heading", sample_z))
+		max_heading_step = maxf(max_heading_step, absf(angle_difference(previous_heading, heading)))
+		previous_heading = heading
+		var center := float(race.call("center_x", sample_z))
+		min_center = minf(min_center, center)
+		max_center = maxf(max_center, center)
+	if max_heading_step > 0.35:
+		fail("track direction changes too abruptly between adjacent segments")
+	if max_center - min_center < 55.0:
+		fail("loop-like curve sectors lack meaningful lateral variety")
+
 	if failures.is_empty():
 		print("COURSE QA: PASS (%d road samples + recovery)" % checked)
 		quit(0)

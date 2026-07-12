@@ -4,6 +4,10 @@ The harness loads the production main scene without using the webcam or Gemini,
 checks the race structure and drink-effect state, renders frames, and writes
 `qa/artifacts/smoke.png`.
 
+World assertions also guard the requested semantic variety (three palm silhouettes,
+shops, neighborhood rows, alleys, hotels, and offshore islets), reject the legacy
+oversized cone formations, and verify that building roots sit on local ground.
+
 Run from the repository root:
 
 ```powershell
