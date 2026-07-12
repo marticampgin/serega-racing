@@ -36,7 +36,7 @@ Set `DRY_RUN=true` in `.env` while developing to return a deterministic blue-bot
 
 Open the repository root in Godot 4.7 and run the project. The downloaded Godot executables under `godot/` are local-only and ignored by Git.
 
-Controls: `W` accelerate, `S`/`Space` brake, `A`/`D` steer, `F` record and analyze a refuelling video, and `R` reset. Start the Python service before using `F`.
+Controls: `W` accelerate, `S`/`Space` brake, `A`/`D` steer, `F` record and analyze a refuelling video, `G` instantly refill to 100% for debugging, and `R` reset. Start the Python service before using `F`; `G` works without it.
 
 ## API response
 

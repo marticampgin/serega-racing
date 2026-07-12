@@ -20,6 +20,7 @@ var ghost_time := 0.0
 var refuel_request: HTTPRequest
 var refuel_in_progress := false
 var refuel_key_down := false
+var debug_refill_key_down := false
 var refuel_cooldown := 0.0
 var rng := RandomNumberGenerator.new()
 var speed_label: Label
@@ -303,7 +304,7 @@ func build_hud() -> void:
 	fuel_bar.value = fuel
 	fuel_bar.show_percentage = true
 	column.add_child(fuel_bar)
-	status_label = make_label("WASD DRIVE  |  SPACE BRAKE  |  F REFUEL  |  R RESET", 16, Color("f2f4f6"))
+	status_label = make_label("WASD DRIVE | SPACE BRAKE | F CAMERA FUEL | G DEBUG FILL | R RESET", 16, Color("f2f4f6"))
 	status_label.anchor_right = 1.0
 	status_label.anchor_top = 1.0
 	status_label.anchor_bottom = 1.0
@@ -341,6 +342,10 @@ func _physics_process(delta: float) -> void:
 	if refuel_pressed and not refuel_key_down:
 		request_refuel()
 	refuel_key_down = refuel_pressed
+	var debug_refill_pressed := Input.is_key_pressed(KEY_G)
+	if debug_refill_pressed and not debug_refill_key_down:
+		debug_refill()
+	debug_refill_key_down = debug_refill_pressed
 	if Input.is_key_pressed(KEY_R):
 		reset_car()
 	if countdown_time > 0.0:
@@ -471,7 +476,7 @@ func reset_car() -> void:
 	boost_time = 0.0
 	ghost_time = 0.0
 	race_active = true
-	status_label.text = "WASD DRIVE  |  SPACE BRAKE  |  F REFUEL  |  R RESET"
+	status_label.text = "WASD DRIVE | SPACE BRAKE | F CAMERA FUEL | G DEBUG FILL | R RESET"
 	refuel_in_progress = false
 	refuel_cooldown = 0.0
 	countdown_time = 3.2
@@ -500,6 +505,11 @@ func apply_drink_result(color_name: String) -> void:
 			status_label.text = "GREEN FUEL  |  EXTRA REFILL"
 		_:
 			status_label.text = "FUEL ADDED"
+
+
+func debug_refill() -> void:
+	fuel = 100.0
+	status_label.text = "DEBUG REFILL | FUEL 100%"
 
 
 func request_refuel() -> void:
