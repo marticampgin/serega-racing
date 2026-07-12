@@ -1,0 +1,25 @@
+# Godot generated files
+.godot/
+*.tmp
+
+# Local Godot editor binaries (the project lives at the repository root)
+/godot/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Secrets and captured video
+.env
+captures/
+
+# Windows/editor files
+Thumbs.db
+.DS_Store
+.vscode/
+
+# Exports
+build/
+

@@ -1,0 +1,2 @@
+"""Serega Racing companion service."""
+
