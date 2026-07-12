@@ -28,12 +28,16 @@ var distance_label: Label
 var status_label: Label
 var fuel_bar: ProgressBar
 var start_position := Vector3.ZERO
+var countdown_label: Label
+var countdown_time := 3.2
+var go_flash_time := 0.0
 
 
 func _ready() -> void:
 	rng.seed = Time.get_unix_time_from_system() as int
 	build_world()
 	build_track()
+	build_scenery()
 	build_car()
 	build_obstacles()
 	build_hud()
@@ -96,6 +100,20 @@ func add_box(parent: Node, size: Vector3, position: Vector3, material: Material,
 	return root
 
 
+func add_cylinder(parent: Node, radius: float, height: float, position: Vector3, material: Material, top_radius := -1.0) -> MeshInstance3D:
+	var instance := MeshInstance3D.new()
+	var mesh := CylinderMesh.new()
+	mesh.bottom_radius = radius
+	mesh.top_radius = radius if top_radius < 0.0 else top_radius
+	mesh.height = height
+	mesh.radial_segments = 8
+	mesh.material = material
+	instance.mesh = mesh
+	instance.position = position
+	parent.add_child(instance)
+	return instance
+
+
 func build_world() -> void:
 	var environment := WorldEnvironment.new()
 	var env := Environment.new()
@@ -137,8 +155,51 @@ func build_track() -> void:
 			add_box(self, Vector3(0.12, 0.025, 5.0), Vector3(x, 0.02, z), line_mat, false, heading)
 	# Start and finish markings.
 	for lane in range(-4, 5):
+		var start_color := Color.WHITE if lane % 2 == 0 else Color("111111")
+		add_box(self, Vector3(1.8, 0.04, 1.2), Vector3(center_x(-4.0) + lane * 1.8, 0.04, -4.0), make_material(start_color))
+	for lane in range(-4, 5):
 		var color := Color.WHITE if lane % 2 == 0 else Color("111111")
 		add_box(self, Vector3(1.8, 0.04, 1.2), Vector3(center_x(-TRACK_LENGTH) + lane * 1.8, 0.04, -TRACK_LENGTH), make_material(color))
+
+
+func build_scenery() -> void:
+	var trunk := make_material(Color("6b4328"))
+	var leaves_dark := make_material(Color("174f35"), 0.0, 0.9)
+	var leaves_light := make_material(Color("2f8952"), 0.0, 0.9)
+	var steel := make_material(Color("202936"), 0.55, 0.35)
+	var yellow := make_material(Color("ffd43b"), 0.15, 0.45)
+	var red := make_material(Color("e52c3c"), 0.15, 0.45)
+	var blue := make_material(Color("2486d1"), 0.15, 0.45)
+	# A start gantry and simple grandstands give the opening grid a race-day identity.
+	var gantry_z := -24.0
+	var gantry_x := center_x(gantry_z)
+	add_box(self, Vector3(0.45, 5.5, 0.45), Vector3(gantry_x - 10.0, 2.7, gantry_z), steel)
+	add_box(self, Vector3(0.45, 5.5, 0.45), Vector3(gantry_x + 10.0, 2.7, gantry_z), steel)
+	add_box(self, Vector3(20.4, 0.55, 0.65), Vector3(gantry_x, 5.1, gantry_z), steel)
+	add_box(self, Vector3(7.5, 1.35, 0.35), Vector3(gantry_x, 5.05, gantry_z - 0.38), red)
+	for light_index in range(5):
+		add_cylinder(self, 0.18, 0.18, Vector3(gantry_x - 1.45 + light_index * 0.72, 4.95, gantry_z - 0.65), yellow)
+	for side in [-1.0, 1.0]:
+		var stand_x: float = center_x(-58.0) + float(side) * 17.5
+		for tier in range(4):
+			add_box(self, Vector3(12.0, 0.65, 3.0), Vector3(stand_x, 0.5 + tier * 0.75, -58.0 + side * tier * 1.5), steel)
+			for seat in range(6):
+				var seat_mat: Material = [red, yellow, blue][(seat + tier) % 3]
+				add_box(self, Vector3(1.2, 0.5, 0.8), Vector3(stand_x - 4.8 + seat * 1.9, 1.0 + tier * 0.75, -58.0 + side * tier * 1.5), seat_mat)
+	# Sparse low-poly trees create speed cues without cluttering the racing line.
+	var scenery_z := -115.0
+	var tree_index := 0
+	while scenery_z > -TRACK_LENGTH:
+		var heading := track_heading(scenery_z)
+		var lateral := Vector3(cos(heading), 0.0, -sin(heading))
+		for side in [-1.0, 1.0]:
+			var offset := float(side) * (15.0 + rng.randf_range(0.0, 11.0))
+			var tree_position := Vector3(center_x(scenery_z), 0, scenery_z) + lateral * offset
+			var height := rng.randf_range(3.8, 6.4)
+			add_cylinder(self, 0.25, height * 0.42, tree_position + Vector3.UP * height * 0.21, trunk)
+			add_cylinder(self, height * 0.27, height * 0.68, tree_position + Vector3.UP * height * 0.64, leaves_light if tree_index % 3 == 0 else leaves_dark, 0.05)
+			tree_index += 1
+		scenery_z -= rng.randf_range(75.0, 125.0)
 
 
 func build_car() -> void:
@@ -250,6 +311,15 @@ func build_hud() -> void:
 	status_label.offset_bottom = -18.0
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	layer.add_child(status_label)
+	# Keep the countdown on a separate, modest font atlas for broad GL compatibility.
+	countdown_label = Label.new()
+	countdown_label.text = "3"
+	countdown_label.add_theme_font_size_override("font_size", 82)
+	countdown_label.add_theme_color_override("font_color", Color("fff27a"))
+	countdown_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	countdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	countdown_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	layer.add_child(countdown_label)
 
 
 func build_refuel_client() -> void:
@@ -273,7 +343,22 @@ func _physics_process(delta: float) -> void:
 	refuel_key_down = refuel_pressed
 	if Input.is_key_pressed(KEY_R):
 		reset_car()
-	if race_active:
+	if countdown_time > 0.0:
+		countdown_time = maxf(0.0, countdown_time - delta)
+		countdown_label.text = str(maxi(1, ceili(countdown_time)))
+		speed = 0.0
+		car.velocity = Vector3.ZERO
+		if countdown_time <= 0.0:
+			go_flash_time = 0.8
+			countdown_label.text = "GO!"
+	elif go_flash_time > 0.0:
+		go_flash_time = maxf(0.0, go_flash_time - delta)
+		countdown_label.modulate.a = clampf(go_flash_time * 2.0, 0.0, 1.0)
+		elapsed += delta
+		update_car(delta)
+		update_progress(delta)
+	elif race_active:
+		countdown_label.visible = false
 		elapsed += delta
 		update_car(delta)
 		update_progress(delta)
@@ -389,6 +474,11 @@ func reset_car() -> void:
 	status_label.text = "WASD DRIVE  |  SPACE BRAKE  |  F REFUEL  |  R RESET"
 	refuel_in_progress = false
 	refuel_cooldown = 0.0
+	countdown_time = 3.2
+	go_flash_time = 0.0
+	countdown_label.visible = true
+	countdown_label.modulate.a = 1.0
+	countdown_label.text = "3"
 
 
 # Public hook for the webcam/Gemini service integration.
