@@ -322,8 +322,8 @@ func _build_sport_complex() -> void:
 		_box(root, Vector3(0.14, 0.04, 10.0), Vector3(x, 0.25, -43.0), _materials.white, 600.0)
 		_box(root, Vector3(0.18, 1.1, 11.0), Vector3(x, 0.7, -43.0), _materials.cyan, 600.0)
 	_box(root, Vector3(33.0, 0.22, 14.0), Vector3(34.0, 0.12, -38.0), _materials.cyan, 600.0)
-	for position in [Vector3(-35, 0, -25), Vector3(35, 0, -25), Vector3(-35, 0, 25), Vector3(35, 0, 25)]:
-		_add_floodlight(root, position)
+	for light_position: Vector3 in [Vector3(-35, 0, -25), Vector3(35, 0, -25), Vector3(-35, 0, 25), Vector3(35, 0, 25)]:
+		_add_floodlight(root, light_position)
 
 
 func _add_floodlight(parent: Node, position: Vector3) -> void:
@@ -383,7 +383,7 @@ func _build_roadside_rhythm() -> void:
 		if zone != "bridge" and zone != "underwater_tunnel":
 			for side in [-1.0, 1.0]:
 				var road := _course.point_at(offset)
-				var position := road + _course.lateral_at(offset) * side * (24.0 + (index % 3) * 5.0)
+				var position: Vector3 = road + _course.lateral_at(offset) * float(side) * (24.0 + (index % 3) * 5.0)
 				position.y = TERRAIN_TOP
 				_add_palm_world(position, 0.72 + (index % 4) * 0.11)
 			if index % 2 == 0:
