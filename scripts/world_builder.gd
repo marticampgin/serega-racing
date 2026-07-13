@@ -43,7 +43,9 @@ func terrain_height_at(_world_xz: Vector2) -> float:
 
 func _build_materials() -> void:
 	_materials = {
-		"ocean": _material(Color("087f9f"), 0.15, 0.18),
+		# Translucency lets the authored underwater tunnel remain visible below the
+		# continuous water plane while retaining a saturated surface from above.
+		"ocean": _transparent(Color(0.03, 0.50, 0.66, 0.72)),
 		"sand": _material(Color("d7a866"), 0.0, 0.92),
 		"rock": _material(Color("59476f"), 0.0, 0.88),
 		"asphalt": _material(Color("242832"), 0.0, 0.9),
