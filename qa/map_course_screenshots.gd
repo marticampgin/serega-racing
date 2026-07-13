@@ -34,6 +34,9 @@ func _run() -> void:
 		push_error("map course, camera, or zone metadata is unavailable")
 		quit(1)
 		return
+	# Freeze gameplay so the chase-camera update cannot pull the QA camera back to
+	# the car between placement and capture.
+	race.process_mode = Node.PROCESS_MODE_DISABLED
 	var output_dir := ProjectSettings.globalize_path("res://qa/artifacts/map_course")
 	DirAccess.make_dir_recursive_absolute(output_dir)
 	var failures := 0
