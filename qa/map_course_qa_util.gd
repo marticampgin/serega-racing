@@ -102,3 +102,16 @@ static func find_zone(zones: Array, wanted: String) -> Dictionary:
 			if normalized_zone_name(zone_name(zone)).contains(needle):
 				return zone
 	return {}
+
+
+static func zone_span(zones: Array, wanted: String, course_length: float) -> Vector2:
+	var needle := normalized_zone_name(wanted)
+	var first := INF
+	var last := -INF
+	for value in zones:
+		if value is Dictionary:
+			var zone := value as Dictionary
+			if normalized_zone_name(zone_name(zone)).contains(needle):
+				first = minf(first, zone_start(zone, course_length))
+				last = maxf(last, zone_end(zone, course_length))
+	return Vector2(first, last) if is_finite(first) and is_finite(last) else Vector2(-1.0, -1.0)

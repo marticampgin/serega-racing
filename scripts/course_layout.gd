@@ -101,7 +101,7 @@ func tangent_at(offset: float, look_ahead := 2.0) -> Vector3:
 func lateral_at(offset: float) -> Vector3:
 	## Returns the course-right vector, kept horizontal for road generation.
 	var forward := tangent_at(offset)
-	var lateral := Vector3.UP.cross(forward)
+	var lateral := forward.cross(Vector3.UP)
 	if lateral.length_squared() < 0.000001:
 		return Vector3.RIGHT
 	return lateral.normalized()
@@ -121,7 +121,7 @@ func sample_course(offset: float) -> Transform3D:
 	## A road frame whose local -Z points forward and local +X points right.
 	var forward := tangent_at(offset)
 	var right := lateral_at(offset)
-	var up := forward.cross(right).normalized()
+	var up := right.cross(forward).normalized()
 	return Transform3D(Basis(right, up, -forward).orthonormalized(), point_at(offset))
 
 

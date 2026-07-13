@@ -71,16 +71,20 @@ func check_zone_order(zones: Array) -> void:
 		if found_index >= 0:
 			check(found_index > previous_index, "zone follows map lap order: " + required)
 			previous_index = found_index
-	check(QAUtil.find_zone(zones, "party island").is_empty(), "Party Island is not part of the racing-line zone sequence")
+	var exact_party_island_zone := false
+	for value in zones:
+		if value is Dictionary and QAUtil.normalized_zone_name(QAUtil.zone_name(value)) == "party island":
+			exact_party_island_zone = true
+	check(not exact_party_island_zone, "Party Island is not part of the racing-line zone sequence")
 
 
 func check_loop_geometry(race: Node, curve: Curve3D, zones: Array, length: float) -> void:
 	for loop_name in ["loop 1", "loop 2", "loop 3"]:
-		var zone := QAUtil.find_zone(zones, loop_name)
-		if zone.is_empty():
+		var span := QAUtil.zone_span(zones, loop_name, length)
+		if span.x < 0.0:
 			continue
-		var from := QAUtil.zone_start(zone, length)
-		var to := QAUtil.zone_end(zone, length)
+		var from := span.x
+		var to := span.y
 		var arc_length := to - from
 		check(arc_length > 80.0, loop_name + " has driveable length")
 		if arc_length <= 0.0:
