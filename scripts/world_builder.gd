@@ -371,6 +371,12 @@ func _build_party_island() -> void:
 	_box(club, Vector3(25.0, 1.2, 0.4), Vector3(0, 8.0, -9.7), _materials.pink, 1000.0)
 	_box(club, Vector3(13.0, 5.0, 0.25), Vector3(0, 4.2, -9.65), _materials.glass, 1000.0)
 	_cylinder(club, 8.0, 0.8, Vector3(0, 11.0, 0), _materials.cyan, 8.0, 1000.0, 18)
+	# A tall club beacon makes this off-track landmark readable across the lagoon
+	# without pretending it is part of the racing line.
+	_cylinder(club, 2.2, 27.0, Vector3(0, 24.5, 2.0), _materials.night, 1.5, 1400.0, 12)
+	_cylinder(club, 5.8, 1.4, Vector3(0, 38.2, 2.0), _materials.pink, 5.8, 1400.0, 16)
+	_cylinder(club, 3.4, 3.8, Vector3(0, 40.5, 2.0), _materials.glass, 3.4, 1400.0, 16)
+	_cylinder(club, 4.8, 0.8, Vector3(0, 42.8, 2.0), _materials.cyan, 1.4, 1400.0, 16)
 	_box(island, Vector3(5.0, 0.4, 52.0), Vector3(0, 0.1, 49.0), _materials.wood, 900.0)
 	for index in range(12):
 		var angle := TAU * float(index) / 12.0
