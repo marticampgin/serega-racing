@@ -27,7 +27,9 @@ func _run() -> void:
 	if terrain != null and terrain.mesh != null:
 		var vertices := terrain.mesh.get_faces().size()
 		print("INFO: terrain triangle vertices = ", vertices)
-		check(vertices > 1000, "island terrain contains substantial non-overlapping surface coverage")
+		check(vertices > 1000, "connected sand/seabed heightfield has substantial coverage")
+		var terrain_arrays: Array = terrain.mesh.surface_get_arrays(0)
+		check((terrain_arrays[Mesh.ARRAY_INDEX] as PackedInt32Array).size() > 1000, "ground is one indexed surface without deleted cells")
 		var material := terrain.material_override as StandardMaterial3D
 		if material != null:
 			print("INFO: terrain color = ", material.albedo_color)
@@ -36,7 +38,9 @@ func _run() -> void:
 	if not ocean_nodes.is_empty() and ocean_nodes[0] is MeshInstance3D:
 		var ocean_mesh := (ocean_nodes[0] as MeshInstance3D).mesh
 		check(ocean_mesh != null and not ocean_mesh is BoxMesh, "ocean has no vertical box faces")
-		check(ocean_mesh.get_faces().size() > 1000, "ocean is a substantial single surface with an authored tunnel opening")
+		check(ocean_mesh.get_faces().size() > 1000, "sea is a substantial continuous surface")
+		var ocean_arrays: Array = ocean_mesh.surface_get_arrays(0)
+		check((ocean_arrays[Mesh.ARRAY_INDEX] as PackedInt32Array).size() > 1000, "sea is indexed and has no deleted tunnel cells")
 	var transparent_lane_volumes := 0
 	for node in get_nodes_in_group("tunnel"):
 		if node is MeshInstance3D and node.mesh is BoxMesh:
@@ -46,15 +50,13 @@ func _run() -> void:
 	check(transparent_lane_volumes == 0, "tunnel has no full-lane volume boxes")
 	check(get_nodes_in_group("bridge_boundary").size() > 50, "bridge has continuous visual boundaries")
 	check(get_nodes_in_group("flyover_boundary").size() > 20, "elevated crossings have continuous visual boundaries")
-	var submerged_floor := get_nodes_in_group("submerged_floor")
-	check(submerged_floor.size() == 1, "submerged approach uses one non-overlapping bed below the ocean opening")
-	if not submerged_floor.is_empty() and submerged_floor[0] is MeshInstance3D:
-		check((submerged_floor[0] as MeshInstance3D).mesh.get_faces().size() > 100, "submerged bed covers the tunnel opening")
 	var curve := QAUtil.find_course_curve(race)
 	check(curve != null, "course curve is available for dense geometry checks")
 	if curve != null:
 		await _check_road_edges(race, curve.get_baked_length())
+		_check_ground_clearance(race, curve.get_baked_length())
 		_check_crossing_clearance(race, curve.get_baked_length())
+		_check_scenery_clearance(race, curve.get_baked_length())
 	_check_opaque_surfaces()
 	if failures.is_empty():
 		print("GEOMETRY QUALITY QA: PASS")
@@ -105,10 +107,61 @@ func _check_crossing_clearance(race: Node, length: float) -> void:
 				continue
 			var pa: Vector3 = a.point
 			var pb: Vector3 = b.point
-			if Vector2(pa.x, pa.z).distance_to(Vector2(pb.x, pb.z)) < 3.0 and absf(pa.y - pb.y) < 5.0:
+			if Vector2(pa.x, pa.z).distance_to(Vector2(pb.x, pb.z)) < 3.0 and absf(pa.y - pb.y) < 7.0:
 				unsafe += 1
 	print("INFO: unsafe non-local road crossings = ", unsafe)
 	check(unsafe == 0, "non-local road crossings have safe vertical separation")
+
+
+func _check_ground_clearance(race: Node, length: float) -> void:
+	var builder: Object = race.get("world_builder")
+	var violations := 0
+	var offset := 0.0
+	while offset < length:
+		var frame := race.call("sample_course", offset) as Transform3D
+		for lateral in [-8.8, 0.0, 8.8]:
+			var road_point: Vector3 = frame.origin + frame.basis.x * lateral
+			var ground_height := float(builder.call("terrain_height_at", Vector2(road_point.x, road_point.z)))
+			if ground_height > road_point.y - 0.35:
+				violations += 1
+		offset += 12.0
+	print("INFO: road/ground clearance violations = ", violations)
+	check(violations == 0, "sand and seabed remain below the road and both shoulders for the full lap")
+
+
+func _check_scenery_clearance(race: Node, length: float) -> void:
+	var palm_violations := 0
+	for node in get_nodes_in_group("palm_scenery"):
+		if not node.has_meta("course_offset"):
+			continue
+		if not _road_prism_clear(race, node.global_position, float(node.get_meta("course_offset")), length, 4.6, node.global_position.y, node.global_position.y + 11.0):
+			palm_violations += 1
+	var support_violations := 0
+	for node in get_nodes_in_group("flyover_support"):
+		if not node is MeshInstance3D or not node.has_meta("course_offset"):
+			continue
+		var cylinder := (node as MeshInstance3D).mesh as CylinderMesh
+		var bottom: float = node.global_position.y - cylinder.height * 0.5
+		var top: float = node.global_position.y + cylinder.height * 0.5
+		if not _road_prism_clear(race, node.global_position, float(node.get_meta("course_offset")), length, cylinder.bottom_radius, bottom, top):
+			support_violations += 1
+	print("INFO: palm road-prism violations = %d; support violations = %d" % [palm_violations, support_violations])
+	check(palm_violations == 0, "roadside palms and canopies clear every non-local road branch")
+	check(support_violations == 0, "flyover supports clear every lower road branch")
+
+
+func _road_prism_clear(race: Node, position: Vector3, own_offset: float, length: float, radius: float, bottom: float, top: float) -> bool:
+	var offset := 0.0
+	while offset < length:
+		var arc := absf(offset - own_offset)
+		arc = minf(arc, length - arc)
+		if arc >= 110.0:
+			var point: Vector3 = (race.call("sample_course", offset) as Transform3D).origin
+			if point.y >= bottom - 1.0 and point.y <= top + 1.0:
+				if Vector2(position.x, position.z).distance_to(Vector2(point.x, point.z)) < 8.5 + radius + 1.0:
+					return false
+		offset += 4.0
+	return true
 
 
 func _check_opaque_surfaces() -> void:

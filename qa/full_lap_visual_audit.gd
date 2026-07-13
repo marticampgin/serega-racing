@@ -3,6 +3,9 @@ extends SceneTree
 const QAUtil := preload("res://qa/map_course_qa_util.gd")
 const RATIOS := [0.12, 0.5, 0.88]
 const CRITICAL_OFFSETS := {
+	"reported_ground_dip": 479.0,
+	"reported_loop_1_crossing": 1417.0,
+	"reported_bridge_approach": 3543.0,
 	"tunnel_approach": 1500.0,
 	"tunnel_portal_in": 1650.0,
 	"tunnel_deep": 2150.0,
@@ -12,6 +15,8 @@ const CRITICAL_OFFSETS := {
 	"bridge_exit": 4850.0,
 	"loop_3_crossing": 7050.0,
 	"sport_crossing": 8709.0,
+	"former_loop_2_palm": 2732.0,
+	"former_loop_3_palm": 6986.0,
 }
 
 
