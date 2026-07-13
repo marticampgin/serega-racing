@@ -27,6 +27,7 @@ func _run() -> void:
 	var length: float = race.get("TRACK_LENGTH")
 	check(length > 11000.0, "map lap retains the intended four-to-six-minute scale")
 	check(get_nodes_in_group("obstacle").is_empty(), "track-testing build remains obstacle-free")
+	check(get_nodes_in_group("portrait_scenery").size() >= 6, "personalized portrait billboards remain in the rebuilt world")
 
 	# Follow the racing line in small deterministic jumps. This exercises the same
 	# branch-local progress resolver used during play, including all three loops.
@@ -65,4 +66,3 @@ func _run() -> void:
 	else:
 		print("MAP GAMEPLAY QA: FAIL (%d issues)" % failures.size())
 		quit(1)
-

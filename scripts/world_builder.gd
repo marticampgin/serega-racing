@@ -31,6 +31,7 @@ func build(parent: Node3D, course: CourseLayout) -> void:
 	_build_sport_complex()
 	_build_north_coast()
 	_build_party_island()
+	_build_personalized_billboards()
 	_build_roadside_rhythm()
 	print("WorldBuilder: %d scenery meshes" % mesh_instance_count)
 
@@ -39,6 +40,32 @@ func terrain_height_at(_world_xz: Vector2) -> float:
 	## Authored islands share a level top. Callers only place scenery from course
 	## sectors or the Party Island landmark, so this is deterministic by design.
 	return TERRAIN_TOP
+
+
+func _build_personalized_billboards() -> void:
+	var placements := [
+		{"zone": "start_coast", "side": -1.0, "texture": "res://assets/generated/friends/friend-glasses-racing.png"},
+		{"zone": "party_town", "side": 1.0, "texture": "res://assets/generated/friends/friend-beard-racing.png"},
+		{"zone": "city_centre", "side": -1.0, "texture": "res://assets/generated/friends/friend-dark-hair-racing.png"},
+	]
+	for placement: Dictionary in placements:
+		var offset := _zone_midpoint(str(placement.zone))
+		var point := _course.point_at(offset)
+		var lateral := _course.lateral_at(offset)
+		var side := float(placement.side)
+		var billboard_position := point + lateral * side * 24.0
+		billboard_position.y = 6.2
+		var frame_root := _grounded_root("PortraitBillboard", Vector3(billboard_position.x, TERRAIN_TOP, billboard_position.z), ["portrait_scenery"])
+		_box(frame_root, Vector3(8.8, 6.8, 0.35), Vector3(0.0, 4.0, 0.0), _materials["night"], 480.0)
+		_box(frame_root, Vector3(9.4, 0.35, 0.6), Vector3(0.0, 7.5, 0.0), _materials["pink"], 480.0)
+		var portrait := Sprite3D.new()
+		portrait.texture = load(str(placement.texture))
+		portrait.pixel_size = 0.0048
+		portrait.position = Vector3(0.0, 4.0, -0.22)
+		portrait.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		portrait.no_depth_test = false
+		portrait.add_to_group("portrait_scenery")
+		frame_root.add_child(portrait)
 
 
 func _build_materials() -> void:
