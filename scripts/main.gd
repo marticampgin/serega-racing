@@ -3,8 +3,7 @@ extends Node3D
 const CourseLayoutScript := preload("res://scripts/course_layout.gd")
 const WorldBuilderScript := preload("res://scripts/world_builder.gd")
 const ROAD_WIDTH := 17.0
-const ROAD_CHUNK_LENGTH := 240.0
-const ROAD_SAMPLE_STEP := 6.0
+const ROAD_SAMPLE_STEP := 3.0
 
 var course: CourseLayout
 var course_curve: Curve3D
@@ -250,51 +249,48 @@ func build_world() -> void:
 	var env := Environment.new()
 	var panorama := PanoramaSkyMaterial.new()
 	panorama.panorama = load("res://assets/generated/backgrounds/synthwave-island-horizon.png")
-	panorama.energy_multiplier = 0.85
+	panorama.energy_multiplier = 0.72
 	var synthwave_sky := Sky.new()
 	synthwave_sky.sky_material = panorama
 	env.sky = synthwave_sky
 	env.background_mode = Environment.BG_SKY
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color("c9b5ff")
-	env.ambient_light_energy = 0.62
+	env.ambient_light_energy = 0.38
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	environment.environment = env
 	add_child(environment)
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-52, -28, 0)
-	sun.light_energy = 1.25
+	sun.light_energy = 0.92
 	sun.shadow_enabled = true
 	add_child(sun)
 
 
 func build_track() -> void:
 	var asphalt := make_material(Color("242832"), 0.0, 0.92)
+	var deck_side := make_material(Color("171b27"), 0.15, 0.72)
 	var curb_red := make_material(Color("ff3f81"), 0.05, 0.5)
 	var curb_white := make_material(Color("f4f4ee"), 0.0, 0.65)
 	var line_mat := make_material(Color("f6f0ce"))
-	var chunk_start := 0.0
-	while chunk_start < TRACK_LENGTH - 0.01:
-		var chunk_end := minf(TRACK_LENGTH, chunk_start + ROAD_CHUNK_LENGTH)
-		var road_mesh := build_course_ribbon(chunk_start, chunk_end, ROAD_WIDTH, 0.0, 0.0, asphalt)
-		var body := StaticBody3D.new()
-		body.name = "Road_%05d" % int(chunk_start)
-		body.collision_layer = 1
-		body.collision_mask = 1
-		body.add_to_group("track")
-		if course.zone_at((chunk_start + chunk_end) * 0.5) == "bridge":
-			body.add_to_group("bridge")
-		add_child(body)
-		body.add_child(road_mesh)
-		var collision := CollisionShape3D.new()
-		collision.shape = road_mesh.mesh.create_trimesh_shape()
-		body.add_child(collision)
-		# Neon curb ribbons overlap chunk edges slightly, hiding seams on tight curls.
-		var left_curb := build_course_ribbon(chunk_start, chunk_end, 0.6, ROAD_WIDTH * 0.5, 0.045, curb_red)
-		var right_curb := build_course_ribbon(chunk_start, chunk_end, 0.6, -ROAD_WIDTH * 0.5, 0.045, curb_white)
-		add_child(left_curb)
-		add_child(right_curb)
-		chunk_start = chunk_end
+	# One continuous collider removes exact coplanar joins between the former 240 m
+	# chunks. A finer ribbon sample also keeps inner curbs valid on the tight loops.
+	var road_mesh := build_course_ribbon(0.0, TRACK_LENGTH, ROAD_WIDTH, 0.0, 0.0, asphalt)
+	var body := StaticBody3D.new()
+	body.name = "RoadCircuit"
+	body.collision_layer = 1
+	body.collision_mask = 1
+	body.add_to_group("track")
+	add_child(body)
+	body.add_child(road_mesh)
+	var collision := CollisionShape3D.new()
+	collision.shape = road_mesh.mesh.create_trimesh_shape()
+	body.add_child(collision)
+	# A slightly wider lower ribbon gives the zero-thickness racing surface a clear
+	# dark deck edge at bridges, flyovers, and coastal shoulders.
+	add_child(build_course_ribbon(0.0, TRACK_LENGTH, ROAD_WIDTH + 1.4, 0.0, -0.18, deck_side))
+	add_child(build_course_ribbon(0.0, TRACK_LENGTH, 0.6, ROAD_WIDTH * 0.5, 0.045, curb_red))
+	add_child(build_course_ribbon(0.0, TRACK_LENGTH, 0.6, -ROAD_WIDTH * 0.5, 0.045, curb_white))
 	# Dashed centre markings and a single start/finish checkerboard.
 	var marker_offset := 18.0
 	while marker_offset < TRACK_LENGTH:
@@ -324,18 +320,18 @@ func build_course_ribbon(from_offset: float, to_offset: float, width: float, lat
 		var a_right := center_a + frame_a.basis.x * width * 0.5
 		var b_left := center_b - frame_b.basis.x * width * 0.5
 		var b_right := center_b + frame_b.basis.x * width * 0.5
-		add_surface_triangle(surface, a_left, b_left, b_right, frame_a.basis.y)
-		add_surface_triangle(surface, a_left, b_right, a_right, frame_a.basis.y)
+		add_surface_triangle(surface, a_left, b_left, b_right, frame_a.basis.y, frame_b.basis.y, frame_b.basis.y)
+		add_surface_triangle(surface, a_left, b_right, a_right, frame_a.basis.y, frame_b.basis.y, frame_a.basis.y)
 	var instance := MeshInstance3D.new()
 	instance.mesh = surface.commit()
 	instance.material_override = material
 	return instance
 
 
-func add_surface_triangle(surface: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, normal: Vector3) -> void:
-	for point in [a, b, c]:
-		surface.set_normal(normal)
-		surface.add_vertex(point)
+func add_surface_triangle(surface: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, normal_a: Vector3, normal_b: Vector3, normal_c: Vector3) -> void:
+	for vertex_data in [[a, normal_a], [b, normal_b], [c, normal_c]]:
+		surface.set_normal(vertex_data[1])
+		surface.add_vertex(vertex_data[0])
 
 
 func orient_track_piece(piece: Node3D, target: Vector3, bank: float) -> void:
@@ -831,7 +827,13 @@ func update_progress(delta: float) -> void:
 
 func update_camera(delta: float) -> void:
 	var basis := car.global_transform.basis
-	var target_position := car.global_position + basis.z * 10.5 + Vector3.UP * 5.2
+	# The normal chase rig is intentionally high, but that clearance was marginal
+	# beneath the tunnel roof and could put the camera inside a portal/ceiling panel
+	# on the entrance grades. Use a closer, lower rig for the complete tunnel zone.
+	var in_tunnel := course.zone_at(course_offset) == "underwater_tunnel"
+	var camera_distance := 8.4 if in_tunnel else 10.5
+	var camera_height := 4.15 if in_tunnel else 5.2
+	var target_position := car.global_position + basis.z * camera_distance + Vector3.UP * camera_height
 	chase_camera.global_position = chase_camera.global_position.lerp(target_position, 1.0 - exp(-delta * 7.0))
 	var look_target := car.global_position - basis.z * 5.0 + Vector3.UP * 0.55
 	chase_camera.look_at(look_target, Vector3.UP)

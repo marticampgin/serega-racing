@@ -7,12 +7,19 @@ extends RefCounted
 
 const SEA_LEVEL := -1.4
 const SEA_FLOOR := -3.2
-const TERRAIN_TOP := 0.0
+const TERRAIN_TOP := 1.7
+const PARTY_ISLAND_TOP := 0.0
+const TERRAIN_GRID := 12.0
+const OCEAN_GRID := 18.0
+const ROAD_CLEARANCE := 14.0
 
 var _parent: Node3D
 var _course: CourseLayout
 var _rng := RandomNumberGenerator.new()
 var _materials: Dictionary = {}
+var _route_samples: Array[Dictionary] = []
+var _water_route_samples: Array[Vector3] = []
+var _submerged_route_samples: Array[Vector3] = []
 var mesh_instance_count := 0
 
 
@@ -21,9 +28,12 @@ func build(parent: Node3D, course: CourseLayout) -> void:
 	_course = course
 	_rng.seed = 0x5E12E6A
 	_build_materials()
+	_cache_route_samples()
 	_build_ocean_and_islands()
+	_build_submerged_trench()
 	_build_bridge()
 	_build_underwater_tunnel()
+	_build_elevated_flyovers()
 	_build_start_coast()
 	_build_party_town()
 	_build_city_centre()
@@ -37,9 +47,35 @@ func build(parent: Node3D, course: CourseLayout) -> void:
 
 
 func terrain_height_at(_world_xz: Vector2) -> float:
-	## Authored islands share a level top. Callers only place scenery from course
-	## sectors or the Party Island landmark, so this is deterministic by design.
+	## The main island mesh uses one authored grade just below the normal road.
 	return TERRAIN_TOP
+
+
+func _cache_route_samples() -> void:
+	_route_samples.clear()
+	_water_route_samples.clear()
+	_submerged_route_samples.clear()
+	var offset := 0.0
+	while offset < _course.length():
+		var point := _course.point_at(offset)
+		var zone := _course.zone_at(offset)
+		var below_island_grade := point.y < TERRAIN_TOP - 0.2
+		var water_route := zone in ["bridge", "underwater_tunnel"] or _offset_near_water_zone(offset, 95.0) or below_island_grade
+		_route_samples.append({"offset": offset, "point": point, "zone": zone, "water": water_route})
+		if water_route:
+			_water_route_samples.append(point)
+		if zone == "underwater_tunnel" or below_island_grade:
+			_submerged_route_samples.append(point)
+		offset += 24.0
+
+
+func _offset_near_water_zone(offset: float, buffer: float) -> bool:
+	for span: Dictionary in _course.course_zones:
+		if str(span.name) not in ["bridge", "underwater_tunnel"]:
+			continue
+		if offset >= float(span.start_distance) - buffer and offset <= float(span.end_distance) + buffer:
+			return true
+	return false
 
 
 func _build_personalized_billboards() -> void:
@@ -50,19 +86,15 @@ func _build_personalized_billboards() -> void:
 	]
 	for placement: Dictionary in placements:
 		var offset := _zone_midpoint(str(placement.zone))
-		var point := _course.point_at(offset)
-		var lateral := _course.lateral_at(offset)
 		var side := float(placement.side)
-		var billboard_position := point + lateral * side * 24.0
-		billboard_position.y = 6.2
-		var frame_root := _grounded_root("PortraitBillboard", Vector3(billboard_position.x, TERRAIN_TOP, billboard_position.z), ["portrait_scenery"])
+		var frame_root := _roadside_root("PortraitBillboard", offset, side, 24.0, ["portrait_scenery"])
 		_box(frame_root, Vector3(8.8, 6.8, 0.35), Vector3(0.0, 4.0, 0.0), _materials["night"], 480.0)
 		_box(frame_root, Vector3(9.4, 0.35, 0.6), Vector3(0.0, 7.5, 0.0), _materials["pink"], 480.0)
 		var portrait := Sprite3D.new()
 		portrait.texture = load(str(placement.texture))
 		portrait.pixel_size = 0.0048
 		portrait.position = Vector3(0.0, 4.0, -0.22)
-		portrait.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		portrait.billboard = BaseMaterial3D.BILLBOARD_DISABLED
 		portrait.no_depth_test = false
 		portrait.add_to_group("portrait_scenery")
 		frame_root.add_child(portrait)
@@ -70,10 +102,10 @@ func _build_personalized_billboards() -> void:
 
 func _build_materials() -> void:
 	_materials = {
-		# Translucency lets the authored underwater tunnel remain visible below the
-		# continuous water plane while retaining a saturated surface from above.
-		"ocean": _transparent(Color(0.03, 0.50, 0.66, 0.72)),
-		"sand": _material(Color("d7a866"), 0.0, 0.92),
+		# Opaque water prevents the panorama and underwater geometry from being
+		# alpha-sorted through each other. The tunnel supplies its own interior.
+		"ocean": _material(Color("087f9f"), 0.18, 0.2),
+		"sand": _material(Color("b97457"), 0.0, 0.9),
 		"rock": _material(Color("59476f"), 0.0, 0.88),
 		"asphalt": _material(Color("242832"), 0.0, 0.9),
 		"cream": _material(Color("f2d8b5"), 0.0, 0.76),
@@ -93,8 +125,12 @@ func _build_materials() -> void:
 		"pink": _emissive(Color("ff3fcf"), 1.4),
 		"orange": _emissive(Color("ff9c42"), 1.25),
 		"yellow": _emissive(Color("ffe45e"), 1.2),
-		"tunnel_glass": _transparent(Color(0.12, 0.82, 0.94, 0.24)),
+		"tunnel_glass": _material(Color("174f6f"), 0.35, 0.16),
 	}
+	# The procedural terrain grid is visible from both winding conventions and
+	# from low coastal camera angles.
+	(_materials["sand"] as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
+	(_materials["ocean"] as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
 
 
 func _material(color: Color, metallic := 0.0, roughness := 0.8) -> StandardMaterial3D:
@@ -120,12 +156,24 @@ func _transparent(color: Color) -> StandardMaterial3D:
 	return result
 
 
-func _mesh_instance(mesh: PrimitiveMesh, material: Material, visibility := 280.0) -> MeshInstance3D:
-	mesh.material = material
+func _mesh_instance(mesh: Mesh, material: Material, visibility := 280.0) -> MeshInstance3D:
+	if mesh is PrimitiveMesh:
+		(mesh as PrimitiveMesh).material = material
 	var instance := MeshInstance3D.new()
 	instance.mesh = mesh
-	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	instance.visibility_range_end = visibility
+	if not mesh is PrimitiveMesh:
+		instance.material_override = material
+	var substantial := visibility >= 500.0
+	if mesh is BoxMesh:
+		substantial = substantial or (mesh as BoxMesh).size.length() > 9.0
+	elif mesh is CylinderMesh:
+		var cylinder := mesh as CylinderMesh
+		substantial = substantial or cylinder.height > 5.0 or cylinder.bottom_radius > 5.0
+	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if substantial else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# Compound buildings used to lose windows/roofs before their main body. A
+	# shared minimum range keeps silhouettes intact while retaining distance culls.
+	instance.visibility_range_end = maxf(visibility, 620.0)
+	instance.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 	mesh_instance_count += 1
 	return instance
 
@@ -154,8 +202,8 @@ func _cylinder(parent: Node, radius: float, height: float, position: Vector3, ma
 func _grounded_root(name: String, position: Vector3, groups: Array[String] = []) -> Node3D:
 	var root := Node3D.new()
 	root.name = name
-	root.position = Vector3(position.x, TERRAIN_TOP, position.z)
-	root.set_meta("ground_y", TERRAIN_TOP)
+	root.position = position
+	root.set_meta("ground_y", position.y)
 	root.add_to_group("grounded_scenery")
 	for group in groups:
 		root.add_to_group(group)
@@ -165,11 +213,35 @@ func _grounded_root(name: String, position: Vector3, groups: Array[String] = [])
 
 func _roadside_root(name: String, offset: float, side: float, setback: float, groups: Array[String] = []) -> Node3D:
 	var road := _course.point_at(offset)
-	var position := road + _course.lateral_at(offset) * side * setback
+	var lateral := _course.lateral_at(offset)
+	var position := road + lateral * side * setback
+	for candidate in [
+		[side, setback], [-side, setback],
+		[side, setback + 24.0], [-side, setback + 24.0],
+	]:
+		var candidate_position := road + lateral * float(candidate[0]) * float(candidate[1])
+		if _other_road_clearance(candidate_position, offset) >= ROAD_CLEARANCE:
+			position = candidate_position
+			break
+	position.y = TERRAIN_TOP
 	var root := _grounded_root(name, position, groups)
 	var target := Vector3(road.x, TERRAIN_TOP, road.z)
 	root.look_at(target, Vector3.UP)
+	root.set_meta("course_offset", offset)
 	return root
+
+
+func _other_road_clearance(position: Vector3, own_offset: float) -> float:
+	var best := INF
+	for sample: Dictionary in _route_samples:
+		var sample_offset := float(sample.offset)
+		var arc_distance := absf(sample_offset - own_offset)
+		arc_distance = minf(arc_distance, _course.length() - arc_distance)
+		if arc_distance < 110.0:
+			continue
+		var point: Vector3 = sample.point
+		best = minf(best, Vector2(position.x, position.z).distance_to(Vector2(point.x, point.z)))
+	return best
 
 
 func _zone_spans(zone_name: String) -> Array[Dictionary]:
@@ -191,32 +263,98 @@ func _zone_midpoint(zone_name: String, occurrence := 0) -> float:
 func _build_ocean_and_islands() -> void:
 	var minimum := Vector2(INF, INF)
 	var maximum := Vector2(-INF, -INF)
-	var sample := 0.0
-	while sample < _course.length():
-		var point := _course.point_at(sample)
+	for sample: Dictionary in _route_samples:
+		var point: Vector3 = sample.point
 		minimum.x = minf(minimum.x, point.x)
 		minimum.y = minf(minimum.y, point.z)
 		maximum.x = maxf(maximum.x, point.x)
 		maximum.y = maxf(maximum.y, point.z)
-		sample += 80.0
 	var center := (minimum + maximum) * 0.5
 	var ocean_size := maximum - minimum + Vector2(650.0, 650.0)
-	var ocean := _box(_parent, Vector3(ocean_size.x, 0.35, ocean_size.y), Vector3(center.x, SEA_LEVEL, center.y), _materials.ocean, 2400.0)
+	# One opaque grid surface avoids alpha sorting and vertical horizon faces. A
+	# narrow opening follows the submerged tunnel, preventing the water surface
+	# from being drawn over the descending car and tunnel portals.
+	var ocean_surface := SurfaceTool.new()
+	ocean_surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var ocean_min := center - ocean_size * 0.5
+	var ocean_max := center + ocean_size * 0.5
+	var ocean_x := floorf(ocean_min.x / OCEAN_GRID) * OCEAN_GRID
+	while ocean_x < ocean_max.x:
+		var ocean_z := floorf(ocean_min.y / OCEAN_GRID) * OCEAN_GRID
+		while ocean_z < ocean_max.y:
+			var cell_center := Vector2(ocean_x + OCEAN_GRID * 0.5, ocean_z + OCEAN_GRID * 0.5)
+			var tunnel_distance := INF
+			for tunnel_point: Vector3 in _submerged_route_samples:
+				tunnel_distance = minf(tunnel_distance, cell_center.distance_squared_to(Vector2(tunnel_point.x, tunnel_point.z)))
+			if tunnel_distance > 26.0 * 26.0:
+				_add_flat_cell(ocean_surface, ocean_x, ocean_z, OCEAN_GRID, SEA_LEVEL)
+			ocean_z += OCEAN_GRID
+		ocean_x += OCEAN_GRID
+	var ocean := _mesh_instance(ocean_surface.commit(), _materials.ocean, 2600.0)
+	ocean.name = "OceanSurface"
+	_parent.add_child(ocean)
 	ocean.add_to_group("ocean_scenery")
 
-	# Overlapping low-poly sand keys form continuous land without a giant flat slab.
-	# Bridge and tunnel remain open water so their height/depth is visually legible.
-	sample = 0.0
-	while sample < _course.length():
-		var zone := _course.zone_at(sample)
-		if zone != "bridge" and zone != "underwater_tunnel":
-			var point := _course.point_at(sample)
-			var radius := 74.0
-			if zone in ["city_centre", "sport_complex", "party_town"]:
-				radius = 105.0
-			var island := _cylinder(_parent, radius, 1.2, Vector3(point.x, -0.6, point.z), _materials.sand, radius * 0.9, 900.0, 16)
-			island.add_to_group("island_terrain")
-		sample += 92.0
+	# Build one non-overlapping grid surface instead of hundreds of coplanar
+	# cylinders. Cells near the complete bridge/tunnel route (including buffered
+	# approaches) are removed, so land cannot cover a submerged road from another
+	# branch of the course.
+	var terrain_surface := SurfaceTool.new()
+	terrain_surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var terrain_min := minimum - Vector2(190.0, 190.0)
+	var terrain_max := maximum + Vector2(190.0, 190.0)
+	var x := floorf(terrain_min.x / TERRAIN_GRID) * TERRAIN_GRID
+	while x < terrain_max.x:
+		var z := floorf(terrain_min.y / TERRAIN_GRID) * TERRAIN_GRID
+		while z < terrain_max.y:
+			var cell_center := Vector2(x + TERRAIN_GRID * 0.5, z + TERRAIN_GRID * 0.5)
+			var nearest_land_distance := INF
+			var nearest_zone := ""
+			for route_sample: Dictionary in _route_samples:
+				var route_point: Vector3 = route_sample.point
+				var route_distance := cell_center.distance_squared_to(Vector2(route_point.x, route_point.z))
+				if route_distance < nearest_land_distance and not bool(route_sample.water):
+					nearest_land_distance = route_distance
+					nearest_zone = str(route_sample.zone)
+			var nearest_water_distance := INF
+			for water_point: Vector3 in _water_route_samples:
+				nearest_water_distance = minf(nearest_water_distance, cell_center.distance_squared_to(Vector2(water_point.x, water_point.z)))
+			var half_width := _terrain_half_width(nearest_zone)
+			if nearest_land_distance <= half_width * half_width and nearest_water_distance > 34.0 * 34.0:
+				_add_terrain_cell(terrain_surface, x, z)
+			z += TERRAIN_GRID
+		x += TERRAIN_GRID
+	var terrain := MeshInstance3D.new()
+	terrain.name = "IslandTerrain"
+	terrain.mesh = terrain_surface.commit()
+	terrain.material_override = _materials.sand
+	terrain.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	terrain.visibility_range_end = 2600.0
+	terrain.add_to_group("island_terrain")
+	_parent.add_child(terrain)
+	mesh_instance_count += 1
+
+
+func _terrain_half_width(zone: String) -> float:
+	if zone in ["city_centre", "sport_complex"]:
+		return 155.0
+	if zone in ["party_town", "start_coast", "north_coast", "party_island_view", "shopping_alley"]:
+		return 112.0
+	return 78.0
+
+
+func _add_terrain_cell(surface: SurfaceTool, x: float, z: float) -> void:
+	_add_flat_cell(surface, x, z, TERRAIN_GRID, TERRAIN_TOP)
+
+
+func _add_flat_cell(surface: SurfaceTool, x: float, z: float, size: float, height: float) -> void:
+	var a := Vector3(x, height, z)
+	var b := Vector3(x, height, z + size)
+	var c := Vector3(x + size, height, z + size)
+	var d := Vector3(x + size, height, z)
+	for point in [a, b, c, a, c, d]:
+		surface.set_normal(Vector3.UP)
+		surface.add_vertex(point)
 
 
 func _build_start_coast() -> void:
@@ -453,22 +591,29 @@ func _build_bridge() -> void:
 	for span: Dictionary in _zone_spans("bridge"):
 		var start := float(span.start_distance)
 		var finish := float(span.end_distance)
-		var offset := start + 15.0
+		var offset := start + 6.0
+		var support_index := 0
 		while offset < finish - 10.0:
 			var point := _course.point_at(offset)
 			var frame := _course.sample_course(offset)
-			var root := Node3D.new()
-			root.name = "BridgeSupport"
-			root.transform = frame
-			root.add_to_group("bridge")
-			_parent.add_child(root)
-			var column_height := maxf(1.0, point.y - SEA_FLOOR - 0.8)
+			var rail_root := Node3D.new()
+			rail_root.name = "BridgeRail"
+			rail_root.transform = frame
+			rail_root.add_to_group("bridge")
+			_parent.add_child(rail_root)
 			for side in [-1.0, 1.0]:
-				_cylinder(root, 0.9, column_height, Vector3(side * 7.1, -column_height * 0.5 - 0.6, 0), _materials.lavender, 0.75, 1000.0, 10)
-			_box(root, Vector3(19.5, 0.8, 2.0), Vector3(0, -0.8, 0), _materials.night, 1000.0)
-			for side in [-1.0, 1.0]:
-				_box(root, Vector3(0.28, 1.1, 11.0), Vector3(side * 10.0, 0.55, 0), _materials.pink, 1000.0)
-			offset += 48.0
+				var rail := _box(rail_root, Vector3(0.32, 1.15, 13.0), Vector3(side * 9.25, 0.58, 0), _materials.pink, 1200.0)
+				rail.add_to_group("bridge_boundary")
+			if support_index % 4 == 0:
+				var column_height := maxf(1.0, point.y - SEA_FLOOR - 0.7)
+				for side in [-1.0, 1.0]:
+					var column_xz := point + _course.lateral_at(offset) * float(side) * 7.1
+					var column := _cylinder(_parent, 0.9, column_height, Vector3(column_xz.x, SEA_FLOOR + column_height * 0.5, column_xz.z), _materials.lavender, 0.75, 1200.0, 10)
+					column.add_to_group("bridge")
+				var beam := _box(rail_root, Vector3(19.5, 0.8, 2.0), Vector3(0, -0.65, 0), _materials.night, 1200.0)
+				beam.add_to_group("bridge")
+			offset += 12.0
+			support_index += 1
 		for portal_offset in [start + 8.0, finish - 8.0]:
 			var portal := Node3D.new()
 			portal.name = "BridgeGateway"
@@ -480,23 +625,101 @@ func _build_bridge() -> void:
 			_box(portal, Vector3(21.0, 0.65, 1.0), Vector3(0, 10.5, 0), _materials.pink, 1100.0)
 
 
+func _build_submerged_trench() -> void:
+	# The ocean has a narrow opening above the descending road. A dark road-following
+	# bed closes that opening from below, so the sky panorama can never leak through
+	# the water gap at either portal.
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var offset := 0.0
+	while offset < _course.length() - 6.0:
+		var next_offset := offset + 6.0
+		var point_a := _course.point_at(offset)
+		var point_b := _course.point_at(next_offset)
+		var submerged_a := _course.zone_at(offset) == "underwater_tunnel" or point_a.y < TERRAIN_TOP - 0.2
+		var submerged_b := _course.zone_at(next_offset) == "underwater_tunnel" or point_b.y < TERRAIN_TOP - 0.2
+		if submerged_a and submerged_b:
+			var frame_a := _course.sample_course(offset)
+			var frame_b := _course.sample_course(next_offset)
+			var center_a := frame_a.origin - frame_a.basis.y * 1.8
+			var center_b := frame_b.origin - frame_b.basis.y * 1.8
+			var a_left := center_a - frame_a.basis.x * 32.0
+			var a_right := center_a + frame_a.basis.x * 32.0
+			var b_left := center_b - frame_b.basis.x * 32.0
+			var b_right := center_b + frame_b.basis.x * 32.0
+			for vertex: Vector3 in [a_left, b_left, b_right, a_left, b_right, a_right]:
+				surface.set_normal(Vector3.UP)
+				surface.add_vertex(vertex)
+			# Retaining walls close the vertical gap between this bed and the ocean
+			# surface, which otherwise reveals the panorama below the horizon.
+			if a_left.y < SEA_LEVEL and b_left.y < SEA_LEVEL:
+				var a_left_top := Vector3(a_left.x, SEA_LEVEL, a_left.z)
+				var b_left_top := Vector3(b_left.x, SEA_LEVEL, b_left.z)
+				var a_right_top := Vector3(a_right.x, SEA_LEVEL, a_right.z)
+				var b_right_top := Vector3(b_right.x, SEA_LEVEL, b_right.z)
+				for vertex: Vector3 in [a_left, b_left_top, b_left, a_left, a_left_top, b_left_top, a_right, b_right, b_right_top, a_right, b_right_top, a_right_top]:
+					surface.set_normal(Vector3.UP)
+					surface.add_vertex(vertex)
+		offset = next_offset
+	var bed := _mesh_instance(surface.commit(), _materials.rock, 1400.0)
+	bed.name = "SubmergedTrenchBed"
+	bed.add_to_group("submerged_floor")
+	_parent.add_child(bed)
+
+
+func _build_elevated_flyovers() -> void:
+	var offset := 0.0
+	var elevated_index := 0
+	while offset < _course.length():
+		var point := _course.point_at(offset)
+		var zone := _course.zone_at(offset)
+		if point.y > TERRAIN_TOP + 2.6 and zone not in ["bridge", "underwater_tunnel"]:
+			var frame := _course.sample_course(offset)
+			var rail_root := Node3D.new()
+			rail_root.name = "FlyoverDeck"
+			rail_root.transform = frame
+			rail_root.add_to_group("flyover")
+			_parent.add_child(rail_root)
+			for side in [-1.0, 1.0]:
+				var rail := _box(rail_root, Vector3(0.3, 1.05, 13.0), Vector3(side * 9.2, 0.54, 0), _materials.cyan, 1000.0)
+				rail.add_to_group("flyover_boundary")
+			if elevated_index % 3 == 0:
+				var support_height := point.y - TERRAIN_TOP - 0.35
+				if support_height > 1.0:
+					for side in [-1.0, 1.0]:
+						var support_xz := point + _course.lateral_at(offset) * float(side) * 6.5
+						var support := _cylinder(_parent, 0.7, support_height, Vector3(support_xz.x, TERRAIN_TOP + support_height * 0.5, support_xz.z), _materials.steel, 0.62, 900.0, 10)
+						support.add_to_group("flyover")
+			elevated_index += 1
+		offset += 12.0
+
+
 func _build_underwater_tunnel() -> void:
 	for span: Dictionary in _zone_spans("underwater_tunnel"):
 		var start := float(span.start_distance)
 		var finish := float(span.end_distance)
-		var offset := start + 8.0
-		while offset < finish - 6.0:
-			var rib := Node3D.new()
-			rib.name = "UnderwaterTunnelRib"
-			rib.transform = _course.sample_course(offset)
-			rib.add_to_group("tunnel")
-			_parent.add_child(rib)
-			_box(rib, Vector3(0.75, 7.0, 0.75), Vector3(-9.8, 3.5, 0), _materials.cyan, 900.0)
-			_box(rib, Vector3(0.75, 7.0, 0.75), Vector3(9.8, 3.5, 0), _materials.cyan, 900.0)
-			_box(rib, Vector3(20.3, 0.75, 0.75), Vector3(0, 7.0, 0), _materials.cyan, 900.0)
-			if int(offset / 18.0) % 2 == 0:
-				_box(rib, Vector3(19.0, 6.0, 7.0), Vector3(0, 3.5, 0), _materials.tunnel_glass, 900.0)
-			offset += 18.0
+		var offset := start + 2.0
+		var panel_index := 0
+		while offset < finish - 2.0:
+			var shell := Node3D.new()
+			shell.name = "UnderwaterTunnelShell"
+			shell.transform = _course.sample_course(offset)
+			shell.add_to_group("tunnel")
+			_parent.add_child(shell)
+			# Thin, opaque/reflective panels form a hollow tube. The previous 19x6x7
+			# transparent cubes filled the lane and corrupted the panorama via alpha sorting.
+			for side in [-1.0, 1.0]:
+				var wall := _box(shell, Vector3(0.42, 6.4, 14.8), Vector3(side * 9.55, 3.2, 0), _materials.tunnel_glass, 1000.0)
+				wall.add_to_group("tunnel_boundary")
+				_box(shell, Vector3(0.18, 0.28, 14.8), Vector3(side * 9.28, 1.0, 0), _materials.cyan, 1000.0)
+			var roof := _box(shell, Vector3(19.5, 0.45, 14.8), Vector3(0, 6.35, 0), _materials.night, 1000.0)
+			roof.add_to_group("tunnel_boundary")
+			if panel_index % 3 == 0:
+				_box(shell, Vector3(0.6, 6.2, 0.72), Vector3(-9.22, 3.1, 0), _materials.cyan, 1000.0)
+				_box(shell, Vector3(0.6, 6.2, 0.72), Vector3(9.22, 3.1, 0), _materials.cyan, 1000.0)
+				_box(shell, Vector3(18.7, 0.6, 0.72), Vector3(0, 6.05, 0), _materials.cyan, 1000.0)
+			offset += 14.0
+			panel_index += 1
 		for portal_offset in [start + 3.0, finish - 3.0]:
 			var portal := Node3D.new()
 			portal.name = "UnderwaterTunnelPortal"
