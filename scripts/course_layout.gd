@@ -52,7 +52,15 @@ func load_from_file(path: String) -> Error:
 	landmarks.clear()
 	for landmark: Variant in data.get("landmarks", []):
 		if landmark is Dictionary:
-			landmarks.append(landmark)
+			var runtime_landmark: Dictionary = landmark.duplicate(true)
+			var landmark_position_data: Variant = runtime_landmark.get("position", [])
+			if landmark_position_data is Array and landmark_position_data.size() == 3:
+				runtime_landmark["position"] = Vector3(
+					float(landmark_position_data[0]) * _world_scale,
+					float(landmark_position_data[1]),
+					float(landmark_position_data[2]) * _world_scale
+				)
+			landmarks.append(runtime_landmark)
 
 	_controls.clear()
 	_control_zones.clear()
@@ -80,6 +88,13 @@ func length() -> float:
 
 func is_closed() -> bool:
 	return _closed
+
+
+func landmark_position(id: StringName) -> Vector3:
+	for landmark in landmarks:
+		if StringName(str(landmark.get("id", ""))) == id:
+			return landmark.get("position", Vector3.ZERO) as Vector3
+	return Vector3.ZERO
 
 
 func point_at(offset: float) -> Vector3:
