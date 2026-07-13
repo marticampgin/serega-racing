@@ -1,10 +1,16 @@
 extends Node3D
 
-const TRACK_LENGTH := 12000.0
+const CourseLayoutScript := preload("res://scripts/course_layout.gd")
+const WorldBuilderScript := preload("res://scripts/world_builder.gd")
 const ROAD_WIDTH := 17.0
-const SEGMENT_LENGTH := 12.0
-const START_Z := 10.0
+const ROAD_CHUNK_LENGTH := 240.0
+const ROAD_SAMPLE_STEP := 6.0
 
+var course: CourseLayout
+var course_curve: Curve3D
+var course_zones: Array[Dictionary] = []
+var world_builder: WorldBuilder
+var TRACK_LENGTH := 0.0
 var car: CharacterBody3D
 var chase_camera: Camera3D
 var speed := 0.0
@@ -12,6 +18,7 @@ var base_max_speed := 43.0 # Retained for QA/API compatibility; forward speed ha
 var fuel := 100.0
 var elapsed := 0.0
 var distance := 0.0
+var course_offset := 0.0
 var race_active := true
 var shield_hits := 1
 var collision_cooldown := 0.0
@@ -39,23 +46,31 @@ var go_flash_time := 0.0
 
 
 func _ready() -> void:
-	rng.seed = Time.get_unix_time_from_system() as int
+	rng.seed = 8675309
+	course = CourseLayoutScript.load_default()
+	course_curve = course.course_curve
+	course_zones = course.course_zones
+	TRACK_LENGTH = course.length()
 	build_world()
 	build_track()
 	build_scenery()
 	build_car()
-	build_obstacles()
 	build_hud()
 	build_refuel_client()
-	print("Serega Racing: playable race initialized")
+	print("Serega Racing: map course initialized (%.1f m, no obstacles)" % TRACK_LENGTH)
 	for argument in OS.get_cmdline_user_args():
-		if argument.begins_with("--screenshot-z="):
-			var capture_z := clampf(float(argument.trim_prefix("--screenshot-z=")), -TRACK_LENGTH, 0.0)
-			car.global_position = Vector3(center_x(capture_z), track_y(capture_z) + 0.55, capture_z)
-			car.rotation.y = track_heading(capture_z)
-			var capture_basis := car.global_transform.basis
-			chase_camera.global_position = car.global_position + capture_basis.z * 10.5 + Vector3.UP * 5.2
-			chase_camera.look_at(car.global_position - capture_basis.z * 5.0 + Vector3.UP * 0.55, Vector3.UP)
+		var capture_distance := -1.0
+		if argument.begins_with("--screenshot-distance="):
+			capture_distance = float(argument.trim_prefix("--screenshot-distance="))
+		elif argument.begins_with("--screenshot-z="):
+			capture_distance = -float(argument.trim_prefix("--screenshot-z="))
+		if capture_distance >= 0.0:
+			course_offset = fposmod(capture_distance, TRACK_LENGTH)
+			var capture_transform := sample_course(course_offset)
+			car.global_position = capture_transform.origin + capture_transform.basis.y * 0.55
+			car.global_transform.basis = capture_transform.basis
+			chase_camera.global_position = car.global_position + capture_transform.basis.z * 10.5 + capture_transform.basis.y * 5.2
+			chase_camera.look_at(car.global_position - capture_transform.basis.z * 5.0 + capture_transform.basis.y * 0.55, capture_transform.basis.y)
 		if argument.begins_with("--screenshot="):
 			capture_qa_screenshot.call_deferred(argument.trim_prefix("--screenshot="))
 
@@ -74,47 +89,40 @@ func sector_window(distance: float, start: float, finish: float, fade: float) ->
 	return smoothstep(start, start + fade, distance) * (1.0 - smoothstep(finish - fade, finish, distance))
 
 
+func course_position(offset: float) -> Vector3:
+	return course.point_at(offset)
+
+
+func sample_course(offset: float) -> Transform3D:
+	return course.sample_course(offset)
+
+
+func course_transform(offset: float) -> Transform3D:
+	return course.sample_course(offset)
+
+
 func center_x(z: float) -> float:
-	var d := maxf(0.0, -z)
-	# Layer broad sweepers, technical esses, and a long spiral-like mountain section.
-	var x := sin(d / 155.0) * 22.0 + sin(d / 61.0) * 7.0
-	# Localized omega and marina-crescent sectors create roundabout/loop-like arcs
-	# without reversing Z progress, which keeps grounding and finish logic reliable.
-	x += sector_window(d, 2600.0, 3350.0, 140.0) * sin((d - 2600.0) / 70.0) * 22.0
-	x += sector_window(d, 7900.0, 9000.0, 180.0) * (sin((d - 7900.0) / 110.0) * 30.0 + sin((d - 7900.0) / 52.0) * 6.0)
-	if d > 6500.0 and d < 8050.0:
-		x += sin((d - 6500.0) / 92.0) * 24.0
-	return x
+	return course.point_at(-z).x
 
 
 func track_y(z: float) -> float:
-	var d := maxf(0.0, -z)
-	# Never let a valley dip below the terrain plane; buried road meshes caused the
-	# reported apparent fall-through around 1.68 km.
-	var height := maxf(0.3, sin(d / 410.0) * 2.2)
-	# Mountain climb, high bridge/viaduct, then a controlled descent.
-	height += smoothstep(1800.0, 2500.0, d) * 8.0
-	height -= smoothstep(3650.0, 4400.0, d) * 8.0
-	height += smoothstep(5700.0, 6500.0, d) * 15.0
-	height -= smoothstep(8050.0, 9000.0, d) * 15.0
-	return height
+	return course.height_at(-z)
 
 
 func track_bank(z: float) -> float:
-	var d := maxf(0.0, -z)
-	var dx := center_x(z - 8.0) - center_x(z + 8.0)
-	return clampf(-dx * 0.018 + sin(d / 230.0) * 0.035, -0.18, 0.18)
+	var offset := -z
+	var before := course.tangent_at(offset - 8.0)
+	var after := course.tangent_at(offset + 8.0)
+	return clampf(atan2(before.cross(after).y, before.dot(after)) * 0.55, -0.2, 0.2)
 
 
 func track_heading(z: float) -> float:
-	var sample := 1.0
-	var dx := center_x(z - sample) - center_x(z + sample)
-	return -atan2(dx, sample * 2.0)
+	return course.heading_at(-z)
 
 
 func track_pitch(z: float) -> float:
-	var sample := 8.0
-	return atan2(track_y(z - sample) - track_y(z + sample), sample * 2.0)
+	var tangent := course.tangent_at(-z)
+	return asin(clampf(tangent.y, -1.0, 1.0))
 
 
 func make_material(color: Color, metallic := 0.0, roughness := 0.8) -> StandardMaterial3D:
@@ -258,63 +266,76 @@ func build_world() -> void:
 	sun.light_energy = 1.25
 	sun.shadow_enabled = true
 	add_child(sun)
-	var sea := make_material(Color("087f9f"), 0.15, 0.2)
-	var sand := make_material(Color("c58b48"), 0.0, 0.92)
-	# The ocean is continuous; sandy keys follow the circuit and deliberately break
-	# at bridge sectors so water is clearly visible below the car.
-	var ocean := add_box(self, Vector3(360, 0.3, TRACK_LENGTH + 300), Vector3(0, -1.35, -TRACK_LENGTH * 0.5 + 30), sea)
-	ocean.add_to_group("ocean_scenery")
-	for z in range(0, -int(TRACK_LENGTH), -60):
-		var sample_z := float(z) - 30.0
-		if not is_water_crossing(sample_z):
-			add_box(self, Vector3(94, 0.34, 64), Vector3(center_x(sample_z), -0.45, sample_z), sand, false, track_heading(sample_z))
 
 
 func build_track() -> void:
 	var asphalt := make_material(Color("242832"), 0.0, 0.92)
-	var curb_red := make_material(Color("e63746"), 0.0, 0.65)
+	var curb_red := make_material(Color("ff3f81"), 0.05, 0.5)
 	var curb_white := make_material(Color("f4f4ee"), 0.0, 0.65)
 	var line_mat := make_material(Color("f6f0ce"))
-	var barrier_mat := make_material(Color("a8b3bd"), 0.55, 0.35)
-	var segments := int(TRACK_LENGTH / SEGMENT_LENGTH) + 2
-	for i in range(segments):
-		var z_start := START_Z - i * SEGMENT_LENGTH
-		var z_end := z_start - SEGMENT_LENGTH
-		var start := Vector3(center_x(z_start), track_y(z_start), z_start)
-		var end := Vector3(center_x(z_end), track_y(z_end), z_end)
-		var midpoint := (start + end) * 0.5
-		var forward := (end - start).normalized()
-		var lateral := forward.cross(Vector3.UP).normalized()
-		var piece_length := start.distance_to(end) + 0.8
-		# Keep modular road surfaces level across their width; camera/chassis roll
-		# communicates banking without opening seams between adjacent colliders.
-		var bank := 0.0
-		# A wider overlapping asphalt skirt hides the triangular seams produced by
-		# modular rectangles on tight 3D curves while the road collider stays precise.
-		var underlay := add_box(self, Vector3(ROAD_WIDTH + 6.0, 0.18, piece_length + 6.0), midpoint - Vector3.UP * 0.25, asphalt)
-		orient_track_piece(underlay, end, bank)
-		var road := add_box(self, Vector3(ROAD_WIDTH, 0.25, piece_length), midpoint - Vector3.UP * 0.12, asphalt, true)
-		orient_track_piece(road, end, bank)
-		road.add_to_group("bridge" if absf(midpoint.y) > 8.0 else "track")
-		for side in [-1.0, 1.0]:
-			var curb_color := curb_red if i % 2 == 0 else curb_white
-			var side_offset := lateral * float(side)
-			var curb_position := midpoint + Vector3.UP * 0.02 + side_offset * (ROAD_WIDTH * 0.5)
-			var curb := add_box(self, Vector3(0.65, 0.16, piece_length), curb_position, curb_color)
-			orient_track_piece(curb, end + side_offset * (ROAD_WIDTH * 0.5), bank)
-			var barrier_position := midpoint + Vector3.UP * 0.48 + side_offset * (ROAD_WIDTH * 0.5 + 1.05)
-			var barrier := add_box(self, Vector3(0.35, 1.1, piece_length), barrier_position, barrier_mat, true)
-			orient_track_piece(barrier, end + side_offset * (ROAD_WIDTH * 0.5 + 1.05), bank)
-		if i % 2 == 0:
-			var line := add_box(self, Vector3(0.12, 0.025, minf(5.0, piece_length)), midpoint + Vector3.UP * 0.02, line_mat)
-			orient_track_piece(line, end, bank)
-	# Start and finish markings.
+	var chunk_start := 0.0
+	while chunk_start < TRACK_LENGTH - 0.01:
+		var chunk_end := minf(TRACK_LENGTH, chunk_start + ROAD_CHUNK_LENGTH)
+		var road_mesh := build_course_ribbon(chunk_start, chunk_end, ROAD_WIDTH, 0.0, 0.0, asphalt)
+		var body := StaticBody3D.new()
+		body.name = "Road_%05d" % int(chunk_start)
+		body.collision_layer = 1
+		body.collision_mask = 1
+		body.add_to_group("track")
+		if course.zone_at((chunk_start + chunk_end) * 0.5) == "bridge":
+			body.add_to_group("bridge")
+		add_child(body)
+		body.add_child(road_mesh)
+		var collision := CollisionShape3D.new()
+		collision.shape = road_mesh.mesh.create_trimesh_shape()
+		body.add_child(collision)
+		# Neon curb ribbons overlap chunk edges slightly, hiding seams on tight curls.
+		var left_curb := build_course_ribbon(chunk_start, chunk_end, 0.6, ROAD_WIDTH * 0.5, 0.045, curb_red)
+		var right_curb := build_course_ribbon(chunk_start, chunk_end, 0.6, -ROAD_WIDTH * 0.5, 0.045, curb_white)
+		add_child(left_curb)
+		add_child(right_curb)
+		chunk_start = chunk_end
+	# Dashed centre markings and a single start/finish checkerboard.
+	var marker_offset := 18.0
+	while marker_offset < TRACK_LENGTH:
+		var frame := course.sample_course(marker_offset)
+		var line := add_box(self, Vector3(0.16, 0.04, 5.0), frame.origin + frame.basis.y * 0.055, line_mat)
+		line.global_transform.basis = frame.basis
+		marker_offset += 24.0
+	var start_frame := course.sample_course(0.0)
 	for lane in range(-4, 5):
-		var start_color := Color.WHITE if lane % 2 == 0 else Color("111111")
-		add_box(self, Vector3(1.8, 0.04, 1.2), Vector3(center_x(-4.0) + lane * 1.8, track_y(-4.0) + 0.04, -4.0), make_material(start_color))
-	for lane in range(-4, 5):
-		var color := Color.WHITE if lane % 2 == 0 else Color("111111")
-		add_box(self, Vector3(1.8, 0.04, 1.2), Vector3(center_x(-TRACK_LENGTH) + lane * 1.8, track_y(-TRACK_LENGTH) + 0.04, -TRACK_LENGTH), make_material(color))
+		var tile_color := Color.WHITE if lane % 2 == 0 else Color("111111")
+		var tile := add_box(self, Vector3(1.8, 0.05, 1.2), start_frame.origin + start_frame.basis.x * (lane * 1.8) + start_frame.basis.y * 0.06, make_material(tile_color))
+		tile.global_transform.basis = start_frame.basis
+
+
+func build_course_ribbon(from_offset: float, to_offset: float, width: float, lateral_shift: float, vertical_shift: float, material: Material) -> MeshInstance3D:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var sample_count := maxi(1, ceili((to_offset - from_offset) / ROAD_SAMPLE_STEP))
+	for sample_index in range(sample_count):
+		var offset_a := lerpf(from_offset, to_offset, float(sample_index) / sample_count)
+		var offset_b := lerpf(from_offset, to_offset, float(sample_index + 1) / sample_count)
+		var frame_a := course.sample_course(offset_a)
+		var frame_b := course.sample_course(offset_b)
+		var center_a := frame_a.origin + frame_a.basis.x * lateral_shift + frame_a.basis.y * vertical_shift
+		var center_b := frame_b.origin + frame_b.basis.x * lateral_shift + frame_b.basis.y * vertical_shift
+		var a_left := center_a - frame_a.basis.x * width * 0.5
+		var a_right := center_a + frame_a.basis.x * width * 0.5
+		var b_left := center_b - frame_b.basis.x * width * 0.5
+		var b_right := center_b + frame_b.basis.x * width * 0.5
+		add_surface_triangle(surface, a_left, b_left, b_right, frame_a.basis.y)
+		add_surface_triangle(surface, a_left, b_right, a_right, frame_a.basis.y)
+	var instance := MeshInstance3D.new()
+	instance.mesh = surface.commit()
+	instance.material_override = material
+	return instance
+
+
+func add_surface_triangle(surface: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, normal: Vector3) -> void:
+	for point in [a, b, c]:
+		surface.set_normal(normal)
+		surface.add_vertex(point)
 
 
 func orient_track_piece(piece: Node3D, target: Vector3, bank: float) -> void:
@@ -323,52 +344,8 @@ func orient_track_piece(piece: Node3D, target: Vector3, bank: float) -> void:
 
 
 func build_scenery() -> void:
-	var trunk := make_material(Color("8d542f"))
-	var leaves_dark := make_material(Color("087f65"), 0.0, 0.75)
-	var leaves_light := make_material(Color("19d39b"), 0.05, 0.55)
-	var steel := make_material(Color("202936"), 0.55, 0.35)
-	var yellow := make_material(Color("ffd43b"), 0.15, 0.45)
-	var red := make_material(Color("e52c3c"), 0.15, 0.45)
-	var blue := make_material(Color("2486d1"), 0.15, 0.45)
-	# A start gantry and simple grandstands give the opening grid a race-day identity.
-	var gantry_z := -24.0
-	var gantry_x := center_x(gantry_z)
-	add_box(self, Vector3(0.45, 5.5, 0.45), Vector3(gantry_x - 10.0, 2.7, gantry_z), steel)
-	add_box(self, Vector3(0.45, 5.5, 0.45), Vector3(gantry_x + 10.0, 2.7, gantry_z), steel)
-	add_box(self, Vector3(20.4, 0.55, 0.65), Vector3(gantry_x, 5.1, gantry_z), steel)
-	add_box(self, Vector3(7.5, 1.35, 0.35), Vector3(gantry_x, 5.05, gantry_z - 0.38), red)
-	for light_index in range(5):
-		add_cylinder(self, 0.18, 0.18, Vector3(gantry_x - 1.45 + light_index * 0.72, 4.95, gantry_z - 0.65), yellow)
-	for side in [-1.0, 1.0]:
-		var stand_x: float = center_x(-58.0) + float(side) * 17.5
-		for tier in range(4):
-			add_box(self, Vector3(12.0, 0.65, 3.0), Vector3(stand_x, 0.5 + tier * 0.75, -58.0 + side * tier * 1.5), steel)
-			for seat in range(6):
-				var seat_mat: Material = [red, yellow, blue][(seat + tier) % 3]
-				add_box(self, Vector3(1.2, 0.5, 0.8), Vector3(stand_x - 4.8 + seat * 1.9, 1.0 + tier * 0.75, -58.0 + side * tier * 1.5), seat_mat)
-	var neon_pink := make_material(Color("ff3fcf"), 0.25, 0.25)
-	# Palms gather into recognizable groves with quieter beach gaps between them.
-	var scenery_z := -115.0
-	var tree_index := 0
-	while scenery_z > -TRACK_LENGTH:
-		var heading := track_heading(scenery_z)
-		var lateral := Vector3(cos(heading), 0.0, -sin(heading))
-		var district := int(absf(scenery_z) / 700.0) % 4
-		for side in [-1.0, 1.0]:
-			var offset := float(side) * (15.0 + rng.randf_range(0.0, 8.0))
-			var tree_position := Vector3(center_x(scenery_z), -0.25, scenery_z) + lateral * offset
-			if not is_water_crossing(scenery_z) and district != 3:
-				var variant := tree_index % 3
-				add_palm(tree_position, rng.randf_range(0.72, 1.24), trunk, leaves_light if variant == 2 else leaves_dark, neon_pink, variant)
-				# Occasional close pairs create a grove silhouette without filling every beach.
-				if district == 1 and tree_index % 4 == 0:
-					add_palm(tree_position + lateral * side * 3.5 + Vector3(0, 0, -4), rng.randf_range(0.62, 0.88), trunk, leaves_light, neon_pink, 2)
-			tree_index += 1
-		if tree_index % 3 == 0:
-			add_lamp(Vector3(center_x(scenery_z), track_y(scenery_z), scenery_z) + lateral * 10.7, neon_pink if tree_index % 4 == 0 else blue, steel)
-		scenery_z -= rng.randf_range(105.0, 145.0)
-	build_portrait_scenery(steel, red, yellow, blue)
-	build_landmarks(steel, yellow, red, blue)
+	world_builder = WorldBuilderScript.new()
+	world_builder.build(self, course)
 
 
 func build_landmarks(steel: Material, yellow: Material, red: Material, blue: Material) -> void:
@@ -521,8 +498,9 @@ func build_car() -> void:
 	car.name = "PlayerCar"
 	car.collision_layer = 1
 	car.collision_mask = 1
-	start_position = Vector3(center_x(0), track_y(0) + 0.55, 0)
-	car.position = start_position
+	var start_frame := course.sample_course(0.0)
+	start_position = start_frame.origin + start_frame.basis.y * 0.55
+	car.transform = Transform3D(start_frame.basis, start_position)
 	add_child(car)
 	var collider := CollisionShape3D.new()
 	var body_shape := BoxShape3D.new()
@@ -543,8 +521,8 @@ func build_car() -> void:
 	chase_camera.current = true
 	chase_camera.fov = 70.0
 	add_child(chase_camera)
-	chase_camera.global_position = car.global_position + Vector3(0, 5.4, 10.5)
-	chase_camera.look_at(car.global_position + Vector3(0, 0.5, -5), Vector3.UP)
+	chase_camera.global_position = car.global_position + start_frame.basis.z * 10.5 + start_frame.basis.y * 5.4
+	chase_camera.look_at(car.global_position - start_frame.basis.z * 5.0 + start_frame.basis.y * 0.5, start_frame.basis.y)
 
 
 func build_obstacles() -> void:
@@ -682,7 +660,7 @@ func _physics_process(delta: float) -> void:
 		reset_car()
 	if countdown_time > 0.0:
 		countdown_time = maxf(0.0, countdown_time - delta)
-		countdown_label.text = str(maxi(1, ceili(countdown_time)))
+		countdown_label.text = str(maxi(1, ceili(minf(countdown_time, 3.0))))
 		speed = 0.0
 		car.velocity = Vector3.ZERO
 		if countdown_time <= 0.0:
@@ -729,7 +707,7 @@ func update_car(delta: float) -> void:
 		var reverse_steering := -1.0 if speed < 0.0 else 1.0
 		car.rotate_y(-steer * reverse_steering * steering_rate * delta)
 	# Arcade stability gently aligns the car to the road while preserving sharp player input.
-	var desired_heading := track_heading(car.global_position.z)
+	var desired_heading := course.heading_at(course_offset)
 	car.rotation.y = lerp_angle(car.rotation.y, desired_heading, delta * (0.18 if absf(steer) > 0.1 else 0.7))
 	var forward := -car.global_transform.basis.z.normalized()
 	var intended_motion := forward * speed
@@ -764,17 +742,18 @@ func project_motion_along_obstacle(intended: Vector3, normal: Vector3) -> Vector
 
 
 func enforce_track_safety(delta: float) -> void:
-	var z := clampf(car.global_position.z, -TRACK_LENGTH, START_Z)
-	var heading := track_heading(z)
-	var lateral_axis := Vector3(cos(heading), 0.0, -sin(heading)).normalized()
-	var center := Vector3(center_x(z), track_y(z) + 0.55, z)
+	var search_radius := clampf(70.0 + absf(speed) * 0.75, 70.0, 220.0)
+	var nearest_offset := course.closest_offset_local(car.global_position, course_offset, search_radius, 5.0)
+	var frame := course.sample_course(nearest_offset)
+	var lateral_axis := frame.basis.x
+	var center := frame.origin + frame.basis.y * 0.55
 	var lateral_distance := (car.global_position - center).dot(lateral_axis)
 	var soft_edge := ROAD_WIDTH * 0.43
 	var hard_edge := ROAD_WIDTH * 0.7
 	if absf(lateral_distance) > hard_edge:
-		# Recover from a missed modular seam or an extreme collision without losing progress.
+		# Local-offset recovery cannot jump to the wrong branch at Loop 3's crossing.
 		car.global_position = center
-		car.rotation.y = heading
+		car.global_transform.basis = frame.basis
 		speed *= 0.35
 		status_label.text = "TRACK RECOVERY | CAR RETURNED TO RACING LINE"
 	elif absf(lateral_distance) > soft_edge:
@@ -783,7 +762,7 @@ func enforce_track_safety(delta: float) -> void:
 		speed *= 0.985
 	# The modular course is an arcade surface, so keep the chassis attached to its
 	# analytical height. This prevents tunneling through pitched road seams.
-	var target_height := track_y(car.global_position.z) + 0.55
+	var target_height := center.y
 	if car.global_position.y < target_height - 1.0 or car.global_position.y > target_height + 2.5:
 		car.global_position.y = target_height
 		car.velocity.y = 0.0
@@ -833,9 +812,17 @@ func handle_obstacle_hit(normal := Vector3.ZERO, _incoming := Vector3.ZERO) -> v
 
 
 func update_progress(delta: float) -> void:
-	distance = clampf(-car.global_position.z, 0.0, TRACK_LENGTH)
+	var previous_offset := course_offset
+	var next_offset := course.closest_offset_local(car.global_position, course_offset, clampf(80.0 + absf(speed), 80.0, 260.0), 4.0)
+	var offset_delta := next_offset - previous_offset
+	if offset_delta > TRACK_LENGTH * 0.5:
+		offset_delta -= TRACK_LENGTH
+	elif offset_delta < -TRACK_LENGTH * 0.5:
+		offset_delta += TRACK_LENGTH
+	course_offset = next_offset
+	distance = clampf(distance + offset_delta, 0.0, TRACK_LENGTH)
 	fuel = maxf(0.0, fuel - delta * (1.0 + distance / TRACK_LENGTH * 0.5))
-	if car.global_position.z <= -TRACK_LENGTH:
+	if distance >= TRACK_LENGTH - 2.0:
 		race_active = false
 		speed = 0.0
 		finish_portrait.visible = true
@@ -848,7 +835,10 @@ func update_camera(delta: float) -> void:
 	chase_camera.global_position = chase_camera.global_position.lerp(target_position, 1.0 - exp(-delta * 7.0))
 	var look_target := car.global_position - basis.z * 5.0 + Vector3.UP * 0.55
 	chase_camera.look_at(look_target, Vector3.UP)
-	chase_camera.rotate_object_local(Vector3.BACK, track_bank(car.global_position.z) * 0.65)
+	var before := course.tangent_at(course_offset - 8.0)
+	var after := course.tangent_at(course_offset + 8.0)
+	var curve_bank := clampf(atan2(before.cross(after).y, before.dot(after)) * 0.35, -0.16, 0.16)
+	chase_camera.rotate_object_local(Vector3.BACK, curve_bank)
 
 
 func update_hud() -> void:
@@ -872,13 +862,15 @@ func format_time(value: float) -> String:
 
 
 func reset_car() -> void:
+	var start_frame := course.sample_course(0.0)
 	car.global_position = start_position
-	car.rotation = Vector3.ZERO
+	car.global_transform.basis = start_frame.basis
 	car.velocity = Vector3.ZERO
 	speed = 0.0
 	fuel = 100.0
 	elapsed = 0.0
 	distance = 0.0
+	course_offset = 0.0
 	shield_hits = 1
 	boost_time = 0.0
 	ghost_time = 0.0
