@@ -3,23 +3,27 @@ extends RefCounted
 
 ## Lightweight, deterministic scenery for the map-driven island course.
 ## All placements derive from CourseLayout baked distance. Scenery roots are
-## grounded at y=0; road elevation is deliberately never used as terrain height.
+## grounded to a shaped sand/seabed heightfield beneath the racing surface.
 
 const SEA_LEVEL := -1.4
-const SEA_FLOOR := -3.2
-const TERRAIN_TOP := 1.7
+const SEA_FLOOR := -3.8
+const TERRAIN_TOP := 1.32
 const PARTY_ISLAND_TOP := 0.0
-const TERRAIN_GRID := 12.0
-const OCEAN_GRID := 18.0
+const TERRAIN_GRID := 14.0
+const OCEAN_GRID := 14.0
 const ROAD_CLEARANCE := 14.0
+const ROAD_GROUND_GAP := 0.65
+const SUBMERGED_GROUND_GAP := 1.8
+const SHORE_BLEND := 26.0
+const ROUTE_BUCKET_SIZE := 192.0
 
 var _parent: Node3D
 var _course: CourseLayout
 var _rng := RandomNumberGenerator.new()
 var _materials: Dictionary = {}
 var _route_samples: Array[Dictionary] = []
-var _water_route_samples: Array[Vector3] = []
-var _submerged_route_samples: Array[Vector3] = []
+var _route_buckets: Dictionary = {}
+var _submerged_buckets: Dictionary = {}
 var mesh_instance_count := 0
 
 
@@ -30,7 +34,6 @@ func build(parent: Node3D, course: CourseLayout) -> void:
 	_build_materials()
 	_cache_route_samples()
 	_build_ocean_and_islands()
-	_build_submerged_trench()
 	_build_bridge()
 	_build_underwater_tunnel()
 	_build_elevated_flyovers()
@@ -46,27 +49,62 @@ func build(parent: Node3D, course: CourseLayout) -> void:
 	print("WorldBuilder: %d scenery meshes" % mesh_instance_count)
 
 
-func terrain_height_at(_world_xz: Vector2) -> float:
-	## The main island mesh uses one authored grade just below the normal road.
-	return TERRAIN_TOP
+func terrain_height_at(world_xz: Vector2) -> float:
+	return _ground_height_at(world_xz)
 
 
 func _cache_route_samples() -> void:
 	_route_samples.clear()
-	_water_route_samples.clear()
-	_submerged_route_samples.clear()
+	_route_buckets.clear()
+	_submerged_buckets.clear()
 	var offset := 0.0
 	while offset < _course.length():
 		var point := _course.point_at(offset)
 		var zone := _course.zone_at(offset)
 		var below_island_grade := point.y < TERRAIN_TOP - 0.2
-		var water_route := zone in ["bridge", "underwater_tunnel"] or _offset_near_water_zone(offset, 95.0) or below_island_grade
-		_route_samples.append({"offset": offset, "point": point, "zone": zone, "water": water_route})
-		if water_route:
-			_water_route_samples.append(point)
-		if zone == "underwater_tunnel" or below_island_grade:
-			_submerged_route_samples.append(point)
-		offset += 24.0
+		var near_water_structure := _offset_near_water_zone(offset, 220.0)
+		var water_route := zone in ["bridge", "underwater_tunnel"]
+		var submerged_route := zone == "underwater_tunnel" or (below_island_grade and near_water_structure)
+		var route_sample := {"offset": offset, "point": point, "zone": zone, "water": water_route, "submerged": submerged_route}
+		_route_samples.append(route_sample)
+		_add_to_bucket(_route_buckets, _bucket_key(Vector2(point.x, point.z)), route_sample)
+		if submerged_route:
+			_add_to_bucket(_submerged_buckets, _bucket_key(Vector2(point.x, point.z)), point)
+		offset += 12.0
+
+
+func _bucket_key(position: Vector2) -> Vector2i:
+	return Vector2i(floori(position.x / ROUTE_BUCKET_SIZE), floori(position.y / ROUTE_BUCKET_SIZE))
+
+
+func _add_to_bucket(buckets: Dictionary, key: Vector2i, value: Variant) -> void:
+	if not buckets.has(key):
+		buckets[key] = []
+	(buckets[key] as Array).append(value)
+
+
+func _nearby_route_samples(position: Vector2) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var center := _bucket_key(position)
+	for bucket_x in range(center.x - 1, center.x + 2):
+		for bucket_y in range(center.y - 1, center.y + 2):
+			var key := Vector2i(bucket_x, bucket_y)
+			if _route_buckets.has(key):
+				for sample: Dictionary in _route_buckets[key]:
+					result.append(sample)
+	return result
+
+
+func _nearby_submerged_samples(position: Vector2) -> Array[Vector3]:
+	var result: Array[Vector3] = []
+	var center := _bucket_key(position)
+	for bucket_x in range(center.x - 1, center.x + 2):
+		for bucket_y in range(center.y - 1, center.y + 2):
+			var key := Vector2i(bucket_x, bucket_y)
+			if _submerged_buckets.has(key):
+				for point: Vector3 in _submerged_buckets[key]:
+					result.append(point)
+	return result
 
 
 func _offset_near_water_zone(offset: float, buffer: float) -> bool:
@@ -104,7 +142,7 @@ func _build_materials() -> void:
 	_materials = {
 		# Opaque water prevents the panorama and underwater geometry from being
 		# alpha-sorted through each other. The tunnel supplies its own interior.
-		"ocean": _material(Color("087f9f"), 0.18, 0.2),
+		"ocean": _material(Color("087f9f"), 0.0, 0.78),
 		"sand": _material(Color("b97457"), 0.0, 0.9),
 		"rock": _material(Color("59476f"), 0.0, 0.88),
 		"asphalt": _material(Color("242832"), 0.0, 0.9),
@@ -127,8 +165,8 @@ func _build_materials() -> void:
 		"yellow": _emissive(Color("ffe45e"), 1.2),
 		"tunnel_glass": _material(Color("174f6f"), 0.35, 0.16),
 	}
-	# The procedural terrain grid is visible from both winding conventions and
-	# from low coastal camera angles.
+	# Two-sided terrain and sea stay visible at low shoreline angles and through
+	# steep tunnel depressions in the Compatibility renderer.
 	(_materials["sand"] as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
 	(_materials["ocean"] as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
 
@@ -223,9 +261,9 @@ func _roadside_root(name: String, offset: float, side: float, setback: float, gr
 		if _other_road_clearance(candidate_position, offset) >= ROAD_CLEARANCE:
 			position = candidate_position
 			break
-	position.y = TERRAIN_TOP
+	position.y = _ground_height_at(Vector2(position.x, position.z))
 	var root := _grounded_root(name, position, groups)
-	var target := Vector3(road.x, TERRAIN_TOP, road.z)
+	var target := Vector3(road.x, position.y, road.z)
 	root.look_at(target, Vector3.UP)
 	root.set_meta("course_offset", offset)
 	return root
@@ -242,6 +280,25 @@ func _other_road_clearance(position: Vector3, own_offset: float) -> float:
 		var point: Vector3 = sample.point
 		best = minf(best, Vector2(position.x, position.z).distance_to(Vector2(point.x, point.z)))
 	return best
+
+
+func _road_prism_is_clear(position: Vector3, own_offset: float, radius: float, bottom: float, top: float) -> bool:
+	var required_clearance := 8.5 + radius + 1.0
+	var sample_offset := 0.0
+	while sample_offset < _course.length():
+		var arc_distance := absf(sample_offset - own_offset)
+		arc_distance = minf(arc_distance, _course.length() - arc_distance)
+		if arc_distance < 110.0:
+			sample_offset += 4.0
+			continue
+		var point: Vector3 = _course.point_at(sample_offset)
+		if point.y < bottom - 1.0 or point.y > top + 1.0:
+			sample_offset += 4.0
+			continue
+		if Vector2(position.x, position.z).distance_to(Vector2(point.x, point.z)) < required_clearance:
+			return false
+		sample_offset += 4.0
+	return true
 
 
 func _zone_spans(zone_name: String) -> Array[Dictionary]:
@@ -271,62 +328,20 @@ func _build_ocean_and_islands() -> void:
 		maximum.y = maxf(maximum.y, point.z)
 	var center := (minimum + maximum) * 0.5
 	var ocean_size := maximum - minimum + Vector2(650.0, 650.0)
-	# One opaque grid surface avoids alpha sorting and vertical horizon faces. A
-	# narrow opening follows the submerged tunnel, preventing the water surface
-	# from being drawn over the descending car and tunnel portals.
-	var ocean_surface := SurfaceTool.new()
-	ocean_surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var ocean_min := center - ocean_size * 0.5
 	var ocean_max := center + ocean_size * 0.5
-	var ocean_x := floorf(ocean_min.x / OCEAN_GRID) * OCEAN_GRID
-	while ocean_x < ocean_max.x:
-		var ocean_z := floorf(ocean_min.y / OCEAN_GRID) * OCEAN_GRID
-		while ocean_z < ocean_max.y:
-			var cell_center := Vector2(ocean_x + OCEAN_GRID * 0.5, ocean_z + OCEAN_GRID * 0.5)
-			var tunnel_distance := INF
-			for tunnel_point: Vector3 in _submerged_route_samples:
-				tunnel_distance = minf(tunnel_distance, cell_center.distance_squared_to(Vector2(tunnel_point.x, tunnel_point.z)))
-			if tunnel_distance > 26.0 * 26.0:
-				_add_flat_cell(ocean_surface, ocean_x, ocean_z, OCEAN_GRID, SEA_LEVEL)
-			ocean_z += OCEAN_GRID
-		ocean_x += OCEAN_GRID
-	var ocean := _mesh_instance(ocean_surface.commit(), _materials.ocean, 2600.0)
+	# Both layers are connected indexed heightfields. Sand slopes continuously to
+	# the seabed; the opaque sea overlays it and depresses smoothly beneath the
+	# enclosed tunnel. No cells are deleted, so there are no horizon holes.
+	var ocean_mesh := _build_heightfield_mesh(ocean_min, ocean_max, OCEAN_GRID, Callable(self, "_ocean_height_at"))
+	var ocean := _mesh_instance(ocean_mesh, _materials.ocean, 2600.0)
 	ocean.name = "OceanSurface"
 	_parent.add_child(ocean)
 	ocean.add_to_group("ocean_scenery")
-
-	# Build one non-overlapping grid surface instead of hundreds of coplanar
-	# cylinders. Cells near the complete bridge/tunnel route (including buffered
-	# approaches) are removed, so land cannot cover a submerged road from another
-	# branch of the course.
-	var terrain_surface := SurfaceTool.new()
-	terrain_surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var terrain_min := minimum - Vector2(190.0, 190.0)
-	var terrain_max := maximum + Vector2(190.0, 190.0)
-	var x := floorf(terrain_min.x / TERRAIN_GRID) * TERRAIN_GRID
-	while x < terrain_max.x:
-		var z := floorf(terrain_min.y / TERRAIN_GRID) * TERRAIN_GRID
-		while z < terrain_max.y:
-			var cell_center := Vector2(x + TERRAIN_GRID * 0.5, z + TERRAIN_GRID * 0.5)
-			var nearest_land_distance := INF
-			var nearest_zone := ""
-			for route_sample: Dictionary in _route_samples:
-				var route_point: Vector3 = route_sample.point
-				var route_distance := cell_center.distance_squared_to(Vector2(route_point.x, route_point.z))
-				if route_distance < nearest_land_distance and not bool(route_sample.water):
-					nearest_land_distance = route_distance
-					nearest_zone = str(route_sample.zone)
-			var nearest_water_distance := INF
-			for water_point: Vector3 in _water_route_samples:
-				nearest_water_distance = minf(nearest_water_distance, cell_center.distance_squared_to(Vector2(water_point.x, water_point.z)))
-			var half_width := _terrain_half_width(nearest_zone)
-			if nearest_land_distance <= half_width * half_width and nearest_water_distance > 34.0 * 34.0:
-				_add_terrain_cell(terrain_surface, x, z)
-			z += TERRAIN_GRID
-		x += TERRAIN_GRID
+	var terrain_mesh := _build_heightfield_mesh(ocean_min, ocean_max, TERRAIN_GRID, Callable(self, "_ground_height_at"))
 	var terrain := MeshInstance3D.new()
 	terrain.name = "IslandTerrain"
-	terrain.mesh = terrain_surface.commit()
+	terrain.mesh = terrain_mesh
 	terrain.material_override = _materials.sand
 	terrain.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	terrain.visibility_range_end = 2600.0
@@ -343,18 +358,80 @@ func _terrain_half_width(zone: String) -> float:
 	return 78.0
 
 
-func _add_terrain_cell(surface: SurfaceTool, x: float, z: float) -> void:
-	_add_flat_cell(surface, x, z, TERRAIN_GRID, TERRAIN_TOP)
+func _build_heightfield_mesh(minimum: Vector2, maximum: Vector2, spacing: float, height_sampler: Callable) -> ArrayMesh:
+	var aligned_min := Vector2(floorf(minimum.x / spacing) * spacing, floorf(minimum.y / spacing) * spacing)
+	var columns := ceili((maximum.x - aligned_min.x) / spacing) + 1
+	var rows := ceili((maximum.y - aligned_min.y) / spacing) + 1
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for row in range(rows):
+		for column in range(columns):
+			var x := aligned_min.x + column * spacing
+			var z := aligned_min.y + row * spacing
+			surface.set_uv(Vector2(x, z) * 0.025)
+			surface.add_vertex(Vector3(x, float(height_sampler.call(Vector2(x, z))), z))
+	for row in range(rows - 1):
+		for column in range(columns - 1):
+			var a := row * columns + column
+			var b := (row + 1) * columns + column
+			var c := b + 1
+			var d := a + 1
+			for index in [a, b, c, a, c, d]:
+				surface.add_index(index)
+	surface.generate_normals()
+	return surface.commit()
 
 
-func _add_flat_cell(surface: SurfaceTool, x: float, z: float, size: float, height: float) -> void:
-	var a := Vector3(x, height, z)
-	var b := Vector3(x, height, z + size)
-	var c := Vector3(x + size, height, z + size)
-	var d := Vector3(x + size, height, z)
-	for point in [a, b, c, a, c, d]:
-		surface.set_normal(Vector3.UP)
-		surface.add_vertex(point)
+func _ground_height_at(world_xz: Vector2) -> float:
+	var nearest_land_distance := INF
+	var nearest_land_zone := ""
+	var nearest_water_distance := INF
+	var nearest_route_distance := INF
+	var road_ceiling := INF
+	for sample: Dictionary in _nearby_route_samples(world_xz):
+		var point: Vector3 = sample.point
+		var distance := world_xz.distance_to(Vector2(point.x, point.z))
+		nearest_route_distance = minf(nearest_route_distance, distance)
+		if bool(sample.water):
+			nearest_water_distance = minf(nearest_water_distance, distance)
+		else:
+			if distance < nearest_land_distance:
+				nearest_land_distance = distance
+				nearest_land_zone = str(sample.zone)
+		if distance < 23.0:
+			var submerged := bool(sample.get("submerged", false))
+			var gap := SUBMERGED_GROUND_GAP if submerged else ROAD_GROUND_GAP
+			road_ceiling = minf(road_ceiling, point.y - gap)
+	var island_width := _terrain_half_width(nearest_land_zone)
+	var island_weight := smoothstep(-SHORE_BLEND, SHORE_BLEND, island_width - nearest_land_distance)
+	var height := lerpf(SEA_FLOOR, TERRAIN_TOP, island_weight)
+	var channel_weight := 1.0 - smoothstep(22.0, 48.0, nearest_water_distance)
+	height = lerpf(height, SEA_FLOOR, channel_weight)
+	var noise := sin(world_xz.x * 0.025) * cos(world_xz.y * 0.031) * 0.34
+	noise += sin((world_xz.x + world_xz.y) * 0.011) * 0.18
+	var noise_weight := smoothstep(0.62, 0.9, island_weight) * smoothstep(18.0, 58.0, nearest_route_distance)
+	height += noise * noise_weight
+	if road_ceiling < INF:
+		height = minf(height, road_ceiling)
+	return height
+
+
+func _ocean_height_at(world_xz: Vector2) -> float:
+	# The sea stays level at shore. Sand supplies the elevation variation; waves
+	# here would repeatedly cross the sloped beach and create cyan polygon islands.
+	var open_sea_height := SEA_LEVEL
+	var nearest_distance := INF
+	var nearest_point := Vector3.ZERO
+	for point: Vector3 in _nearby_submerged_samples(world_xz):
+		var distance := world_xz.distance_to(Vector2(point.x, point.z))
+		if distance < nearest_distance:
+			nearest_distance = distance
+			nearest_point = point
+	if nearest_distance == INF:
+		return open_sea_height
+	var depression := minf(SEA_LEVEL, nearest_point.y - 0.8)
+	var weight := 1.0 - smoothstep(11.0, 24.0, nearest_distance)
+	return lerpf(open_sea_height, depression, weight)
 
 
 func _build_start_coast() -> void:
@@ -557,17 +634,21 @@ func _build_roadside_rhythm() -> void:
 			for side in [-1.0, 1.0]:
 				var road := _course.point_at(offset)
 				var position: Vector3 = road + _course.lateral_at(offset) * float(side) * (24.0 + (index % 3) * 5.0)
-				position.y = TERRAIN_TOP
-				_add_palm_world(position, 0.72 + (index % 4) * 0.11)
+				# Rhythm palms used to bypass all route-clearance logic, allowing a
+				# different loop branch to pass through trunks and fronds.
+				position.y = _ground_height_at(Vector2(position.x, position.z))
+				if position.y > SEA_LEVEL + 0.12 and _road_prism_is_clear(position, offset, 4.6, position.y, position.y + 11.0):
+					var palm := _grounded_root("Palm", position, ["palm_scenery"])
+					palm.set_meta("course_offset", offset)
+					_add_palm_at(palm, Vector3.ZERO, 0.72 + (index % 4) * 0.11)
 			if index % 2 == 0:
-				_add_lamp(offset, -1.0 if index % 4 == 0 else 1.0)
+				var lamp_side := -1.0 if index % 4 == 0 else 1.0
+				var lamp_road := _course.point_at(offset)
+				var lamp_position := lamp_road + _course.lateral_at(offset) * lamp_side * 12.5
+				if _ground_height_at(Vector2(lamp_position.x, lamp_position.z)) > SEA_LEVEL + 0.12:
+					_add_lamp(offset, lamp_side)
 		offset += 195.0
 		index += 1
-
-
-func _add_palm_world(position: Vector3, scale_factor: float) -> void:
-	var root := _grounded_root("Palm", position, ["palm_scenery"])
-	_add_palm_at(root, Vector3.ZERO, scale_factor)
 
 
 func _add_palm_at(parent: Node, position: Vector3, scale_factor: float) -> void:
@@ -625,48 +706,6 @@ func _build_bridge() -> void:
 			_box(portal, Vector3(21.0, 0.65, 1.0), Vector3(0, 10.5, 0), _materials.pink, 1100.0)
 
 
-func _build_submerged_trench() -> void:
-	# The ocean has a narrow opening above the descending road. A dark road-following
-	# bed closes that opening from below, so the sky panorama can never leak through
-	# the water gap at either portal.
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var offset := 0.0
-	while offset < _course.length() - 6.0:
-		var next_offset := offset + 6.0
-		var point_a := _course.point_at(offset)
-		var point_b := _course.point_at(next_offset)
-		var submerged_a := _course.zone_at(offset) == "underwater_tunnel" or point_a.y < TERRAIN_TOP - 0.2
-		var submerged_b := _course.zone_at(next_offset) == "underwater_tunnel" or point_b.y < TERRAIN_TOP - 0.2
-		if submerged_a and submerged_b:
-			var frame_a := _course.sample_course(offset)
-			var frame_b := _course.sample_course(next_offset)
-			var center_a := frame_a.origin - frame_a.basis.y * 1.8
-			var center_b := frame_b.origin - frame_b.basis.y * 1.8
-			var a_left := center_a - frame_a.basis.x * 32.0
-			var a_right := center_a + frame_a.basis.x * 32.0
-			var b_left := center_b - frame_b.basis.x * 32.0
-			var b_right := center_b + frame_b.basis.x * 32.0
-			for vertex: Vector3 in [a_left, b_left, b_right, a_left, b_right, a_right]:
-				surface.set_normal(Vector3.UP)
-				surface.add_vertex(vertex)
-			# Retaining walls close the vertical gap between this bed and the ocean
-			# surface, which otherwise reveals the panorama below the horizon.
-			if a_left.y < SEA_LEVEL and b_left.y < SEA_LEVEL:
-				var a_left_top := Vector3(a_left.x, SEA_LEVEL, a_left.z)
-				var b_left_top := Vector3(b_left.x, SEA_LEVEL, b_left.z)
-				var a_right_top := Vector3(a_right.x, SEA_LEVEL, a_right.z)
-				var b_right_top := Vector3(b_right.x, SEA_LEVEL, b_right.z)
-				for vertex: Vector3 in [a_left, b_left_top, b_left, a_left, a_left_top, b_left_top, a_right, b_right, b_right_top, a_right, b_right_top, a_right_top]:
-					surface.set_normal(Vector3.UP)
-					surface.add_vertex(vertex)
-		offset = next_offset
-	var bed := _mesh_instance(surface.commit(), _materials.rock, 1400.0)
-	bed.name = "SubmergedTrenchBed"
-	bed.add_to_group("submerged_floor")
-	_parent.add_child(bed)
-
-
 func _build_elevated_flyovers() -> void:
 	var offset := 0.0
 	var elevated_index := 0
@@ -681,15 +720,24 @@ func _build_elevated_flyovers() -> void:
 			rail_root.add_to_group("flyover")
 			_parent.add_child(rail_root)
 			for side in [-1.0, 1.0]:
-				var rail := _box(rail_root, Vector3(0.3, 1.05, 13.0), Vector3(side * 9.2, 0.54, 0), _materials.cyan, 1000.0)
+				var rail := _box(rail_root, Vector3(0.34, 0.72, 13.0), Vector3(side * 9.2, 0.37, 0), _materials.steel, 1000.0)
 				rail.add_to_group("flyover_boundary")
+				_box(rail_root, Vector3(0.16, 0.13, 13.0), Vector3(side * 9.2, 0.8, 0), _materials.cyan, 1000.0)
 			if elevated_index % 3 == 0:
-				var support_height := point.y - TERRAIN_TOP - 0.35
+				var support_lateral := 10.6
+				var support_ground := _ground_height_at(Vector2(point.x, point.z))
+				var support_height := point.y - support_ground - 0.35
 				if support_height > 1.0:
 					for side in [-1.0, 1.0]:
-						var support_xz := point + _course.lateral_at(offset) * float(side) * 6.5
-						var support := _cylinder(_parent, 0.7, support_height, Vector3(support_xz.x, TERRAIN_TOP + support_height * 0.5, support_xz.z), _materials.steel, 0.62, 900.0, 10)
-						support.add_to_group("flyover")
+						var support_xz := point + _course.lateral_at(offset) * float(side) * support_lateral
+						var ground_y := _ground_height_at(Vector2(support_xz.x, support_xz.z))
+						var candidate_height := point.y - ground_y - 0.35
+						var candidate_position := Vector3(support_xz.x, ground_y + candidate_height * 0.5, support_xz.z)
+						if candidate_height > 1.0 and _road_prism_is_clear(candidate_position, offset, 0.7, ground_y, point.y):
+							var support := _cylinder(_parent, 0.7, candidate_height, candidate_position, _materials.steel, 0.62, 900.0, 10)
+							support.add_to_group("flyover")
+							support.add_to_group("flyover_support")
+							support.set_meta("course_offset", offset)
 			elevated_index += 1
 		offset += 12.0
 

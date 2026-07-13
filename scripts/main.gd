@@ -289,6 +289,8 @@ func build_track() -> void:
 	# A slightly wider lower ribbon gives the zero-thickness racing surface a clear
 	# dark deck edge at bridges, flyovers, and coastal shoulders.
 	add_child(build_course_ribbon(0.0, TRACK_LENGTH, ROAD_WIDTH + 1.4, 0.0, -0.18, deck_side))
+	add_child(build_course_side_skirt(-1.0, 0.38, deck_side))
+	add_child(build_course_side_skirt(1.0, 0.38, deck_side))
 	add_child(build_course_ribbon(0.0, TRACK_LENGTH, 0.6, ROAD_WIDTH * 0.5, 0.045, curb_red))
 	add_child(build_course_ribbon(0.0, TRACK_LENGTH, 0.6, -ROAD_WIDTH * 0.5, 0.045, curb_white))
 	# Dashed centre markings and a single start/finish checkerboard.
@@ -323,6 +325,31 @@ func build_course_ribbon(from_offset: float, to_offset: float, width: float, lat
 		add_surface_triangle(surface, a_left, b_left, b_right, frame_a.basis.y, frame_b.basis.y, frame_b.basis.y)
 		add_surface_triangle(surface, a_left, b_right, a_right, frame_a.basis.y, frame_b.basis.y, frame_a.basis.y)
 	var instance := MeshInstance3D.new()
+	instance.mesh = surface.commit()
+	instance.material_override = material
+	return instance
+
+
+func build_course_side_skirt(side: float, depth: float, material: Material) -> MeshInstance3D:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var sample_count := maxi(1, ceili(TRACK_LENGTH / ROAD_SAMPLE_STEP))
+	var lateral := side * (ROAD_WIDTH + 1.4) * 0.5
+	for sample_index in range(sample_count):
+		var offset_a := TRACK_LENGTH * float(sample_index) / sample_count
+		var offset_b := TRACK_LENGTH * float(sample_index + 1) / sample_count
+		var frame_a := course.sample_course(offset_a)
+		var frame_b := course.sample_course(offset_b)
+		var top_a := frame_a.origin + frame_a.basis.x * lateral
+		var top_b := frame_b.origin + frame_b.basis.x * lateral
+		var bottom_a := top_a - frame_a.basis.y * depth
+		var bottom_b := top_b - frame_b.basis.y * depth
+		var normal_a := frame_a.basis.x * side
+		var normal_b := frame_b.basis.x * side
+		add_surface_triangle(surface, top_a, bottom_b, top_b, normal_a, normal_b, normal_b)
+		add_surface_triangle(surface, top_a, bottom_a, bottom_b, normal_a, normal_a, normal_b)
+	var instance := MeshInstance3D.new()
+	instance.name = "RoadDeckSide"
 	instance.mesh = surface.commit()
 	instance.material_override = material
 	return instance
