@@ -1,0 +1,92 @@
+{
+  "name": "Serega Island Grand Prix",
+  "closed": true,
+  "world_scale": 3.3,
+  "bake_interval": 4.0,
+  "road_half_width": 9.0,
+  "notes": "Clockwise map-template route. Party Island is scenery only and is not part of this racing line.",
+  "landmarks": [
+    {"id": "party_island", "position": [10.0, 0.0, -320.0], "off_track": true}
+  ],
+  "points": [
+    {"position": [-350.0, 2.0, -280.0], "zone": "start_coast"},
+    {"position": [-325.0, 2.0, -250.0], "zone": "start_coast"},
+    {"position": [-295.0, 2.0, -220.0], "zone": "start_coast"},
+    {"position": [-265.0, 2.0, -185.0], "zone": "start_coast"},
+    {"position": [-225.0, 2.0, -145.0], "zone": "start_coast"},
+
+    {"position": [-185.0, 2.0, -112.0], "zone": "loop_1"},
+    {"position": [-176.0, 2.0, -78.0], "zone": "loop_1"},
+    {"position": [-208.0, 2.0, -62.0], "zone": "loop_1"},
+    {"position": [-241.0, 2.0, -79.0], "zone": "loop_1"},
+    {"position": [-228.0, 2.0, -104.0], "zone": "loop_1"},
+    {"position": [-194.0, 2.0, -101.0], "zone": "loop_1"},
+    {"position": [-163.0, 1.0, -76.0], "zone": "loop_1"},
+
+    {"position": [-158.0, -2.0, -28.0], "zone": "underwater_tunnel"},
+    {"position": [-177.0, -7.0, 35.0], "zone": "underwater_tunnel"},
+    {"position": [-203.0, -10.0, 104.0], "zone": "underwater_tunnel"},
+    {"position": [-231.0, -7.0, 175.0], "zone": "underwater_tunnel"},
+    {"position": [-255.0, -2.0, 229.0], "zone": "underwater_tunnel"},
+
+    {"position": [-279.0, 1.0, 264.0], "zone": "loop_2"},
+    {"position": [-319.0, 2.0, 274.0], "zone": "loop_2"},
+    {"position": [-343.0, 2.0, 251.0], "zone": "loop_2"},
+    {"position": [-324.0, 2.0, 230.0], "zone": "loop_2"},
+    {"position": [-289.0, 2.0, 234.0], "zone": "loop_2"},
+    {"position": [-262.0, 2.0, 261.0], "zone": "loop_2"},
+    {"position": [-299.0, 2.0, 298.0], "zone": "loop_2"},
+
+    {"position": [-270.0, 4.0, 335.0], "zone": "bridge"},
+    {"position": [-222.0, 9.0, 355.0], "zone": "bridge"},
+    {"position": [-164.0, 14.0, 394.0], "zone": "bridge"},
+    {"position": [-95.0, 17.0, 422.0], "zone": "bridge"},
+    {"position": [-25.0, 14.0, 431.0], "zone": "bridge"},
+    {"position": [25.0, 7.0, 414.0], "zone": "bridge"},
+
+    {"position": [62.0, 3.0, 380.0], "zone": "party_town"},
+    {"position": [93.0, 2.0, 333.0], "zone": "party_town"},
+    {"position": [126.0, 2.0, 278.0], "zone": "party_town"},
+    {"position": [151.0, 2.0, 229.0], "zone": "party_town"},
+
+    {"position": [161.0, 2.0, 190.0], "zone": "city_centre"},
+    {"position": [132.0, 2.0, 157.0], "zone": "city_centre"},
+    {"position": [78.0, 2.0, 132.0], "zone": "city_centre"},
+    {"position": [25.0, 2.0, 105.0], "zone": "city_centre"},
+
+    {"position": [-4.0, 2.0, 82.0], "zone": "loop_3_lower"},
+    {"position": [-34.0, 2.0, 63.0], "zone": "loop_3_lower"},
+    {"position": [-57.0, 2.0, 87.0], "zone": "loop_3_lower"},
+    {"position": [-54.0, 3.0, 119.0], "zone": "loop_3_lower"},
+    {"position": [-28.0, 7.0, 111.0], "zone": "loop_3_upper"},
+    {"position": [0.0, 12.0, 77.0], "zone": "loop_3_upper"},
+    {"position": [27.0, 8.0, 101.0], "zone": "loop_3_upper"},
+
+    {"position": [62.0, 4.0, 62.0], "zone": "shopping_alley"},
+    {"position": [105.0, 2.0, 13.0], "zone": "shopping_alley"},
+    {"position": [143.0, 2.0, -36.0], "zone": "shopping_alley"},
+
+    {"position": [112.0, 2.0, -73.0], "zone": "sport_complex"},
+    {"position": [63.0, 2.0, -102.0], "zone": "sport_complex"},
+    {"position": [24.0, 2.0, -126.0], "zone": "sport_complex"},
+    {"position": [-12.0, 2.0, -147.0], "zone": "sport_complex"},
+    {"position": [-44.0, 2.0, -161.0], "zone": "sport_complex"},
+    {"position": [-63.0, 2.0, -140.0], "zone": "sport_complex"},
+    {"position": [-38.0, 2.0, -112.0], "zone": "sport_complex"},
+
+    {"position": [25.0, 2.0, -174.0], "zone": "north_coast"},
+    {"position": [101.0, 2.0, -218.0], "zone": "north_coast"},
+    {"position": [166.0, 2.0, -277.0], "zone": "north_coast"},
+    {"position": [181.0, 2.0, -339.0], "zone": "north_coast"},
+    {"position": [145.0, 2.0, -385.0], "zone": "north_coast"},
+    {"position": [75.0, 2.0, -416.0], "zone": "north_coast"},
+    {"position": [-8.0, 2.0, -429.0], "zone": "north_coast"},
+    {"position": [-91.0, 2.0, -419.0], "zone": "north_coast"},
+    {"position": [-142.0, 2.0, -379.0], "zone": "north_coast"},
+    {"position": [-159.0, 2.0, -327.0], "zone": "north_coast"},
+    {"position": [-174.0, 2.0, -276.0], "zone": "party_island_view"},
+    {"position": [-211.0, 2.0, -246.0], "zone": "party_island_view"},
+    {"position": [-265.0, 2.0, -266.0], "zone": "start_coast"},
+    {"position": [-312.0, 2.0, -292.0], "zone": "start_coast"}
+  ]
+}
