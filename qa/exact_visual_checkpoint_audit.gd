@@ -16,6 +16,7 @@ const OUTPUT_DIRECTORY := "res://qa/artifacts/exact_visual_checkpoints"
 
 const FIXED_CHECKPOINTS := [
 	{"file": "tunnel_approach_1552.png", "offset": 1552.0, "mode": "chase"},
+	{"file": "tunnel_clearance_1869.png", "offset": 1869.0, "mode": "chase"},
 	{"file": "tunnel_shoreline_overview_1552.png", "offset": 1552.0, "mode": "shoreline_overview"},
 	{"file": "tunnel_waterline_1906.png", "offset": 1906.0, "mode": "chase"},
 	{"file": "loop_2_structure_3234.png", "offset": 3234.0, "mode": "chase"},
@@ -125,13 +126,29 @@ func _run() -> void:
 			"offset": (QAUtil.zone_start(zone, length) + QAUtil.zone_end(zone, length)) * 0.5,
 			"mode": district.get("mode", "overview"),
 		})
+	var poster_checkpoint_count := 0
+	for value in get_nodes_in_group("poster_scenery"):
+		if not value is Node3D or not race.is_ancestor_of(value):
+			continue
+		var poster := value as Node3D
+		checkpoints.append({
+			"file": "poster_%s.png" % str(poster.name).to_snake_case(),
+			"offset": float(poster.get_meta("course_offset", 0.0)),
+			"mode": "poster_closeup",
+			"target": poster,
+		})
+		poster_checkpoint_count += 1
 
-	var failures := DISTRICT_CHECKPOINTS.size() + FIXED_CHECKPOINTS.size() + ZONE_RELATIVE_CHECKPOINTS.size() - checkpoints.size()
+	var failures := DISTRICT_CHECKPOINTS.size() + FIXED_CHECKPOINTS.size() + ZONE_RELATIVE_CHECKPOINTS.size() + poster_checkpoint_count - checkpoints.size()
 	for checkpoint: Dictionary in checkpoints:
 		var offset := float(checkpoint.offset)
 		var frame := race.call("sample_course", offset) as Transform3D
 		car.global_transform = Transform3D(frame.basis, frame.origin + frame.basis.y * 0.55)
-		if str(checkpoint.mode) == "party_island_overview":
+		if str(checkpoint.mode) == "poster_closeup":
+			var target := checkpoint.target as Node3D
+			camera.global_position = target.global_transform * Vector3(0.0, 4.2, -15.0)
+			camera.look_at(target.global_position + Vector3.UP * 4.2, Vector3.UP)
+		elif str(checkpoint.mode) == "party_island_overview":
 			var course: Object = race.get("course")
 			var landmark: Vector3 = course.call("landmark_position", &"party_island")
 			var roadward := (frame.origin - landmark).normalized()

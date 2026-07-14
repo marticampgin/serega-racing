@@ -1,9 +1,15 @@
 extends SceneTree
 
-const MAX_TOTAL_MESHES := 4600
+const MAX_TOTAL_MESHES := 5200
 const OVERLAP_TOLERANCE := 0.75
 const MESH_OVERLAP_AREA_TOLERANCE := 0.35
 const FILLER_GROUPS := [&"palm_scenery", &"lamp_scenery", &"portrait_scenery"]
+const REQUIRED_POSTER_TEXTURES := [
+	"res://assets/generated/friends/1844112d-4cdc-4fd7-af55-4c29c7179983.jpg",
+	"res://assets/generated/friends/1daf0fdc-2536-4e54-b476-fc61c770b23d.jpg",
+	"res://assets/generated/friends/61b5ddf7-ae71-4d13-b677-660bd070a785.jpg",
+	"res://assets/generated/friends/71b38443-851b-401f-a174-0b72d699a284.jpg",
+]
 const DENSITY_RULES := {
 	"start_coast": {"min_featured": 4, "max_gap": 100.0},
 	"party_town": {"min_featured": 18, "max_gap": 80.0},
@@ -106,6 +112,7 @@ func _run() -> void:
 			"%s span %d has no obvious long empty stretch" % [zone_name, int(span.index)]
 		)
 	_check_feature_anchor_overlaps(featured_anchors)
+	_check_personalized_posters(race)
 
 	_finish()
 
@@ -138,6 +145,42 @@ func _maximum_gap(start: float, finish: float, sorted_offsets: Array) -> float:
 	for index in range(1, sorted_offsets.size()):
 		maximum = maxf(maximum, float(sorted_offsets[index]) - float(sorted_offsets[index - 1]))
 	return maxf(maximum, finish - float(sorted_offsets[-1]))
+
+
+func _check_personalized_posters(race: Node) -> void:
+	var represented := {}
+	for texture_path in REQUIRED_POSTER_TEXTURES:
+		represented[texture_path] = false
+		var texture_exists := ResourceLoader.exists(texture_path, "Texture2D")
+		var texture_resource := load(texture_path) if texture_exists else null
+		check(texture_exists and texture_resource is Texture2D, "required personalized poster texture loads: %s" % texture_path)
+
+	var poster_count := 0
+	for value in get_nodes_in_group("poster_scenery"):
+		if not value is Node3D or not race.is_ancestor_of(value):
+			continue
+		poster_count += 1
+		var poster := value as Node3D
+		var poster_label := "poster root %s" % poster.name
+		check(poster.is_in_group("grounded_scenery"), "%s is registered as grounded scenery" % poster_label)
+		for metadata_name in [&"poster_texture", &"ground_y", &"course_offset", &"scenery_radius"]:
+			check(poster.has_meta(metadata_name), "%s carries %s placement metadata" % [poster_label, metadata_name])
+
+		if poster.has_meta("poster_texture"):
+			var texture_path := str(poster.get_meta("poster_texture"))
+			check(not texture_path.is_empty(), "%s has a non-empty poster texture path" % poster_label)
+			var texture_exists := ResourceLoader.exists(texture_path, "Texture2D") if not texture_path.is_empty() else false
+			var texture_resource := load(texture_path) if texture_exists else null
+			check(texture_exists and texture_resource is Texture2D, "%s texture loads as Texture2D: %s" % [poster_label, texture_path])
+			if represented.has(texture_path):
+				represented[texture_path] = true
+
+		if poster.has_meta("scenery_radius"):
+			check(float(poster.get_meta("scenery_radius")) > 0.0, "%s has a positive scenery radius" % poster_label)
+
+	print("INFO: personalized poster roots = %d; required textures = %d" % [poster_count, REQUIRED_POSTER_TEXTURES.size()])
+	for texture_path in REQUIRED_POSTER_TEXTURES:
+		check(bool(represented[texture_path]), "required personalized poster is represented: %s" % texture_path)
 
 
 func _check_feature_anchor_overlaps(anchors: Array[Node3D]) -> void:

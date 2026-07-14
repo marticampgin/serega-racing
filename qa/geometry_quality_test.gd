@@ -68,6 +68,7 @@ func _run() -> void:
 	if curve != null:
 		await _check_road_edges(race, curve.get_baked_length())
 		_check_ground_clearance(race, curve.get_baked_length())
+		_check_tunnel_terrain_clearance(race)
 		_check_tunnel_ocean_clearance(race)
 		_check_crossing_clearance(race, curve.get_baked_length())
 		_check_scenery_clearance(race, curve.get_baked_length())
@@ -164,6 +165,43 @@ func _check_tunnel_ocean_clearance(race: Node) -> void:
 	check(violations == 0, "rendered ocean triangles stay below the tunnel road and shoulders")
 
 
+func _check_tunnel_terrain_clearance(race: Node) -> void:
+	# The analytical height sampler can be safely below the road while a coarse
+	# terrain triangle still bridges from an unclamped vertex through the tunnel.
+	# Query the exact triangle interpolation used by IslandTerrain at dense course
+	# intervals so the open-approach regression around 1869 m cannot hide between
+	# the ordinary 12 m full-lap samples.
+	var course: Object = race.get("course")
+	var builder: Object = race.get("world_builder")
+	var violations := 0
+	var samples := 0
+	var regression_1869_samples := 0
+	for span: Dictionary in course.get("course_zones"):
+		if str(span.get("name", "")) != "underwater_tunnel":
+			continue
+		# Align to global 3 m markers so the reported 1869 m checkpoint remains an
+		# explicit part of this regression test even if zone boundaries shift.
+		var offset := ceilf(float(span.start_distance) / 3.0) * 3.0
+		while offset <= float(span.end_distance):
+			var frame := race.call("sample_course", offset) as Transform3D
+			for lateral in [-8.8, 0.0, 8.8]:
+				var road_point: Vector3 = frame.origin + frame.basis.x * lateral
+				var rendered_terrain := float(builder.call("terrain_rendered_height_at", Vector2(road_point.x, road_point.z)))
+				if rendered_terrain > road_point.y - 0.35:
+					violations += 1
+					if violations <= 24:
+						print("INFO: tunnel/terrain violation offset=%.1f lateral=%.1f road=%.2f terrain=%.2f" % [offset, lateral, road_point.y, rendered_terrain])
+				if is_equal_approx(offset, 1869.0):
+					regression_1869_samples += 1
+				samples += 1
+			# A 3 m cadence includes the reported 1869 m regression while remaining
+			# finer than both the 14 m terrain grid and 12 m route-sample spacing.
+			offset += 3.0
+	print("INFO: rendered tunnel terrain samples = %d, violations = %d" % [samples, violations])
+	check(regression_1869_samples == 3, "reported 1869 m tunnel terrain checkpoint is sampled at centre and shoulders")
+	check(violations == 0, "rendered terrain triangles stay below the tunnel centre and playable shoulders")
+
+
 func _check_bridge_support_contact() -> void:
 	var violations := 0
 	var supports := get_nodes_in_group("bridge_support")
@@ -243,6 +281,21 @@ func _check_render_distance(race: Node, terrain: MeshInstance3D, ocean: MeshInst
 		camera = race.get_viewport().get_camera_3d()
 	check(camera != null and camera.far >= 6000.0, "camera far plane supports long district sightlines")
 	check(terrain.visibility_range_end >= 5000.0 and ocean.visibility_range_end >= 5000.0, "terrain and ocean remain visible to the far horizon")
+	var sun: DirectionalLight3D = null
+	for child in race.find_children("*", "DirectionalLight3D", true, false):
+		sun = child as DirectionalLight3D
+		break
+	check(
+		sun != null
+		and sun.shadow_enabled
+		and sun.directional_shadow_max_distance >= 1200.0,
+		"directional shadows remain visible through the populated district range"
+	)
+	check(
+		sun != null
+		and sun.directional_shadow_mode == DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS,
+		"long-range sunlight uses four shadow cascades"
+	)
 	var short_infill_meshes := 0
 	for root in get_nodes_in_group("district_infill"):
 		for child in root.find_children("*", "MeshInstance3D", true, false):
