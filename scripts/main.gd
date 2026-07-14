@@ -543,6 +543,7 @@ func build_car() -> void:
 	chase_camera = Camera3D.new()
 	chase_camera.current = true
 	chase_camera.fov = 70.0
+	chase_camera.far = 7000.0
 	add_child(chase_camera)
 	chase_camera.global_position = car.global_position + start_frame.basis.z * 10.5 + start_frame.basis.y * 5.4
 	chase_camera.look_at(car.global_position - start_frame.basis.z * 5.0 + start_frame.basis.y * 0.5, start_frame.basis.y)

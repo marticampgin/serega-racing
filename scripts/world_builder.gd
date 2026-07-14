@@ -25,6 +25,9 @@ var _route_samples: Array[Dictionary] = []
 var _route_buckets: Dictionary = {}
 var _submerged_buckets: Dictionary = {}
 var _ocean_grid_origin := Vector2.ZERO
+var _terrain_grid_origin := Vector2.ZERO
+var _ocean_render_cache: Dictionary = {}
+var _terrain_render_cache: Dictionary = {}
 var mesh_instance_count := 0
 
 
@@ -44,6 +47,7 @@ func build(parent: Node3D, course: CourseLayout) -> void:
 	_build_shopping_alley()
 	_build_sport_complex()
 	_build_north_coast()
+	_build_district_infill()
 	_build_party_island()
 	_build_personalized_billboards()
 	_build_roadside_rhythm()
@@ -57,20 +61,35 @@ func terrain_height_at(world_xz: Vector2) -> float:
 func ocean_rendered_height_at(world_xz: Vector2) -> float:
 	# Match the exact diagonal used by _build_heightfield_mesh so QA validates
 	# rendered triangle interpolation rather than only the height sampler.
-	var grid := (world_xz - _ocean_grid_origin) / OCEAN_GRID
+	return _rendered_height_at(world_xz, _ocean_grid_origin, OCEAN_GRID, Callable(self, "_ocean_height_at"), _ocean_render_cache)
+
+
+func terrain_rendered_height_at(world_xz: Vector2) -> float:
+	return _rendered_height_at(world_xz, _terrain_grid_origin, TERRAIN_GRID, Callable(self, "_ground_height_at"), _terrain_render_cache)
+
+
+func _rendered_height_at(world_xz: Vector2, origin: Vector2, spacing: float, sampler: Callable, cache: Dictionary) -> float:
+	var grid := (world_xz - origin) / spacing
 	var cell := Vector2(floorf(grid.x), floorf(grid.y))
 	var uv := grid - cell
-	var a_xz := _ocean_grid_origin + cell * OCEAN_GRID
-	var b_xz := a_xz + Vector2(0.0, OCEAN_GRID)
-	var c_xz := a_xz + Vector2(OCEAN_GRID, OCEAN_GRID)
-	var d_xz := a_xz + Vector2(OCEAN_GRID, 0.0)
-	var a := _ocean_height_at(a_xz)
-	var b := _ocean_height_at(b_xz)
-	var c := _ocean_height_at(c_xz)
-	var d := _ocean_height_at(d_xz)
+	var a_xz := origin + cell * spacing
+	var b_xz := a_xz + Vector2(0.0, spacing)
+	var c_xz := a_xz + Vector2(spacing, spacing)
+	var d_xz := a_xz + Vector2(spacing, 0.0)
+	var a := _cached_height_sample(a_xz, sampler, cache)
+	var b := _cached_height_sample(b_xz, sampler, cache)
+	var c := _cached_height_sample(c_xz, sampler, cache)
+	var d := _cached_height_sample(d_xz, sampler, cache)
 	if uv.y >= uv.x:
 		return a * (1.0 - uv.y) + b * (uv.y - uv.x) + c * uv.x
 	return a * (1.0 - uv.x) + c * uv.y + d * (uv.x - uv.y)
+
+
+func _cached_height_sample(position: Vector2, sampler: Callable, cache: Dictionary) -> float:
+	var key := Vector2i(roundi(position.x * 10.0), roundi(position.y * 10.0))
+	if not cache.has(key):
+		cache[key] = float(sampler.call(position))
+	return float(cache[key])
 
 
 func _cache_route_samples() -> void:
@@ -81,10 +100,12 @@ func _cache_route_samples() -> void:
 	while offset < _course.length():
 		var point := _course.point_at(offset)
 		var zone := _course.zone_at(offset)
-		var below_island_grade := point.y < TERRAIN_TOP - 0.2
-		var near_water_structure := _offset_near_water_zone(offset, 220.0)
-		var water_route := zone in ["bridge", "underwater_tunnel"]
-		var submerged_route := zone == "underwater_tunnel" or (below_island_grade and near_water_structure)
+		var truly_submerged_tunnel := zone == "underwater_tunnel" and point.y < SEA_LEVEL - 0.8
+		var water_route := zone == "bridge" or truly_submerged_tunnel
+		# Only the enclosed tunnel needs the sea surface lowered. Extending this
+		# profile into Loop 2 exposed the seabed as large purple wedges and cyan
+		# puddles when viewed from the elevated crossing around 3234 m.
+		var submerged_route := truly_submerged_tunnel
 		var route_sample := {"offset": offset, "point": point, "zone": zone, "water": water_route, "submerged": submerged_route}
 		_route_samples.append(route_sample)
 		_add_to_bucket(_route_buckets, _bucket_key(Vector2(point.x, point.z)), route_sample)
@@ -231,7 +252,7 @@ func _mesh_instance(mesh: Mesh, material: Material, visibility := 280.0) -> Mesh
 	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if substantial else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	# Compound buildings used to lose windows/roofs before their main body. A
 	# shared minimum range keeps silhouettes intact while retaining distance culls.
-	instance.visibility_range_end = maxf(visibility, 620.0)
+	instance.visibility_range_end = maxf(visibility * 1.45, 1200.0)
 	instance.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 	mesh_instance_count += 1
 	return instance
@@ -352,11 +373,12 @@ func _build_ocean_and_islands() -> void:
 	var ocean_min := center - ocean_size * 0.5
 	var ocean_max := center + ocean_size * 0.5
 	_ocean_grid_origin = Vector2(floorf(ocean_min.x / OCEAN_GRID) * OCEAN_GRID, floorf(ocean_min.y / OCEAN_GRID) * OCEAN_GRID)
+	_terrain_grid_origin = Vector2(floorf(ocean_min.x / TERRAIN_GRID) * TERRAIN_GRID, floorf(ocean_min.y / TERRAIN_GRID) * TERRAIN_GRID)
 	# Both layers are connected indexed heightfields. Sand slopes continuously to
 	# the seabed; the opaque sea overlays it and depresses smoothly beneath the
 	# enclosed tunnel. No cells are deleted, so there are no horizon holes.
 	var ocean_mesh := _build_heightfield_mesh(ocean_min, ocean_max, OCEAN_GRID, Callable(self, "_ocean_height_at"))
-	var ocean := _mesh_instance(ocean_mesh, _materials.ocean, 2600.0)
+	var ocean := _mesh_instance(ocean_mesh, _materials.ocean, 5200.0)
 	ocean.name = "OceanSurface"
 	_parent.add_child(ocean)
 	ocean.add_to_group("ocean_scenery")
@@ -367,7 +389,7 @@ func _build_ocean_and_islands() -> void:
 	terrain.mesh = terrain_mesh
 	terrain.material_override = _materials.sand
 	terrain.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-	terrain.visibility_range_end = 2600.0
+	terrain.visibility_range_end = 5200.0
 	terrain.add_to_group("island_terrain")
 	_parent.add_child(terrain)
 	mesh_instance_count += 1
@@ -465,7 +487,7 @@ func _build_shoreline_contour(minimum: Vector2, maximum: Vector2) -> void:
 	# Marching-squares produces a narrow continuous foam line exactly where the
 	# shaped sand crosses sea level. It makes the beach readable without adding a
 	# second flat slab that could z-fight with either terrain surface.
-	const SPACING := 10.0
+	const SPACING := 6.0
 	var aligned_min := Vector2(floorf(minimum.x / SPACING) * SPACING, floorf(minimum.y / SPACING) * SPACING)
 	var columns := ceili((maximum.x - aligned_min.x) / SPACING) + 1
 	var rows := ceili((maximum.y - aligned_min.y) / SPACING) + 1
@@ -474,14 +496,16 @@ func _build_shoreline_contour(minimum: Vector2, maximum: Vector2) -> void:
 	for row in range(rows):
 		for column in range(columns):
 			var point := aligned_min + Vector2(column * SPACING, row * SPACING)
-			values[row * columns + column] = _ground_height_at(point) - SEA_LEVEL
+			values[row * columns + column] = terrain_rendered_height_at(point) - ocean_rendered_height_at(point)
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var segment_count := 0
 	for row in range(rows - 1):
 		for column in range(columns - 1):
 			var center := aligned_min + Vector2((column + 0.5) * SPACING, (row + 0.5) * SPACING)
-			if _submerged_distance(center) < 50.0:
+			# Leave only the sealed inner tunnel corridor contour-free. The former
+			# 50 m exclusion created obvious missing shoreline stretches at portals.
+			if _submerged_distance(center) < 13.0:
 				continue
 			var corners := [
 				aligned_min + Vector2(column * SPACING, row * SPACING),
@@ -512,7 +536,7 @@ func _build_shoreline_contour(minimum: Vector2, maximum: Vector2) -> void:
 	if segment_count == 0:
 		return
 	surface.generate_normals()
-	var contour := _mesh_instance(surface.commit(), _materials.foam, 2600.0)
+	var contour := _mesh_instance(surface.commit(), _materials.foam, 5200.0)
 	contour.name = "ShorelineContour"
 	contour.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	contour.add_to_group("shoreline_contour")
@@ -523,11 +547,17 @@ func _append_shoreline_segment(surface: SurfaceTool, from: Vector2, to: Vector2)
 	var direction := (to - from).normalized()
 	if direction.length_squared() < 0.5:
 		return
-	var normal := Vector2(-direction.y, direction.x) * 0.48
-	var a := Vector3(from.x - normal.x, SEA_LEVEL + 0.07, from.y - normal.y)
-	var b := Vector3(to.x - normal.x, SEA_LEVEL + 0.07, to.y - normal.y)
-	var c := Vector3(to.x + normal.x, SEA_LEVEL + 0.07, to.y + normal.y)
-	var d := Vector3(from.x + normal.x, SEA_LEVEL + 0.07, from.y + normal.y)
+	# Slightly overlap neighbouring marching-square segments so sharp turns do
+	# not leave pinholes between independent quads.
+	from -= direction * 0.42
+	to += direction * 0.42
+	var normal := Vector2(-direction.y, direction.x) * 0.34
+	var from_y := ocean_rendered_height_at(from) + 0.07
+	var to_y := ocean_rendered_height_at(to) + 0.07
+	var a := Vector3(from.x - normal.x, from_y, from.y - normal.y)
+	var b := Vector3(to.x - normal.x, to_y, to.y - normal.y)
+	var c := Vector3(to.x + normal.x, to_y, to.y + normal.y)
+	var d := Vector3(from.x + normal.x, from_y, from.y + normal.y)
 	_add_surface_quad(surface, a, b, c, d)
 
 
@@ -551,6 +581,10 @@ func _build_start_coast() -> void:
 		var promenade_offset := start + 55.0
 		var promenade_index := 0
 		while promenade_offset < finish:
+			# Closed-lap scenery must also clear the first sector. The final
+			# promenade previously overlapped the Villa at 45 m across the seam.
+			if promenade_offset > _course.length() - 80.0:
+				break
 			_add_coastal_promenade(promenade_offset, 1.0 if promenade_index % 2 == 0 else -1.0, promenade_index)
 			promenade_offset += 176.0
 			promenade_index += 1
@@ -726,6 +760,173 @@ func _build_north_coast() -> void:
 					_add_beach_bar(d, -1.0 if index % 2 == 0 else 1.0, index)
 				d += 118.0
 				index += 1
+
+
+func _build_district_infill() -> void:
+	# A second, collision-aware population layer turns the named map zones into
+	# continuous districts. These are deliberately irregular rather than a rigid
+	# prop fence, and every footprint is checked against existing scenery plus all
+	# non-local road branches before it is built.
+	var settings := {
+		"start_coast": {"spacing": 46.0, "setback": 50.0, "radius": 10.5},
+		"party_town": {"spacing": 43.0, "setback": 49.0, "radius": 10.0},
+		"city_centre": {"spacing": 47.0, "setback": 68.0, "radius": 14.0},
+		"shopping_alley": {"spacing": 42.0, "setback": 47.0, "radius": 11.0},
+		"sport_complex": {"spacing": 52.0, "setback": 68.0, "radius": 14.0},
+		"north_coast": {"spacing": 48.0, "setback": 54.0, "radius": 10.5},
+		"party_island_view": {"spacing": 48.0, "setback": 54.0, "radius": 10.5},
+	}
+	var feature_index := 0
+	for zone_name: String in settings:
+		var setting: Dictionary = settings[zone_name]
+		for span: Dictionary in _zone_spans(zone_name):
+			var offset := float(span.start_distance) + float(setting.spacing) * 0.5
+			while offset < float(span.end_distance) - float(setting.spacing) * 0.35:
+				var preferred_side := -1.0 if feature_index % 2 == 0 else 1.0
+				var root := _try_infill_root(zone_name, offset, preferred_side, float(setting.setback), float(setting.radius), feature_index)
+				if root != null:
+					_populate_infill_root(root, zone_name, feature_index)
+				offset += float(setting.spacing)
+				feature_index += 1
+
+
+func _try_infill_root(zone_name: String, offset: float, preferred_side: float, setback: float, radius: float, variant: int) -> Node3D:
+	var road := _course.point_at(offset)
+	var lateral := _course.lateral_at(offset)
+	var candidate_position := Vector3.ZERO
+	var found := false
+	for extra_setback in [0.0, 22.0, 42.0]:
+		for side in [preferred_side, -preferred_side]:
+			var position := road + lateral * float(side) * (setback + float(extra_setback))
+			position.y = _ground_height_at(Vector2(position.x, position.z))
+			if position.y <= SEA_LEVEL + 0.12:
+				continue
+			if _other_road_clearance(position, offset) < radius + 11.0:
+				continue
+			if not _scenery_footprint_is_clear(position, radius):
+				continue
+			candidate_position = position
+			found = true
+			break
+		if found:
+			break
+	if not found:
+		return null
+	var root := _grounded_root("%s_Infill_%03d" % [zone_name, variant], candidate_position, ["district_infill", "%s_scenery" % zone_name])
+	root.look_at(Vector3(road.x, candidate_position.y, road.z), Vector3.UP)
+	root.set_meta("course_offset", offset)
+	root.set_meta("scenery_radius", radius)
+	return root
+
+
+func _scenery_footprint_is_clear(position: Vector3, radius: float) -> bool:
+	for value in _parent.get_tree().get_nodes_in_group("grounded_scenery"):
+		if not value is Node3D or not _parent.is_ancestor_of(value):
+			continue
+		var root := value as Node3D
+		var existing_radius := 0.0
+		if root.has_meta("scenery_radius"):
+			existing_radius = float(root.get_meta("scenery_radius"))
+		else:
+			existing_radius = _estimate_scenery_radius(root)
+			root.set_meta("scenery_radius", existing_radius)
+		if Vector2(position.x, position.z).distance_to(Vector2(root.global_position.x, root.global_position.z)) < radius + existing_radius + 2.5:
+			return false
+	return true
+
+
+func _estimate_scenery_radius(root: Node3D) -> float:
+	var radius := 3.0
+	var inverse := root.global_transform.affine_inverse()
+	for child in root.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := child as MeshInstance3D
+		if mesh_instance.mesh == null:
+			continue
+		var bounds := mesh_instance.get_aabb()
+		for corner_index in range(8):
+			var corner := bounds.position + Vector3(
+				bounds.size.x if corner_index & 1 else 0.0,
+				bounds.size.y if corner_index & 2 else 0.0,
+				bounds.size.z if corner_index & 4 else 0.0
+			)
+			var local_corner: Vector3 = inverse * (mesh_instance.global_transform * corner)
+			radius = maxf(radius, Vector2(local_corner.x, local_corner.z).length())
+	return minf(radius, 38.0)
+
+
+func _populate_infill_root(root: Node3D, zone_name: String, variant: int) -> void:
+	if zone_name in ["start_coast", "north_coast", "party_island_view"]:
+		if zone_name != "start_coast" and variant % 4 == 0:
+			_add_infill_marina(root, variant)
+		else:
+			_add_infill_bungalow(root, variant)
+	elif zone_name == "party_town":
+		_add_infill_bar(root, variant)
+	elif zone_name == "city_centre":
+		_add_infill_midrise(root, variant)
+	elif zone_name == "shopping_alley":
+		_add_infill_shop_pair(root, variant)
+	elif zone_name == "sport_complex":
+		_add_infill_sport_lot(root, variant)
+
+
+func _add_infill_bungalow(root: Node3D, variant: int) -> void:
+	var body: Material = [_materials.cream, _materials.mint, _materials.coral, _materials.lavender][variant % 4]
+	_box(root, Vector3(13.0, 5.4, 9.0), Vector3(0, 2.7, 0), body, 900.0)
+	_box(root, Vector3(14.5, 0.5, 10.2), Vector3(0, 5.65, 0), _materials.white, 900.0)
+	_box(root, Vector3(8.0, 2.5, 0.2), Vector3(0, 2.5, -4.58), _materials.glass, 900.0)
+	_box(root, Vector3(3.0, 2.8, 0.24), Vector3(-4.5, 1.4, -4.62), _materials.night, 900.0)
+	_box(root, Vector3(10.0, 0.35, 2.1), Vector3(1.0, 4.5, -5.25), _materials.pink if variant % 2 == 0 else _materials.cyan, 900.0)
+	_box(root, Vector3(16.0, 0.18, 6.0), Vector3(0, 0.09, -7.2), _materials.wood, 900.0)
+	_cylinder(root, 2.1, 0.42, Vector3(5.0, 2.5, -7.0), _materials.orange, 0.16, 900.0, 10)
+
+
+func _add_infill_marina(root: Node3D, variant: int) -> void:
+	_box(root, Vector3(18.0, 0.25, 7.0), Vector3(0, 0.13, 2.0), _materials.wood, 1000.0)
+	_box(root, Vector3(8.0, 4.2, 6.0), Vector3(-4.0, 2.1, 1.5), _materials.cream, 1000.0)
+	_box(root, Vector3(8.8, 0.4, 6.8), Vector3(-4.0, 4.4, 1.5), _materials.coral, 1000.0)
+	for index in range(3):
+		var x := -6.0 + index * 6.0
+		_box(root, Vector3(2.7, 0.65, 6.2), Vector3(x, 0.45, -4.8), _materials.cyan if (index + variant) % 2 == 0 else _materials.coral, 1000.0)
+		_box(root, Vector3(1.7, 0.9, 2.2), Vector3(x, 1.0, -4.3), _materials.white, 1000.0)
+
+
+func _add_infill_bar(root: Node3D, variant: int) -> void:
+	_box(root, Vector3(15.0, 6.5, 10.0), Vector3(0, 3.25, 0), _materials.night, 1000.0)
+	_box(root, Vector3(11.0, 3.0, 0.2), Vector3(0, 2.8, -5.08), _materials.glass, 1000.0)
+	_box(root, Vector3(16.0, 0.5, 2.2), Vector3(0, 5.4, -5.8), _materials.pink if variant % 2 == 0 else _materials.cyan, 1000.0)
+	_box(root, Vector3(10.0, 0.35, 0.3), Vector3(0, 7.2, -5.0), _materials.orange, 1000.0)
+	for x in [-5.0, 0.0, 5.0]:
+		_cylinder(root, 0.9, 0.45, Vector3(x, 0.45, -8.0), _materials.white, 0.9, 900.0, 10)
+
+
+func _add_infill_midrise(root: Node3D, variant: int) -> void:
+	var body: Material = [_materials.cream, _materials.mint, _materials.coral, _materials.lavender][variant % 4]
+	_box(root, Vector3(19.0, 5.0, 13.0), Vector3(0, 2.5, 0), _materials.night, 1300.0)
+	_box(root, Vector3(15.0, 18.0 + variant % 3 * 4.0, 10.0), Vector3(0, 14.0 + variant % 3 * 2.0, 0.5), body, 1300.0)
+	for x in [-5.0, 0.0, 5.0]:
+		_box(root, Vector3(2.4, 12.0, 0.2), Vector3(x, 14.0, -4.58), _materials.glass, 1300.0)
+	_box(root, Vector3(13.0, 0.5, 1.7), Vector3(0, 5.0, -7.0), _materials.cyan if variant % 2 == 0 else _materials.pink, 1300.0)
+
+
+func _add_infill_shop_pair(root: Node3D, variant: int) -> void:
+	for index in range(2):
+		var x := -5.2 if index == 0 else 5.2
+		var body: Material = [_materials.cream, _materials.mint, _materials.coral, _materials.lavender][(variant + index) % 4]
+		_box(root, Vector3(9.8, 6.0, 8.0), Vector3(x, 3.0, 0), body, 1000.0)
+		_box(root, Vector3(7.4, 2.8, 0.2), Vector3(x, 2.3, -4.08), _materials.glass, 1000.0)
+		_box(root, Vector3(10.0, 0.4, 2.0), Vector3(x, 4.8, -4.8), _materials.pink if index % 2 == 0 else _materials.cyan, 1000.0)
+		_box(root, Vector3(7.0, 0.7, 0.25), Vector3(x, 6.1, -4.2), _materials.orange, 1000.0)
+
+
+func _add_infill_sport_lot(root: Node3D, variant: int) -> void:
+	_box(root, Vector3(25.0, 0.25, 15.0), Vector3(0, 0.13, 0), _materials.court if variant % 2 == 0 else _materials.field, 1100.0)
+	_box(root, Vector3(26.0, 0.2, 0.2), Vector3(0, 0.32, -7.0), _materials.white, 1100.0)
+	_box(root, Vector3(0.2, 0.05, 14.0), Vector3(0, 0.32, 0), _materials.white, 1100.0)
+	for x in [-11.0, 11.0]:
+		_box(root, Vector3(0.25, 7.0, 0.25), Vector3(x, 3.5, 6.0), _materials.steel, 1100.0)
+		_box(root, Vector3(3.4, 0.7, 0.5), Vector3(x, 7.0, 6.0), _materials.yellow, 1100.0)
+	_box(root, Vector3(18.0, 3.5, 4.5), Vector3(0, 1.75, 10.0), _materials.cream, 1100.0)
 
 
 func _add_marina(offset: float, side: float) -> void:
@@ -1051,9 +1252,24 @@ func _build_underwater_tunnel() -> void:
 	for span: Dictionary in _zone_spans("underwater_tunnel"):
 		var start := float(span.start_distance)
 		var finish := float(span.end_distance)
-		var offset := start + 2.0
+		var enclosed_start := -1.0
+		var enclosed_finish := -1.0
+		var probe := start
+		while probe <= finish:
+			# Keep the 6.4 m roof only where its top is actually underwater. The
+			# shallow exit roof used to protrude into open air below Loop 2.
+			if _course.point_at(probe).y + 6.7 < SEA_LEVEL:
+				if enclosed_start < 0.0:
+					enclosed_start = probe
+				enclosed_finish = probe
+			probe += 2.0
+		if enclosed_start < 0.0:
+			continue
+		_build_tunnel_approach_walls(start + 2.0, enclosed_start)
+		_build_tunnel_approach_walls(enclosed_finish, finish - 2.0)
+		var offset := enclosed_start
 		var panel_index := 0
-		while offset < finish - 2.0:
+		while offset < enclosed_finish:
 			var shell := Node3D.new()
 			shell.name = "UnderwaterTunnelShell"
 			shell.transform = _course.sample_course(offset)
@@ -1073,7 +1289,7 @@ func _build_underwater_tunnel() -> void:
 				_box(shell, Vector3(18.7, 0.6, 0.72), Vector3(0, 6.05, 0), _materials.cyan, 1000.0)
 			offset += 14.0
 			panel_index += 1
-		for portal_offset in [start + 3.0, finish - 3.0]:
+		for portal_offset in [enclosed_start + 1.0, enclosed_finish - 1.0]:
 			var portal := Node3D.new()
 			portal.name = "UnderwaterTunnelPortal"
 			portal.transform = _course.sample_course(portal_offset)
@@ -1082,3 +1298,22 @@ func _build_underwater_tunnel() -> void:
 			_box(portal, Vector3(1.8, 9.0, 2.0), Vector3(-10.0, 4.5, 0), _materials.night, 1000.0)
 			_box(portal, Vector3(1.8, 9.0, 2.0), Vector3(10.0, 4.5, 0), _materials.night, 1000.0)
 			_box(portal, Vector3(21.8, 1.8, 2.0), Vector3(0, 8.2, 0), _materials.pink, 1000.0)
+
+
+func _build_tunnel_approach_walls(start: float, finish: float) -> void:
+	if finish - start < 2.0:
+		return
+	var offset := start
+	while offset < finish:
+		var frame := _course.sample_course(offset)
+		var wall_height := clampf(SEA_LEVEL - frame.origin.y + 0.9, 1.1, 6.2)
+		var root := Node3D.new()
+		root.name = "UnderwaterTunnelOpenApproach"
+		root.transform = frame
+		root.add_to_group("tunnel")
+		_parent.add_child(root)
+		for side in [-1.0, 1.0]:
+			var wall := _box(root, Vector3(0.55, wall_height, 14.5), Vector3(side * 9.5, wall_height * 0.5, 0), _materials.rock, 1100.0)
+			wall.add_to_group("tunnel_boundary")
+			_box(root, Vector3(0.18, 0.18, 14.5), Vector3(side * 9.22, wall_height + 0.05, 0), _materials.cyan, 1100.0)
+		offset += 14.0

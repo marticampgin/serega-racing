@@ -2,7 +2,7 @@
   "name": "Serega Island Grand Prix",
   "closed": true,
   "world_scale": 3.3,
-  "bake_interval": 4.0,
+  "bake_interval": 2.0,
   "road_half_width": 9.0,
   "notes": "Clockwise map-template route. Party Island is scenery only and is not part of this racing line.",
   "landmarks": [
