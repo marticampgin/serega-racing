@@ -1,6 +1,8 @@
 class_name WorldBuilder
 extends RefCounted
 
+const SkyTrafficScript := preload("res://scripts/sky_traffic.gd")
+
 ## Lightweight, deterministic scenery for the map-driven island course.
 ## All placements derive from CourseLayout baked distance. Scenery roots are
 ## grounded to a shaped sand/seabed heightfield beneath the racing surface.
@@ -41,6 +43,7 @@ func build(parent: Node3D, course: CourseLayout) -> void:
 	_build_ocean_and_islands()
 	_build_bridge()
 	_build_underwater_tunnel()
+	_build_tunnel_posters()
 	_build_elevated_flyovers()
 	_build_start_coast()
 	_build_party_town()
@@ -49,9 +52,12 @@ func build(parent: Node3D, course: CourseLayout) -> void:
 	_build_sport_complex()
 	_build_north_coast()
 	_build_district_landmarks()
+	_build_loop_landmarks()
 	_build_district_infill()
 	_build_party_island()
+	_build_maritime_scenery()
 	_build_personalized_billboards()
+	_build_sky_traffic()
 	_build_roadside_rhythm()
 	print("WorldBuilder: %d scenery meshes" % mesh_instance_count)
 
@@ -185,9 +191,13 @@ func _build_personalized_billboards() -> void:
 		{"name": "CityEngineerPortrait", "zone": "city_centre", "fraction": 0.30, "side": -1.0, "texture": "res://assets/generated/friends/friend-dark-hair-racing.png"},
 		{"name": "ShoppingEngineerPoster", "zone": "shopping_alley", "fraction": 0.36, "side": 1.0, "texture": "res://assets/generated/friends/61b5ddf7-ae71-4d13-b677-660bd070a785.jpg"},
 		{"name": "NorthCoastCrewBillboard", "zone": "north_coast", "fraction": 0.56, "side": -1.0, "texture": "res://assets/generated/friends/1daf0fdc-2536-4e54-b476-fc61c770b23d.jpg"},
+		{"name": "PartyTownBralisBillboard", "offset": 5520.0, "side": 1.0, "texture": "res://assets/generated/friends/481d5ab6-7c3f-47be-a2bd-e02bdfb2c1d5.jpg"},
+		{"name": "ShoppingHedgehogBillboard", "offset": 7640.0, "side": -1.0, "texture": "res://assets/generated/friends/5213d1b1-6e99-448d-ad81-26f61e859010.jpg"},
+		{"name": "NorthCoastRiderBillboard", "offset": 10650.0, "side": 1.0, "texture": "res://assets/generated/friends/8608460d-bd44-4e25-b2dc-ccf8a5003e87.jpg"},
+		{"name": "FinishMilkBillboard", "offset": 11720.0, "side": 1.0, "texture": "res://assets/generated/friends/882a2791-af8b-4378-b3b7-a05b4cf0dd08.jpg"},
 	]
 	for placement: Dictionary in placements:
-		var offset := _zone_fraction_offset(str(placement.zone), float(placement.fraction))
+		var offset := float(placement.offset) if placement.has("offset") else _zone_fraction_offset(str(placement.zone), float(placement.fraction))
 		var side := float(placement.side)
 		var texture_path := str(placement.texture)
 		var texture := load(texture_path) as Texture2D
@@ -195,7 +205,8 @@ func _build_personalized_billboards() -> void:
 			push_warning("Poster texture could not be loaded: %s" % texture_path)
 			continue
 		var portrait_layout := texture.get_height() > texture.get_width()
-		var image_size := Vector2(4.8, 6.4) if portrait_layout else Vector2(8.4, 6.3)
+		var face_height := 6.4 if portrait_layout else 6.3
+		var image_size := Vector2(face_height * float(texture.get_width()) / float(texture.get_height()), face_height)
 		var frame_radius := Vector2(image_size.x + 1.0, 2.8).length()
 		var frame_root := _try_feature_root(
 			str(placement.name), offset, side, 27.0, frame_radius, 8.5,
@@ -219,6 +230,57 @@ func _build_personalized_billboards() -> void:
 		portrait.add_to_group("poster_face")
 		frame_root.add_child(portrait)
 		frame_root.set_meta("poster_texture", texture_path)
+
+
+func _add_wall_art(parent: Node3D, texture_path: String, centre: Vector3, height: float, rotation_y := 0.0, groups: Array[String] = []) -> Sprite3D:
+	var texture := load(texture_path) as Texture2D
+	if texture == null:
+		push_warning("Wall-art texture could not be loaded: %s" % texture_path)
+		return null
+	var width := height * float(texture.get_width()) / float(texture.get_height())
+	var frame := _box(parent, Vector3(width + 0.65, height + 0.65, 0.24), centre, _materials.night, 1900.0)
+	frame.rotation.y = rotation_y
+	frame.add_to_group("poster_frame")
+	var face := Sprite3D.new()
+	face.texture = texture
+	face.pixel_size = height / float(texture.get_height())
+	face.position = centre + Basis(Vector3.UP, rotation_y) * Vector3(0.0, 0.0, -0.14)
+	face.rotation.y = rotation_y
+	face.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+	face.no_depth_test = false
+	face.double_sided = true
+	face.visibility_range_end = 2800.0
+	face.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+	face.add_to_group("poster_face")
+	face.add_to_group("wall_art_scenery")
+	for group in groups:
+		face.add_to_group(group)
+	parent.add_child(face)
+	return face
+
+
+func _build_tunnel_posters() -> void:
+	var placements := [
+		{"offset": 2055.0, "side": -1.0, "texture": "res://assets/generated/friends/481d5ab6-7c3f-47be-a2bd-e02bdfb2c1d5.jpg"},
+		{"offset": 2145.0, "side": 1.0, "texture": "res://assets/generated/friends/5213d1b1-6e99-448d-ad81-26f61e859010.jpg"},
+		{"offset": 2235.0, "side": -1.0, "texture": "res://assets/generated/friends/8608460d-bd44-4e25-b2dc-ccf8a5003e87.jpg"},
+		{"offset": 2325.0, "side": 1.0, "texture": "res://assets/generated/friends/882a2791-af8b-4378-b3b7-a05b4cf0dd08.jpg"},
+	]
+	for index in range(placements.size()):
+		var placement: Dictionary = placements[index]
+		var offset := float(placement.offset)
+		if _course.zone_at(offset) != "underwater_tunnel" or _course.point_at(offset).y + 6.7 >= SEA_LEVEL:
+			continue
+		var side := float(placement.side)
+		var root := Node3D.new()
+		root.name = "TunnelPoster_%02d" % index
+		root.transform = _course.sample_course(offset)
+		root.set_meta("course_offset", offset)
+		root.set_meta("poster_texture", str(placement.texture))
+		root.add_to_group("tunnel_wall_poster")
+		root.add_to_group("tunnel")
+		_parent.add_child(root)
+		_add_wall_art(root, str(placement.texture), Vector3(side * 9.28, 3.55, 0.0), 4.35, PI * 0.5, ["tunnel_poster_face"])
 
 
 func _build_materials() -> void:
@@ -916,6 +978,7 @@ func _add_grand_hotel(root: Node3D) -> void:
 	_box(root, Vector3(4.0, 0.16, 14.0), Vector3(0, 0.08, -15.0), _materials.wood, 1800.0)
 	for x in [-7.0, 7.0]:
 		_add_bush(root, Vector3(x, 0.0, -11.5), int(x))
+	_add_wall_art(root, "res://assets/generated/friends/481d5ab6-7c3f-47be-a2bd-e02bdfb2c1d5.jpg", Vector3(0.0, 3.35, -9.18), 4.8, 0.0, ["building_mural_scenery"])
 
 
 func _add_neon_theatre(root: Node3D) -> void:
@@ -928,6 +991,7 @@ func _add_neon_theatre(root: Node3D) -> void:
 		_box(root, Vector3(1.0, 16.0, 0.35), Vector3(side * 13.0, 18.0, -3.18), _materials.cyan, 1800.0)
 	_box(root, Vector3(16.0, 3.5, 0.4), Vector3(0, 16.0, -9.2), _materials.orange, 1800.0)
 	_box(root, Vector3(5.0, 0.16, 13.0), Vector3(0, 0.08, -15.0), _materials.asphalt, 1800.0)
+	_add_wall_art(root, "res://assets/generated/friends/5213d1b1-6e99-448d-ad81-26f61e859010.jpg", Vector3(0.0, 16.5, -9.28), 5.4, 0.0, ["building_mural_scenery"])
 
 
 func _add_civic_twin_towers(root: Node3D) -> void:
@@ -961,6 +1025,9 @@ func _add_market_hall(root: Node3D) -> void:
 		_box(root, Vector3(5.5, 4.2, 0.22), Vector3(x, 3.2, -9.58), _materials.glass, 1700.0)
 		_box(root, Vector3(5.8, 0.4, 1.9), Vector3(x, 6.3, -10.4), _materials.pink if int(absf(x)) % 2 == 0 else _materials.cyan, 1700.0)
 	_box(root, Vector3(4.0, 0.16, 13.0), Vector3(0, 0.08, -15.5), _materials.wood, 1700.0)
+	# The market's central marquee projects 3 m from the facade; mount the art on
+	# its outer face instead of burying it inside the sign volume.
+	_add_wall_art(root, "res://assets/generated/friends/882a2791-af8b-4378-b3b7-a05b4cf0dd08.jpg", Vector3(0.0, 8.3, -12.48), 4.7, 0.0, ["building_mural_scenery"])
 
 
 func _add_neon_arena(root: Node3D) -> void:
@@ -990,6 +1057,101 @@ func _add_marina_hotel(root: Node3D) -> void:
 	_box(root, Vector3(5.0, 0.16, 14.0), Vector3(0, 0.08, -15.0), _materials.wood, 1800.0)
 	for x in [-7.0, 7.0]:
 		_add_bush(root, Vector3(x, 0.0, -11.5), int(x) + 8)
+	_add_wall_art(root, "res://assets/generated/friends/8608460d-bd44-4e25-b2dc-ccf8a5003e87.jpg", Vector3(0.0, 3.6, -9.18), 5.0, 0.0, ["building_mural_scenery"])
+
+
+func _build_loop_landmarks() -> void:
+	# The long loop sections sit between named districts on the map. A few
+	# deliberately different destinations prevent those stretches reading as
+	# empty sand while the checked footprints keep stacked road branches clear.
+	var placements := [
+		{"name": "LoopOne_NeonDiner", "offset": 958.5, "side": -1.0, "setback": 34.0, "radius": 13.0, "height": 14.0, "kind": "diner"},
+		{"name": "LoopOne_BeachMotel", "offset": 1134.4, "side": -1.0, "setback": 72.0, "radius": 17.0, "height": 18.0, "kind": "motel"},
+		{"name": "LoopTwo_MarinaOffice", "offset": 2899.4, "side": -1.0, "setback": 72.0, "radius": 15.0, "height": 15.0, "kind": "marina"},
+		{"name": "LoopTwo_PastelMotorInn", "offset": 3087.3, "side": -1.0, "setback": 72.0, "radius": 18.0, "height": 17.0, "kind": "motel_row"},
+		{"name": "LoopThree_DriveIn", "offset": 6408.1, "side": 1.0, "setback": 72.0, "radius": 16.0, "height": 14.0, "kind": "drive_in"},
+		{"name": "LoopThree_SunsetPavilion", "offset": 6871.5, "side": 1.0, "setback": 58.0, "radius": 15.0, "height": 18.0, "kind": "pavilion"},
+		{"name": "Sport_NeonSkatePark", "offset": 8685.0, "side": -1.0, "setback": 70.0, "radius": 18.0, "height": 16.0, "kind": "skate"},
+	]
+	for placement: Dictionary in placements:
+		var root := _try_feature_root(
+			str(placement.name), float(placement.offset), float(placement.side), float(placement.setback),
+			float(placement.radius), float(placement.height), ["loop_landmark", "district_landmark"]
+		)
+		if root == null:
+			push_warning("No collision-safe loop landmark plot for %s" % placement.name)
+			continue
+		match str(placement.kind):
+			"diner": _add_neon_diner(root)
+			"motel": _add_beach_motel(root, false)
+			"marina": _add_marina_office(root)
+			"motel_row": _add_beach_motel(root, true)
+			"drive_in": _add_drive_in(root)
+			"pavilion": _add_sunset_pavilion(root)
+			"skate": _add_skate_park(root)
+
+
+func _add_neon_diner(root: Node3D) -> void:
+	_box(root, Vector3(24.0, 0.8, 16.0), Vector3(0, -0.2, 0), _materials.rock, 1700.0)
+	_box(root, Vector3(22.0, 6.0, 14.0), Vector3(0, 3.0, 0), _materials.coral, 1700.0)
+	_box(root, Vector3(23.5, 0.55, 15.5), Vector3(0, 6.25, 0), _materials.cyan, 1700.0)
+	for x in [-7.0, 0.0, 7.0]:
+		_box(root, Vector3(5.4, 3.0, 0.22), Vector3(x, 3.3, -7.12), _materials.glass, 1700.0)
+	_box(root, Vector3(11.0, 2.0, 0.35), Vector3(0, 8.5, -0.2), _materials.pink, 1700.0)
+	for x in [-9.0, 9.0]:
+		_add_bush(root, Vector3(x, 0, -9.2), int(x) + 20)
+
+
+func _add_beach_motel(root: Node3D, extended: bool) -> void:
+	var width := 33.0 if extended else 27.0
+	_box(root, Vector3(width + 2.0, 0.9, 17.0), Vector3(0, -0.2, 0), _materials.rock, 1800.0)
+	_box(root, Vector3(width, 11.0, 15.0), Vector3(0, 5.5, 0), _materials.cream, 1800.0)
+	for level_y in [3.3, 8.4]:
+		_box(root, Vector3(width + 1.0, 0.35, 2.1), Vector3(0, level_y, -8.1), _materials.mint, 1800.0)
+		for x in [-11.0, -5.5, 0.0, 5.5, 11.0]:
+			if absf(x) < width * 0.45:
+				_box(root, Vector3(3.1, 2.3, 0.2), Vector3(x, level_y + 1.6, -7.58), _materials.glass, 1800.0)
+	_box(root, Vector3(5.0, 0.16, 13.0), Vector3(0, 0.08, -14.0), _materials.wood, 1700.0)
+
+
+func _add_marina_office(root: Node3D) -> void:
+	_box(root, Vector3(25.0, 0.9, 17.0), Vector3(0, -0.2, 0), _materials.rock, 1750.0)
+	_box(root, Vector3(23.0, 8.0, 15.0), Vector3(0, 4.0, 0), _materials.mint, 1750.0)
+	_box(root, Vector3(25.0, 1.0, 17.0), Vector3(0, 8.4, 0), _materials.white, 1750.0)
+	_box(root, Vector3(16.0, 4.2, 0.22), Vector3(0, 4.2, -7.58), _materials.glass, 1750.0)
+	for x in [-7.0, 0.0, 7.0]:
+		_box(root, Vector3(0.3, 8.0, 0.3), Vector3(x, 4.0, -10.0), _materials.steel, 1600.0)
+		_box(root, Vector3(4.0, 0.22, 5.0), Vector3(x, 0.14, -11.5), _materials.wood, 1600.0)
+
+
+func _add_drive_in(root: Node3D) -> void:
+	_box(root, Vector3(30.0, 0.2, 24.0), Vector3(0, 0.1, 0), _materials.asphalt, 1500.0)
+	_box(root, Vector3(24.0, 12.0, 0.8), Vector3(0, 7.0, 7.5), _materials.night, 1800.0)
+	_box(root, Vector3(21.5, 9.5, 0.25), Vector3(0, 7.0, 7.02), _materials.lavender, 1800.0)
+	for x in [-10.0, 0.0, 10.0]:
+		_box(root, Vector3(0.4, 4.0, 0.4), Vector3(x, 2.0, 8.0), _materials.steel, 1700.0)
+	for x in [-9.0, -3.0, 3.0, 9.0]:
+		_box(root, Vector3(3.4, 1.0, 2.0), Vector3(x, 0.65, -5.0), _materials.coral if int(x) % 2 else _materials.mint, 1300.0)
+
+
+func _add_sunset_pavilion(root: Node3D) -> void:
+	_cylinder(root, 11.0, 0.7, Vector3.UP * 0.2, _materials.rock, 11.0, 1700.0, 18)
+	for angle in [0.0, PI * 0.5, PI, PI * 1.5]:
+		var p := Vector3(cos(angle) * 8.0, 4.5, sin(angle) * 8.0)
+		_cylinder(root, 0.45, 9.0, p, _materials.white, 0.45, 1700.0, 8)
+	var roof := _cylinder(root, 12.0, 3.0, Vector3.UP * 10.1, _materials.coral, 0.8, 1800.0, 18)
+	roof.scale.z = 0.82
+	_cylinder(root, 2.2, 0.8, Vector3.UP * 1.0, _materials.pink, 2.2, 1500.0, 14)
+
+
+func _add_skate_park(root: Node3D) -> void:
+	_box(root, Vector3(34.0, 0.25, 24.0), Vector3(0, 0.13, 0), _materials.asphalt, 1600.0)
+	for side in [-1.0, 1.0]:
+		var bowl := _cylinder(root, 7.0, 1.2, Vector3(side * 9.0, 0.6, 0), _materials.lavender, 5.2, 1600.0, 16)
+		bowl.scale.z = 0.75
+	_box(root, Vector3(9.0, 1.8, 6.0), Vector3(0, 0.9, -7.0), _materials.coral, 1500.0)
+	_box(root, Vector3(0.3, 2.0, 12.0), Vector3(0, 2.2, 2.0), _materials.cyan, 1500.0)
+	_box(root, Vector3(11.0, 4.5, 0.5), Vector3(0, 6.0, 10.0), _materials.night, 1700.0)
 
 
 func _build_district_infill() -> void:
@@ -1410,6 +1572,206 @@ func _build_party_island() -> void:
 		var angle := -0.9 + index * 0.55
 		var boat_position := Vector3(cos(angle) * (82.0 + index * 4.0), -0.2, sin(angle) * (82.0 + index * 4.0))
 		_add_boat(island, boat_position, angle + PI * 0.5, index)
+
+
+func _build_maritime_scenery() -> void:
+	var placements := [
+		{"name": "LoopOneSailboat", "offset": 1178.3, "side": -1.0, "setback": 220.0, "kind": "sail", "radius": 8.0},
+		{"name": "LoopTwoYacht", "offset": 2899.4, "side": -1.0, "setback": 220.0, "kind": "yacht", "radius": 11.0},
+		{"name": "BridgeIslandFerry", "offset": 3835.1, "side": -1.0, "setback": 220.0, "kind": "ferry", "radius": 18.0},
+		{"name": "PartyTownPartyYacht", "offset": 5520.5, "side": 1.0, "setback": 220.0, "kind": "party", "radius": 13.0},
+		{"name": "CityHarbourFerry", "offset": 5724.6, "side": 1.0, "setback": 235.0, "kind": "ferry", "radius": 18.0},
+		{"name": "NorthCoastSailboat", "offset": 10180.0, "side": -1.0, "setback": 210.0, "kind": "sail", "radius": 8.0},
+		{"name": "NorthCoastCruiser", "offset": 10637.2, "side": 1.0, "setback": 225.0, "kind": "yacht", "radius": 11.0},
+		{"name": "FinishFishingBoat", "offset": 11640.0, "side": -1.0, "setback": 190.0, "kind": "fishing", "radius": 9.0},
+	]
+	for placement: Dictionary in placements:
+		var root := _try_water_feature_root(
+			str(placement.name), float(placement.offset), float(placement.side),
+			float(placement.setback), float(placement.radius)
+		)
+		if root == null:
+			push_warning("No safe water placement for %s" % placement.name)
+			continue
+		match str(placement.kind):
+			"sail": _add_sailboat(root)
+			"yacht": _add_yacht(root, false)
+			"party": _add_yacht(root, true)
+			"ferry": _add_ferry(root)
+			"fishing": _add_fishing_boat(root)
+
+
+func _try_water_feature_root(name: String, offset: float, preferred_side: float, setback: float, radius: float) -> Node3D:
+	var road := _course.point_at(offset)
+	var lateral := _course.lateral_at(offset)
+	for extra_setback in [0.0, 35.0, 70.0]:
+		for side in [preferred_side, -preferred_side]:
+			var position := road + lateral * float(side) * (setback + float(extra_setback))
+			var xz := Vector2(position.x, position.z)
+			if _ground_height_at(xz) > SEA_LEVEL - 0.5:
+				continue
+			if _other_road_clearance(position, offset) < radius + 45.0:
+				continue
+			if not _water_footprint_is_clear(position, radius):
+				continue
+			var root := Node3D.new()
+			root.name = name
+			root.position = Vector3(position.x, ocean_rendered_height_at(xz) + 0.28, position.z)
+			root.set_meta("course_offset", offset)
+			root.set_meta("scenery_radius", radius)
+			root.set_meta("water_y", root.position.y)
+			root.add_to_group("water_scenery")
+			root.add_to_group("boat_scenery")
+			_parent.add_child(root)
+			root.look_at(Vector3(road.x, root.position.y, road.z), Vector3.UP)
+			root.rotation.y += PI * 0.5
+			return root
+	return null
+
+
+func _water_footprint_is_clear(position: Vector3, radius: float) -> bool:
+	for value in _parent.get_tree().get_nodes_in_group("water_scenery"):
+		if not value is Node3D or not _parent.is_ancestor_of(value):
+			continue
+		var root := value as Node3D
+		var existing_radius := float(root.get_meta("scenery_radius", 8.0))
+		if Vector2(position.x, position.z).distance_to(Vector2(root.global_position.x, root.global_position.z)) < radius + existing_radius + 14.0:
+			return false
+	return true
+
+
+func _add_sailboat(root: Node3D) -> void:
+	var hull := _box(root, Vector3(4.4, 1.1, 13.0), Vector3(0, -0.15, 0), _materials.white, 2200.0)
+	hull.rotation.x = 0.03
+	_box(root, Vector3(2.8, 1.2, 5.0), Vector3(0, 0.8, 1.2), _materials.cream, 2200.0)
+	_cylinder(root, 0.16, 14.0, Vector3(0, 7.0, 0.6), _materials.steel, 0.16, 2200.0, 8)
+	var sail := _box(root, Vector3(0.18, 10.0, 6.8), Vector3(0.18, 8.2, -2.8), _materials.coral, 2300.0)
+	sail.rotation.x = -0.14
+	_box(root, Vector3(0.2, 0.2, 6.5), Vector3(-0.2, 3.0, -2.4), _materials.cyan, 2200.0)
+
+
+func _add_yacht(root: Node3D, party: bool) -> void:
+	_box(root, Vector3(6.5, 1.4, 20.0), Vector3(0, -0.2, 0), _materials.coral if party else _materials.white, 2400.0)
+	_box(root, Vector3(5.2, 2.5, 10.0), Vector3(0, 1.55, 1.2), _materials.white, 2400.0)
+	_box(root, Vector3(4.4, 1.5, 6.0), Vector3(0, 3.45, 2.3), _materials.glass, 2400.0)
+	_box(root, Vector3(6.2, 0.25, 12.0), Vector3(0, 4.35, 0.2), _materials.pink if party else _materials.cyan, 2500.0)
+	for side in [-1.0, 1.0]:
+		_box(root, Vector3(0.14, 1.4, 14.0), Vector3(side * 3.05, 1.25, -0.8), _materials.steel, 2300.0)
+	if party:
+		_box(root, Vector3(4.0, 0.25, 0.25), Vector3(0, 7.5, 1.0), _materials.pink, 2500.0)
+		_cylinder(root, 0.16, 6.0, Vector3(0, 6.0, 1.0), _materials.steel, 0.16, 2500.0, 8)
+
+
+func _add_ferry(root: Node3D) -> void:
+	_box(root, Vector3(11.0, 2.0, 34.0), Vector3(0, -0.25, 0), _materials.night, 2800.0)
+	_box(root, Vector3(9.5, 4.5, 23.0), Vector3(0, 2.3, 1.5), _materials.white, 2800.0)
+	_box(root, Vector3(8.5, 3.0, 13.0), Vector3(0, 6.0, 3.0), _materials.cream, 2800.0)
+	for side in [-1.0, 1.0]:
+		for z in [-7.0, 0.0, 7.0]:
+			_box(root, Vector3(0.18, 1.2, 4.5), Vector3(side * 4.84, 3.0, z), _materials.glass, 2800.0)
+	_box(root, Vector3(10.0, 0.3, 25.0), Vector3(0, 4.7, 0.4), _materials.cyan, 2900.0)
+	_cylinder(root, 1.0, 5.0, Vector3(0, 9.6, 5.0), _materials.coral, 0.8, 2900.0, 12)
+
+
+func _add_fishing_boat(root: Node3D) -> void:
+	_box(root, Vector3(5.4, 1.3, 15.0), Vector3(0, -0.15, 0), _materials.mint, 2200.0)
+	_box(root, Vector3(4.0, 3.2, 5.5), Vector3(0, 1.8, 2.2), _materials.cream, 2200.0)
+	_box(root, Vector3(3.4, 1.2, 0.2), Vector3(0, 2.2, -0.58), _materials.glass, 2200.0)
+	_cylinder(root, 0.13, 7.0, Vector3(0, 5.2, 2.0), _materials.steel, 0.13, 2200.0, 8)
+	_box(root, Vector3(5.0, 0.18, 5.0), Vector3(0, 5.0, 0.8), _materials.coral, 2200.0)
+
+
+func _build_sky_traffic() -> void:
+	var traffic := SkyTrafficScript.new()
+	traffic.name = "SkyTraffic"
+	traffic.add_to_group("sky_traffic")
+	_parent.add_child(traffic)
+
+	var zeppelin_frame := _course.sample_course(10042.7)
+	var zeppelin := _build_zeppelin()
+	traffic.add_child(zeppelin)
+	var zeppelin_centre := zeppelin_frame.origin - zeppelin_frame.basis.z * 70.0 + Vector3.UP * 88.0
+	traffic.register_flight(zeppelin, zeppelin_centre, -zeppelin_frame.basis.x, 360.0, 9.0, 0.49, 1.4)
+
+	var plane_frame := _course.sample_course(720.0)
+	var plane := _build_banner_plane()
+	traffic.add_child(plane)
+	var plane_centre := plane_frame.origin - plane_frame.basis.z * 35.0 + Vector3.UP * 110.0
+	traffic.register_flight(plane, plane_centre, -plane_frame.basis.x, 600.0, 42.0, 0.49, 0.7)
+
+
+func _build_zeppelin() -> Node3D:
+	var root := Node3D.new()
+	root.name = "SeregaZeppelin"
+	root.add_to_group("zeppelin_scenery")
+	root.add_to_group("sky_traffic_vehicle")
+	var hull_mesh := CapsuleMesh.new()
+	hull_mesh.radius = 6.5
+	hull_mesh.height = 30.0
+	hull_mesh.radial_segments = 18
+	hull_mesh.rings = 8
+	var hull := _mesh_instance(hull_mesh, _materials.lavender, 3000.0)
+	hull.rotation.z = PI * 0.5
+	root.add_child(hull)
+	_box(root, Vector3(10.0, 3.0, 4.0), Vector3(0, -7.0, 0), _materials.night, 3000.0)
+	for x in [-3.5, 0.0, 3.5]:
+		_box(root, Vector3(1.8, 0.8, 0.22), Vector3(x, -7.0, -2.12), _materials.cyan, 3000.0)
+	for z in [-1.0, 1.0]:
+		var fin := _box(root, Vector3(5.0, 0.4, 6.0), Vector3(-14.0, 0.0, z * 2.7), _materials.pink, 3000.0)
+		fin.rotation.x = z * 0.12
+	_add_air_banner(root, "res://assets/generated/friends/5213d1b1-6e99-448d-ad81-26f61e859010.jpg", Vector3(-30.0, -7.0, 0.0), 11.0, 3200.0)
+	return root
+
+
+func _build_banner_plane() -> Node3D:
+	var root := Node3D.new()
+	root.name = "SeregaBannerPlane"
+	root.add_to_group("plane_scenery")
+	root.add_to_group("sky_traffic_vehicle")
+	var fuselage_mesh := CapsuleMesh.new()
+	fuselage_mesh.radius = 1.35
+	fuselage_mesh.height = 13.0
+	fuselage_mesh.radial_segments = 12
+	var fuselage := _mesh_instance(fuselage_mesh, _materials.white, 2600.0)
+	fuselage.rotation.z = PI * 0.5
+	root.add_child(fuselage)
+	_box(root, Vector3(4.0, 0.35, 17.0), Vector3(0, 0, 0), _materials.coral, 2600.0)
+	_box(root, Vector3(3.2, 0.3, 7.0), Vector3(-5.2, 1.1, 0), _materials.pink, 2600.0)
+	_box(root, Vector3(3.0, 1.8, 2.2), Vector3(1.8, 1.2, 0), _materials.glass, 2600.0)
+	for z in [-5.8, 5.8]:
+		_cylinder(root, 0.7, 2.2, Vector3(0.6, -0.8, z), _materials.night, 0.7, 2600.0, 10)
+	_add_air_banner(root, "res://assets/generated/friends/882a2791-af8b-4378-b3b7-a05b4cf0dd08.jpg", Vector3(-30.0, -3.0, 0.0), 10.0, 3000.0)
+	return root
+
+
+func _add_air_banner(parent: Node3D, texture_path: String, centre: Vector3, height: float, visibility: float) -> void:
+	var texture := load(texture_path) as Texture2D
+	if texture == null:
+		return
+	var image_width := height * float(texture.get_width()) / float(texture.get_height())
+	var panel_width := image_width + 6.0
+	var frame := _box(parent, Vector3(panel_width, height + 0.8, 0.25), centre, _materials.pink, visibility)
+	frame.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	for side in [-1.0, 1.0]:
+		var stripe := _box(parent, Vector3(2.4, height - 0.5, 0.3), centre + Vector3(side * (image_width * 0.5 + 1.45), 0, -0.03), _materials.cyan if side < 0.0 else _materials.orange, visibility)
+		stripe.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	for rope_y in [-height * 0.34, height * 0.34]:
+		var rope_length := absf(centre.x) - panel_width * 0.5 - 7.0
+		var rope := _box(parent, Vector3(maxf(rope_length, 4.0), 0.12, 0.12), Vector3(-9.0 - maxf(rope_length, 4.0) * 0.5, centre.y + rope_y, 0), _materials.white, visibility)
+		rope.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# Mount the artwork on both sides. The aircraft cross the course, so a single
+	# face would expose a huge blank backing panel from one driving direction.
+	for face_side in [-1.0, 1.0]:
+		var face := Sprite3D.new()
+		face.texture = texture
+		face.pixel_size = height / float(texture.get_height())
+		face.position = centre + Vector3(0, 0, face_side * 0.38)
+		face.rotation.y = 0.0 if face_side < 0.0 else PI
+		face.double_sided = true
+		face.no_depth_test = false
+		face.visibility_range_end = visibility
+		face.add_to_group("air_banner_scenery")
+		parent.add_child(face)
 
 
 func _build_roadside_rhythm() -> void:
