@@ -16,18 +16,28 @@ const OUTPUT_DIRECTORY := "res://qa/artifacts/exact_visual_checkpoints"
 
 const FIXED_CHECKPOINTS := [
 	{"file": "tunnel_approach_1552.png", "offset": 1552.0, "mode": "chase"},
+	{"file": "tunnel_shoreline_overview_1552.png", "offset": 1552.0, "mode": "shoreline_overview"},
 	{"file": "tunnel_waterline_1906.png", "offset": 1906.0, "mode": "chase"},
+	{"file": "loop_2_structure_3234.png", "offset": 3234.0, "mode": "chase"},
+	{"file": "loop_2_structure_side_3234.png", "offset": 3234.0, "mode": "side_overview"},
 	{"file": "bridge_entry_3600.png", "offset": 3600.0, "mode": "chase"},
+	{"file": "bridge_entry_shoreline_3600.png", "offset": 3600.0, "mode": "shoreline_overview"},
 	{"file": "bridge_middle_4200.png", "offset": 4200.0, "mode": "chase"},
 	{"file": "bridge_support_overview_4200.png", "offset": 4200.0, "mode": "overview"},
 	{"file": "bridge_exit_4800.png", "offset": 4800.0, "mode": "chase"},
+	{"file": "bridge_exit_shoreline_4800.png", "offset": 4800.0, "mode": "shoreline_overview"},
 	{"file": "city_crossing_5823.png", "offset": 5823.0, "mode": "chase"},
 ]
 
 const DISTRICT_CHECKPOINTS := [
+	{"file": "party_town_far.png", "zone": "party town", "mode": "far_overview"},
+	{"file": "city_centre_far.png", "zone": "city centre", "mode": "far_overview"},
 	{"file": "shopping_alley_overview.png", "zone": "shopping alley"},
+	{"file": "shopping_alley_far.png", "zone": "shopping alley", "mode": "far_overview"},
 	{"file": "sport_complex_overview.png", "zone": "sport complex"},
+	{"file": "sport_complex_far.png", "zone": "sport complex", "mode": "far_overview"},
 	{"file": "north_coast_overview.png", "zone": "north coast"},
+	{"file": "north_coast_far.png", "zone": "north coast", "mode": "far_overview"},
 	{"file": "party_island_view_overview.png", "zone": "party island view", "mode": "party_island_overview"},
 ]
 
@@ -101,6 +111,15 @@ func _run() -> void:
 			var roadward := (frame.origin - landmark).normalized()
 			camera.global_position = landmark + roadward * 118.0 + Vector3.UP * 42.0
 			camera.look_at(landmark + Vector3.UP * 8.0, Vector3.UP)
+		elif str(checkpoint.mode) == "far_overview":
+			camera.global_position = frame.origin + frame.basis.z * 145.0 + frame.basis.x * 115.0 + Vector3.UP * 68.0
+			camera.look_at(frame.origin + Vector3.UP * 7.0, Vector3.UP)
+		elif str(checkpoint.mode) == "shoreline_overview":
+			camera.global_position = frame.origin + frame.basis.z * 30.0 + frame.basis.x * 68.0 + Vector3.UP * 24.0
+			camera.look_at(frame.origin + frame.basis.x * 14.0 + Vector3.UP * 1.0, Vector3.UP)
+		elif str(checkpoint.mode) == "side_overview":
+			camera.global_position = frame.origin + frame.basis.z * 16.0 + frame.basis.x * 64.0 + Vector3.UP * 25.0
+			camera.look_at(frame.origin + Vector3.UP * 3.0, Vector3.UP)
 		elif str(checkpoint.mode) == "overview":
 			camera.global_position = frame.origin + frame.basis.z * 52.0 + frame.basis.x * 58.0 + Vector3.UP * 34.0
 			camera.look_at(frame.origin + Vector3.UP * 2.0, Vector3.UP)
