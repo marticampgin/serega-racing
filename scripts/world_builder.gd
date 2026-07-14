@@ -48,6 +48,7 @@ func build(parent: Node3D, course: CourseLayout) -> void:
 	_build_shopping_alley()
 	_build_sport_complex()
 	_build_north_coast()
+	_build_district_landmarks()
 	_build_district_infill()
 	_build_party_island()
 	_build_personalized_billboards()
@@ -177,24 +178,47 @@ func _offset_near_water_zone(offset: float, buffer: float) -> bool:
 
 func _build_personalized_billboards() -> void:
 	var placements := [
-		{"zone": "start_coast", "side": -1.0, "texture": "res://assets/generated/friends/friend-glasses-racing.png"},
-		{"zone": "party_town", "side": 1.0, "texture": "res://assets/generated/friends/friend-beard-racing.png"},
-		{"zone": "city_centre", "side": -1.0, "texture": "res://assets/generated/friends/friend-dark-hair-racing.png"},
+		{"name": "StartGridPortrait", "zone": "start_coast", "fraction": 0.18, "side": -1.0, "texture": "res://assets/generated/friends/friend-glasses-racing.png"},
+		{"name": "CoastRacePoster", "zone": "start_coast", "fraction": 0.68, "side": 1.0, "texture": "res://assets/generated/friends/1844112d-4cdc-4fd7-af55-4c29c7179983.jpg"},
+		{"name": "PartyCrewPortrait", "zone": "party_town", "fraction": 0.28, "side": 1.0, "texture": "res://assets/generated/friends/friend-beard-racing.png"},
+		{"name": "DanikHeroPoster", "zone": "party_town", "fraction": 0.72, "side": -1.0, "texture": "res://assets/generated/friends/71b38443-851b-401f-a174-0b72d699a284.jpg"},
+		{"name": "CityEngineerPortrait", "zone": "city_centre", "fraction": 0.30, "side": -1.0, "texture": "res://assets/generated/friends/friend-dark-hair-racing.png"},
+		{"name": "ShoppingEngineerPoster", "zone": "shopping_alley", "fraction": 0.36, "side": 1.0, "texture": "res://assets/generated/friends/61b5ddf7-ae71-4d13-b677-660bd070a785.jpg"},
+		{"name": "NorthCoastCrewBillboard", "zone": "north_coast", "fraction": 0.56, "side": -1.0, "texture": "res://assets/generated/friends/1daf0fdc-2536-4e54-b476-fc61c770b23d.jpg"},
 	]
 	for placement: Dictionary in placements:
-		var offset := _zone_midpoint(str(placement.zone))
+		var offset := _zone_fraction_offset(str(placement.zone), float(placement.fraction))
 		var side := float(placement.side)
-		var frame_root := _roadside_root("PortraitBillboard", offset, side, 24.0, ["portrait_scenery"])
-		_box(frame_root, Vector3(8.8, 6.8, 0.35), Vector3(0.0, 4.0, 0.0), _materials["night"], 480.0)
-		_box(frame_root, Vector3(9.4, 0.35, 0.6), Vector3(0.0, 7.5, 0.0), _materials["pink"], 480.0)
+		var texture_path := str(placement.texture)
+		var texture := load(texture_path) as Texture2D
+		if texture == null:
+			push_warning("Poster texture could not be loaded: %s" % texture_path)
+			continue
+		var portrait_layout := texture.get_height() > texture.get_width()
+		var image_size := Vector2(4.8, 6.4) if portrait_layout else Vector2(8.4, 6.3)
+		var frame_radius := Vector2(image_size.x + 1.0, 2.8).length()
+		var frame_root := _try_feature_root(
+			str(placement.name), offset, side, 27.0, frame_radius, 8.5,
+			["portrait_scenery", "poster_scenery"]
+		)
+		if frame_root == null:
+			push_warning("No collision-safe poster placement for %s" % placement.name)
+			continue
+		var centre_y := 1.2 + image_size.y * 0.5
+		_box(frame_root, Vector3(image_size.x + 0.7, image_size.y + 0.7, 0.35), Vector3(0.0, centre_y, 0.0), _materials.night, 1100.0)
+		_box(frame_root, Vector3(image_size.x + 1.1, 0.32, 0.58), Vector3(0.0, centre_y + image_size.y * 0.5 + 0.42, 0.0), _materials.pink, 1100.0)
+		for pole_x in [-image_size.x * 0.38, image_size.x * 0.38]:
+			_box(frame_root, Vector3(0.24, 1.4, 0.24), Vector3(pole_x, 0.7, 0.08), _materials.steel, 1100.0)
 		var portrait := Sprite3D.new()
-		portrait.texture = load(str(placement.texture))
-		portrait.pixel_size = 0.0048
-		portrait.position = Vector3(0.0, 4.0, -0.22)
+		portrait.texture = texture
+		portrait.pixel_size = image_size.y / float(texture.get_height())
+		portrait.position = Vector3(0.0, centre_y, -0.22)
 		portrait.billboard = BaseMaterial3D.BILLBOARD_DISABLED
 		portrait.no_depth_test = false
 		portrait.add_to_group("portrait_scenery")
+		portrait.add_to_group("poster_face")
 		frame_root.add_child(portrait)
+		frame_root.set_meta("poster_texture", texture_path)
 
 
 func _build_materials() -> void:
@@ -263,7 +287,11 @@ func _mesh_instance(mesh: Mesh, material: Material, visibility := 280.0) -> Mesh
 		instance.material_override = material
 	var substantial := visibility >= 500.0
 	if mesh is BoxMesh:
-		substantial = substantial or (mesh as BoxMesh).size.length() > 9.0
+		var box_size := (mesh as BoxMesh).size
+		# Courts, paths and painted pads sit almost coplanar with sand. Letting those
+		# thin surfaces cast 1.2 km shadows creates striped shadow acne; substantial
+		# walls, roofs and buildings continue to cast normally.
+		substantial = false if box_size.y <= 0.35 else substantial or box_size.length() > 9.0
 	elif mesh is CylinderMesh:
 		var cylinder := mesh as CylinderMesh
 		substantial = substantial or cylinder.height > 5.0 or cylinder.bottom_radius > 5.0
@@ -329,6 +357,27 @@ func _roadside_root(name: String, offset: float, side: float, setback: float, gr
 	return root
 
 
+func _try_feature_root(name: String, offset: float, preferred_side: float, setback: float, radius: float, height: float, groups: Array[String]) -> Node3D:
+	var road := _course.point_at(offset)
+	var lateral := _course.lateral_at(offset)
+	for extra_setback in [0.0, 18.0, 36.0, 56.0]:
+		for side in [preferred_side, -preferred_side]:
+			var position := road + lateral * float(side) * (setback + float(extra_setback))
+			position.y = _ground_height_at(Vector2(position.x, position.z))
+			if position.y <= SEA_LEVEL + 0.12:
+				continue
+			if not _road_prism_is_clear(position, offset, radius, position.y, position.y + height):
+				continue
+			if not _scenery_footprint_is_clear(position, radius):
+				continue
+			var root := _grounded_root(name, position, groups)
+			root.look_at(Vector3(road.x, position.y, road.z), Vector3.UP)
+			root.set_meta("course_offset", offset)
+			root.set_meta("scenery_radius", radius)
+			return root
+	return null
+
+
 func _other_road_clearance(position: Vector3, own_offset: float) -> float:
 	var best := INF
 	for sample: Dictionary in _route_samples:
@@ -367,6 +416,14 @@ func _zone_spans(zone_name: String) -> Array[Dictionary]:
 		if str(entry.get("name", "")) == zone_name:
 			spans.append(entry)
 	return spans
+
+
+func _zone_fraction_offset(zone_name: String, fraction: float) -> float:
+	var spans := _zone_spans(zone_name)
+	if spans.is_empty():
+		return 0.0
+	var span: Dictionary = spans[0]
+	return lerpf(float(span.start_distance), float(span.end_distance), clampf(fraction, 0.0, 1.0))
 
 
 func _zone_midpoint(zone_name: String, occurrence := 0) -> float:
@@ -466,7 +523,10 @@ func _ground_height_at(world_xz: Vector2) -> float:
 		# Every tunnel sample, including the shallow entrance ramps, only needs
 		# clearance beneath the 8.5 m road/tunnel shell. Giving those ramps the
 		# ordinary 23 m roadside clearance carved the two approach puddles.
-		var ceiling_radius := 10.5 if tunnel_sample else 23.0
+		# The connected terrain grid has 14 m cells (19.8 m diagonals). The tunnel
+		# corridor must therefore lower vertices well beyond the 9.5 m wall, or a
+		# high neighbouring vertex stretches a giant sand triangle through the lane.
+		var ceiling_radius := 32.0 if tunnel_sample else 23.0
 		if distance < ceiling_radius:
 			var gap := SUBMERGED_GROUND_GAP if submerged else ROAD_GROUND_GAP
 			road_ceiling = minf(road_ceiling, point.y - gap)
@@ -739,6 +799,7 @@ func _add_storefront_row(offset: float, side: float, setback: float, count: int)
 		var accent: Material = _materials.pink if index % 2 == 0 else _materials.cyan
 		_box(bay, Vector3(8.8, 6.5, 8.0), Vector3(0, 3.25, 0), body)
 		_box(bay, Vector3(6.8, 3.0, 0.2), Vector3(0, 2.25, -4.08), _materials.glass)
+		_box(bay, Vector3(5.4, 1.8, 0.2), Vector3(0, 3.0, 4.08), _materials.glass)
 		_box(bay, Vector3(9.1, 0.35, 2.0), Vector3(0, 4.6, -4.7), accent)
 		_box(bay, Vector3(6.6, 0.9, 0.28), Vector3(0, 6.2, -4.18), _materials.orange if index % 3 == 0 else accent)
 		_box(bay, Vector3(1.3, 2.7, 0.24), Vector3(-3.2, 1.35, -4.15), _materials.night)
@@ -769,7 +830,9 @@ func _build_sport_complex() -> void:
 		var x := -42.0 + court_index * 28.0
 		_box(root, Vector3(22.0, 0.2, 11.0), Vector3(x, 0.12, -43.0), _materials.court, 600.0)
 		_box(root, Vector3(0.14, 0.04, 10.0), Vector3(x, 0.25, -43.0), _materials.white, 600.0)
-		_box(root, Vector3(0.18, 1.1, 11.0), Vector3(x, 0.7, -43.0), _materials.cyan, 600.0)
+		_box(root, Vector3(0.16, 0.14, 10.4), Vector3(x, 1.25, -43.0), _materials.cyan, 600.0)
+		for net_z in [-48.2, -37.8]:
+			_box(root, Vector3(0.18, 2.5, 0.18), Vector3(x, 1.25, net_z), _materials.steel, 600.0)
 	_box(root, Vector3(33.0, 0.22, 14.0), Vector3(34.0, 0.12, -38.0), _materials.cyan, 600.0)
 	for light_position: Vector3 in [Vector3(-35, 0, -25), Vector3(35, 0, -25), Vector3(-35, 0, 25), Vector3(35, 0, 25)]:
 		_add_floodlight(root, light_position)
@@ -800,19 +863,148 @@ func _build_north_coast() -> void:
 				index += 1
 
 
+func _build_district_landmarks() -> void:
+	# Large, individually shaped anchors establish each map district before the
+	# smaller infill layer reserves the remaining plots around them.
+	var placements := [
+		{"name": "StartCoast_GrandHotel", "zone": "start_coast", "fraction": 0.43, "side": 1.0, "setback": 72.0, "radius": 21.0, "height": 30.0, "kind": "hotel"},
+		{"name": "PartyTown_NeonTheatre", "zone": "party_town", "fraction": 0.52, "side": -1.0, "setback": 66.0, "radius": 21.0, "height": 35.0, "kind": "theatre"},
+		{"name": "CityCentre_TwinTowers", "zone": "city_centre", "fraction": 0.52, "side": 1.0, "setback": 92.0, "radius": 24.0, "height": 66.0, "kind": "towers"},
+		{"name": "CityCentre_Monument", "zone": "city_centre", "fraction": 0.80, "side": -1.0, "setback": 36.0, "radius": 10.0, "height": 20.0, "kind": "monument"},
+		{"name": "ShoppingAlley_MarketHall", "zone": "shopping_alley", "fraction": 0.58, "side": -1.0, "setback": 62.0, "radius": 22.0, "height": 20.0, "kind": "market"},
+		{"name": "SportComplex_NeonArena", "zone": "sport_complex", "fraction": 0.58, "side": -1.0, "setback": 70.0, "radius": 25.0, "height": 30.0, "kind": "arena"},
+		{"name": "NorthCoast_MarinaHotel", "zone": "north_coast", "fraction": 0.34, "side": 1.0, "setback": 70.0, "radius": 21.0, "height": 34.0, "kind": "marina_hotel"},
+	]
+	for placement: Dictionary in placements:
+		var zone_name := str(placement.zone)
+		var offset := _zone_fraction_offset(zone_name, float(placement.fraction))
+		var root := _try_feature_root(
+			str(placement.name), offset, float(placement.side), float(placement.setback),
+			float(placement.radius), float(placement.height),
+			["district_landmark", "%s_scenery" % zone_name]
+		)
+		if root == null:
+			push_warning("No collision-safe district landmark plot for %s" % placement.name)
+			continue
+		match str(placement.kind):
+			"hotel":
+				_add_grand_hotel(root)
+			"theatre":
+				_add_neon_theatre(root)
+			"towers":
+				_add_civic_twin_towers(root)
+			"monument":
+				_add_city_monument(root)
+			"market":
+				_add_market_hall(root)
+			"arena":
+				_add_neon_arena(root)
+			"marina_hotel":
+				_add_marina_hotel(root)
+
+
+func _add_grand_hotel(root: Node3D) -> void:
+	_box(root, Vector3(35.0, 1.2, 19.0), Vector3(0, -0.35, 0), _materials.rock, 1800.0)
+	_box(root, Vector3(34.0, 6.0, 18.0), Vector3(0, 3.0, 0), _materials.night, 1800.0)
+	for side in [-1.0, 1.0]:
+		_box(root, Vector3(13.0, 20.0, 13.0), Vector3(side * 9.0, 16.0, 1.2), _materials.cream if side < 0.0 else _materials.mint, 1800.0)
+		for window_x in [-2.6, 2.6]:
+			_box(root, Vector3(2.2, 13.0, 0.2), Vector3(side * 9.0 + window_x, 16.0, -5.38), _materials.glass, 1800.0)
+	_box(root, Vector3(11.0, 26.0, 11.0), Vector3(0, 19.0, 2.0), _materials.coral, 1800.0)
+	_box(root, Vector3(4.0, 18.0, 0.2), Vector3(0, 19.0, -3.58), _materials.glass, 1800.0)
+	_box(root, Vector3(24.0, 0.8, 2.0), Vector3(0, 7.2, -10.0), _materials.cyan, 1800.0)
+	_box(root, Vector3(4.0, 0.16, 14.0), Vector3(0, 0.08, -15.0), _materials.wood, 1800.0)
+	for x in [-7.0, 7.0]:
+		_add_bush(root, Vector3(x, 0.0, -11.5), int(x))
+
+
+func _add_neon_theatre(root: Node3D) -> void:
+	_box(root, Vector3(37.0, 1.2, 19.0), Vector3(0, -0.35, 0), _materials.rock, 1800.0)
+	_box(root, Vector3(36.0, 13.0, 18.0), Vector3(0, 6.5, 0), _materials.night, 1800.0)
+	_box(root, Vector3(25.0, 6.0, 2.8), Vector3(0, 6.0, -10.2), _materials.glass, 1800.0)
+	_box(root, Vector3(30.0, 1.0, 4.0), Vector3(0, 11.2, -10.8), _materials.pink, 1800.0)
+	for side in [-1.0, 1.0]:
+		_box(root, Vector3(4.0, 22.0, 8.0), Vector3(side * 13.0, 18.0, 1.0), _materials.lavender, 1800.0)
+		_box(root, Vector3(1.0, 16.0, 0.35), Vector3(side * 13.0, 18.0, -3.18), _materials.cyan, 1800.0)
+	_box(root, Vector3(16.0, 3.5, 0.4), Vector3(0, 16.0, -9.2), _materials.orange, 1800.0)
+	_box(root, Vector3(5.0, 0.16, 13.0), Vector3(0, 0.08, -15.0), _materials.asphalt, 1800.0)
+
+
+func _add_civic_twin_towers(root: Node3D) -> void:
+	_box(root, Vector3(41.0, 1.3, 21.0), Vector3(0, -0.38, 0), _materials.rock, 2200.0)
+	_box(root, Vector3(40.0, 7.0, 20.0), Vector3(0, 3.5, 0), _materials.night, 2200.0)
+	for side in [-1.0, 1.0]:
+		var height := 44.0 if side < 0.0 else 54.0
+		_box(root, Vector3(14.0, height, 14.0), Vector3(side * 10.5, 7.0 + height * 0.5, 1.0), _materials.cream if side < 0.0 else _materials.lavender, 2200.0)
+		for x_shift in [-3.5, 0.0, 3.5]:
+			_box(root, Vector3(1.8, height * 0.78, 0.22), Vector3(side * 10.5 + x_shift, 10.0 + height * 0.5, -6.08), _materials.glass, 2200.0)
+		_box(root, Vector3(9.0, 0.8, 1.5), Vector3(side * 10.5, height + 7.5, -5.9), _materials.pink if side < 0.0 else _materials.cyan, 2200.0)
+	_box(root, Vector3(20.0, 3.0, 4.0), Vector3(0, 31.0, 1.0), _materials.glass, 2200.0)
+	_box(root, Vector3(5.0, 0.16, 14.0), Vector3(0, 0.08, -16.0), _materials.asphalt, 1800.0)
+
+
+func _add_city_monument(root: Node3D) -> void:
+	_cylinder(root, 8.5, 0.45, Vector3.UP * 0.23, _materials.white, 8.5, 1500.0, 18)
+	_cylinder(root, 4.5, 1.0, Vector3.UP * 0.75, _materials.night, 4.5, 1500.0, 16)
+	_cylinder(root, 1.5, 14.0, Vector3.UP * 7.8, _materials.lavender, 0.45, 1700.0, 10)
+	_cylinder(root, 2.6, 0.8, Vector3.UP * 15.2, _materials.pink, 0.6, 1700.0, 12)
+	for angle in [0.0, PI * 0.5, PI, PI * 1.5]:
+		_add_bush(root, Vector3(cos(angle) * 6.2, 0.0, sin(angle) * 6.2), int(angle * 10.0))
+
+
+func _add_market_hall(root: Node3D) -> void:
+	_box(root, Vector3(39.0, 1.2, 20.0), Vector3(0, -0.35, 0), _materials.rock, 1700.0)
+	_box(root, Vector3(38.0, 11.0, 19.0), Vector3(0, 5.5, 0), _materials.cream, 1700.0)
+	_box(root, Vector3(39.0, 1.0, 20.0), Vector3(0, 11.2, 0), _materials.coral, 1700.0)
+	_box(root, Vector3(12.0, 5.0, 3.0), Vector3(0, 9.0, -10.8), _materials.night, 1700.0)
+	for x in [-14.0, -7.0, 0.0, 7.0, 14.0]:
+		_box(root, Vector3(5.5, 4.2, 0.22), Vector3(x, 3.2, -9.58), _materials.glass, 1700.0)
+		_box(root, Vector3(5.8, 0.4, 1.9), Vector3(x, 6.3, -10.4), _materials.pink if int(absf(x)) % 2 == 0 else _materials.cyan, 1700.0)
+	_box(root, Vector3(4.0, 0.16, 13.0), Vector3(0, 0.08, -15.5), _materials.wood, 1700.0)
+
+
+func _add_neon_arena(root: Node3D) -> void:
+	var foundation := _cylinder(root, 23.0, 1.2, Vector3.DOWN * 0.35, _materials.rock, 19.0, 2000.0, 24)
+	foundation.scale.z = 0.84
+	var arena := _cylinder(root, 22.0, 13.0, Vector3.UP * 6.5, _materials.white, 18.0, 2000.0, 24)
+	arena.scale.z = 0.82
+	var crown := _cylinder(root, 18.5, 3.0, Vector3.UP * 14.5, _materials.night, 14.0, 2000.0, 24)
+	crown.scale.z = 0.82
+	_box(root, Vector3(20.0, 7.0, 3.0), Vector3(0, 4.0, -19.0), _materials.glass, 2000.0)
+	_box(root, Vector3(25.0, 1.0, 2.0), Vector3(0, 10.0, -19.5), _materials.cyan, 2000.0)
+	for x in [-17.0, -8.5, 8.5, 17.0]:
+		_box(root, Vector3(0.4, 15.0, 0.4), Vector3(x, 7.5, -14.0), _materials.steel, 1800.0)
+		_box(root, Vector3(3.5, 0.7, 0.6), Vector3(x, 15.0, -14.0), _materials.yellow, 1800.0)
+	_box(root, Vector3(5.0, 0.18, 18.0), Vector3(0, 0.09, -17.0), _materials.asphalt, 1800.0)
+
+
+func _add_marina_hotel(root: Node3D) -> void:
+	_box(root, Vector3(33.0, 1.2, 19.0), Vector3(0, -0.35, 0), _materials.rock, 1800.0)
+	_box(root, Vector3(32.0, 7.0, 18.0), Vector3(0, 3.5, 0), _materials.night, 1800.0)
+	_box(root, Vector3(25.0, 22.0, 14.0), Vector3(0, 18.0, 1.0), _materials.mint, 1800.0)
+	for x in [-8.0, -2.7, 2.7, 8.0]:
+		_box(root, Vector3(2.8, 15.0, 0.22), Vector3(x, 18.0, -6.08), _materials.glass, 1800.0)
+	for floor_y in [10.0, 16.0, 22.0, 28.0]:
+		_box(root, Vector3(27.0, 0.34, 1.5), Vector3(0, floor_y, -7.4), _materials.white, 1800.0)
+	_box(root, Vector3(14.0, 0.8, 2.0), Vector3(0, 7.0, -10.0), _materials.pink, 1800.0)
+	_box(root, Vector3(5.0, 0.16, 14.0), Vector3(0, 0.08, -15.0), _materials.wood, 1800.0)
+	for x in [-7.0, 7.0]:
+		_add_bush(root, Vector3(x, 0.0, -11.5), int(x) + 8)
+
+
 func _build_district_infill() -> void:
 	# A second, collision-aware population layer turns the named map zones into
 	# continuous districts. These are deliberately irregular rather than a rigid
 	# prop fence, and every footprint is checked against existing scenery plus all
 	# non-local road branches before it is built.
 	var settings := {
-		"start_coast": {"spacing": 46.0, "setback": 50.0, "radius": 10.5},
-		"party_town": {"spacing": 43.0, "setback": 49.0, "radius": 10.0},
-		"city_centre": {"spacing": 47.0, "setback": 68.0, "radius": 14.0},
-		"shopping_alley": {"spacing": 42.0, "setback": 47.0, "radius": 11.0},
-		"sport_complex": {"spacing": 52.0, "setback": 68.0, "radius": 14.0},
-		"north_coast": {"spacing": 48.0, "setback": 54.0, "radius": 10.5},
-		"party_island_view": {"spacing": 48.0, "setback": 54.0, "radius": 10.5},
+		"start_coast": {"spacing": 42.0, "setback": 44.0, "radius": 12.5},
+		"party_town": {"spacing": 40.0, "setback": 44.0, "radius": 12.0},
+		"city_centre": {"spacing": 44.0, "setback": 58.0, "radius": 17.0},
+		"shopping_alley": {"spacing": 38.0, "setback": 42.0, "radius": 12.5},
+		"sport_complex": {"spacing": 44.0, "setback": 50.0, "radius": 17.5},
+		"north_coast": {"spacing": 42.0, "setback": 46.0, "radius": 12.5},
+		"party_island_view": {"spacing": 44.0, "setback": 48.0, "radius": 12.5},
 	}
 	var feature_index := 0
 	for zone_name: String in settings:
@@ -824,6 +1016,7 @@ func _build_district_infill() -> void:
 				var root := _try_infill_root(zone_name, offset, preferred_side, float(setting.setback), float(setting.radius), feature_index)
 				if root != null:
 					_populate_infill_root(root, zone_name, feature_index)
+					_decorate_infill_root(root, feature_index)
 				offset += float(setting.spacing)
 				feature_index += 1
 
@@ -896,16 +1089,30 @@ func _populate_infill_root(root: Node3D, zone_name: String, variant: int) -> voi
 	if zone_name in ["start_coast", "north_coast", "party_island_view"]:
 		if zone_name != "start_coast" and variant % 4 == 0:
 			_add_infill_marina(root, variant)
+		elif variant % 5 == 0:
+			_add_infill_coastal_apartment(root, variant)
 		else:
 			_add_infill_bungalow(root, variant)
 	elif zone_name == "party_town":
-		_add_infill_bar(root, variant)
+		if variant % 4 == 0:
+			_add_infill_party_hotel(root, variant)
+		else:
+			_add_infill_bar(root, variant)
 	elif zone_name == "city_centre":
-		_add_infill_midrise(root, variant)
+		if variant % 3 == 0:
+			_add_infill_city_complex(root, variant)
+		else:
+			_add_infill_midrise(root, variant)
 	elif zone_name == "shopping_alley":
-		_add_infill_shop_pair(root, variant)
+		if variant % 4 == 0:
+			_add_infill_market_arcade(root, variant)
+		else:
+			_add_infill_shop_pair(root, variant)
 	elif zone_name == "sport_complex":
-		_add_infill_sport_lot(root, variant)
+		if variant % 3 == 0:
+			_add_infill_sport_hall(root, variant)
+		else:
+			_add_infill_sport_lot(root, variant)
 
 
 func _add_infill_bungalow(root: Node3D, variant: int) -> void:
@@ -953,8 +1160,10 @@ func _add_infill_shop_pair(root: Node3D, variant: int) -> void:
 		var body: Material = [_materials.cream, _materials.mint, _materials.coral, _materials.lavender][(variant + index) % 4]
 		_box(root, Vector3(9.8, 6.0, 8.0), Vector3(x, 3.0, 0), body, 1000.0)
 		_box(root, Vector3(7.4, 2.8, 0.2), Vector3(x, 2.3, -4.08), _materials.glass, 1000.0)
+		_box(root, Vector3(5.8, 1.8, 0.2), Vector3(x, 3.0, 4.08), _materials.glass, 1000.0)
 		_box(root, Vector3(10.0, 0.4, 2.0), Vector3(x, 4.8, -4.8), _materials.pink if index % 2 == 0 else _materials.cyan, 1000.0)
 		_box(root, Vector3(7.0, 0.7, 0.25), Vector3(x, 6.1, -4.2), _materials.orange, 1000.0)
+		_box(root, Vector3(2.2, 0.8, 2.0), Vector3(x, 6.4, 1.5), _materials.steel, 1000.0)
 
 
 func _add_infill_sport_lot(root: Node3D, variant: int) -> void:
@@ -965,6 +1174,97 @@ func _add_infill_sport_lot(root: Node3D, variant: int) -> void:
 		_box(root, Vector3(0.25, 7.0, 0.25), Vector3(x, 3.5, 6.0), _materials.steel, 1100.0)
 		_box(root, Vector3(3.4, 0.7, 0.5), Vector3(x, 7.0, 6.0), _materials.yellow, 1100.0)
 	_box(root, Vector3(18.0, 3.5, 4.5), Vector3(0, 1.75, 10.0), _materials.cream, 1100.0)
+
+
+func _add_infill_coastal_apartment(root: Node3D, variant: int) -> void:
+	var body: Material = [_materials.cream, _materials.mint, _materials.coral, _materials.lavender][variant % 4]
+	var height := 12.0 + float(variant % 3) * 2.5
+	_box(root, Vector3(22.8, 0.9, 11.8), Vector3(0, -0.25, 0), _materials.rock, 1400.0)
+	_box(root, Vector3(22.0, height, 11.0), Vector3(0, height * 0.5, 0), body, 1400.0)
+	_box(root, Vector3(23.0, 0.55, 12.0), Vector3(0, height + 0.2, 0), _materials.white, 1400.0)
+	_box(root, Vector3(7.0, 4.0, 2.8), Vector3(0, 2.0, -6.2), _materials.night, 1400.0)
+	for floor_y in [4.0, 8.0, 12.0]:
+		if floor_y > height - 1.0:
+			continue
+		_box(root, Vector3(18.0, 0.32, 1.5), Vector3(0, floor_y, -6.0), _materials.cyan if int(floor_y) % 8 == 0 else _materials.pink, 1400.0)
+	for x in [-7.2, -2.4, 2.4, 7.2]:
+		_box(root, Vector3(2.6, height - 3.0, 0.2), Vector3(x, height * 0.55, -5.58), _materials.glass, 1400.0)
+
+
+func _add_infill_party_hotel(root: Node3D, variant: int) -> void:
+	var accent: Material = _materials.pink if variant % 2 == 0 else _materials.cyan
+	var height := 18.0 + float(variant % 3) * 3.0
+	_box(root, Vector3(21.8, 0.9, 11.8), Vector3(0, -0.25, 0), _materials.rock, 1500.0)
+	_box(root, Vector3(21.0, 6.0, 11.0), Vector3(0, 3.0, 0), _materials.night, 1500.0)
+	_box(root, Vector3(17.0, height, 9.0), Vector3(0, 6.0 + height * 0.5, 0.6), _materials.lavender, 1500.0)
+	_box(root, Vector3(11.0, 5.0, 7.0), Vector3(0, 6.0 + height + 2.5, 0.8), _materials.coral, 1500.0)
+	for x in [-5.5, 0.0, 5.5]:
+		_box(root, Vector3(2.6, height * 0.72, 0.2), Vector3(x, 8.0 + height * 0.5, -3.98), _materials.glass, 1500.0)
+	_box(root, Vector3(18.0, 0.65, 1.8), Vector3(0, 7.2, -6.0), accent, 1500.0)
+	_box(root, Vector3(9.0, 0.65, 1.2), Vector3(0, 6.0 + height + 5.2, -2.8), accent, 1500.0)
+
+
+func _add_infill_city_complex(root: Node3D, variant: int) -> void:
+	var accent: Material = _materials.cyan if variant % 2 == 0 else _materials.pink
+	var main_height := 30.0 + float(variant % 3) * 5.0
+	_box(root, Vector3(28.8, 1.0, 15.8), Vector3(0, -0.28, 0), _materials.rock, 1800.0)
+	_box(root, Vector3(28.0, 6.0, 15.0), Vector3(0, 3.0, 0), _materials.night, 1800.0)
+	for side in [-1.0, 1.0]:
+		var wing_height := main_height - (4.0 if side < 0.0 else 0.0)
+		_box(root, Vector3(11.5, wing_height, 11.0), Vector3(side * 7.0, 6.0 + wing_height * 0.5, 0.5), _materials.cream if side < 0.0 else _materials.lavender, 1800.0)
+		_box(root, Vector3(2.5, wing_height * 0.76, 0.2), Vector3(side * 7.0, 8.0 + wing_height * 0.5, -5.08), _materials.glass, 1800.0)
+	_box(root, Vector3(7.0, main_height + 8.0, 9.0), Vector3(0, 10.0 + main_height * 0.5, 1.0), _materials.coral, 1800.0)
+	_box(root, Vector3(3.2, main_height * 0.8, 0.2), Vector3(0, 12.0 + main_height * 0.5, -3.58), _materials.glass, 1800.0)
+	_box(root, Vector3(24.0, 0.7, 1.8), Vector3(0, 6.2, -8.0), accent, 1800.0)
+	_cylinder(root, 2.2, 2.0, Vector3(0, main_height + 17.0, 1.0), accent, 0.5, 1800.0, 12)
+
+
+func _add_infill_market_arcade(root: Node3D, variant: int) -> void:
+	var accent: Material = _materials.pink if variant % 2 == 0 else _materials.cyan
+	_box(root, Vector3(22.8, 0.9, 10.8), Vector3(0, -0.25, 0), _materials.rock, 1300.0)
+	_box(root, Vector3(22.0, 7.5, 10.0), Vector3(0, 3.75, 0), _materials.cream, 1300.0)
+	_box(root, Vector3(9.0, 3.0, 2.5), Vector3(0, 8.6, -1.0), _materials.coral, 1300.0)
+	_box(root, Vector3(23.0, 0.5, 11.0), Vector3(0, 7.7, 0), _materials.white, 1300.0)
+	for x in [-7.5, -2.5, 2.5, 7.5]:
+		_box(root, Vector3(4.2, 3.3, 0.22), Vector3(x, 2.6, -5.08), _materials.glass, 1300.0)
+		_box(root, Vector3(4.5, 0.35, 1.7), Vector3(x, 5.0, -5.8), accent if int(absf(x)) % 2 == 0 else _materials.orange, 1300.0)
+		_box(root, Vector3(3.4, 1.7, 0.2), Vector3(x, 3.2, 5.08), _materials.glass, 1300.0)
+	_box(root, Vector3(3.0, 3.2, 0.25), Vector3(0, 1.6, -5.15), _materials.night, 1300.0)
+
+
+func _add_infill_sport_hall(root: Node3D, variant: int) -> void:
+	var accent: Material = _materials.cyan if variant % 2 == 0 else _materials.pink
+	_box(root, Vector3(29.8, 1.0, 17.8), Vector3(0, -0.28, 0), _materials.rock, 1500.0)
+	_box(root, Vector3(29.0, 11.0, 17.0), Vector3(0, 5.5, 0), _materials.white, 1500.0)
+	_box(root, Vector3(30.0, 1.0, 18.0), Vector3(0, 11.2, 0), _materials.night, 1500.0)
+	_box(root, Vector3(13.0, 5.0, 2.6), Vector3(0, 2.5, -9.6), _materials.glass, 1500.0)
+	for x in [-11.0, -5.5, 5.5, 11.0]:
+		_box(root, Vector3(3.4, 5.8, 0.22), Vector3(x, 6.2, -8.58), _materials.glass, 1500.0)
+	_box(root, Vector3(24.0, 0.75, 1.8), Vector3(0, 9.8, -9.3), accent, 1500.0)
+	_box(root, Vector3(8.0, 2.6, 0.4), Vector3(0, 13.2, -4.5), _materials.yellow, 1500.0)
+
+
+func _decorate_infill_root(root: Node3D, variant: int) -> void:
+	match variant % 4:
+		0:
+			_box(root, Vector3(3.0, 0.12, 9.0), Vector3(0, 0.06, -8.0), _materials.asphalt, 1200.0)
+			for fence_x in [-4.5, 4.5]:
+				_box(root, Vector3(4.4, 0.5, 0.16), Vector3(fence_x, 0.72, -9.6), _materials.white, 1200.0)
+			for post_x in [-6.7, -2.3, 2.3, 6.7]:
+				_box(root, Vector3(0.2, 1.45, 0.2), Vector3(post_x, 0.72, -9.6), _materials.steel, 1200.0)
+		1:
+			_add_bush(root, Vector3(-5.0, 0.0, -10.0), variant)
+			_add_bush(root, Vector3(5.0, 0.0, -10.0), variant + 1)
+		2:
+			_box(root, Vector3(2.8, 0.12, 8.0), Vector3(0, 0.06, -7.6), _materials.wood, 1200.0)
+			_add_bush(root, Vector3(-4.2, 0.0, -10.0), variant)
+			_add_bush(root, Vector3(4.2, 0.0, -10.0), variant + 1)
+
+
+func _add_bush(parent: Node, position: Vector3, variant: int) -> void:
+	var material: Material = _materials.leaf if variant % 3 != 0 else _materials.green
+	var bush := _cylinder(parent, 0.9, 1.35, position + Vector3.UP * 0.68, material, 0.62, 1000.0, 8)
+	bush.add_to_group("plant_scenery")
 
 
 func _add_marina(offset: float, side: float) -> void:
