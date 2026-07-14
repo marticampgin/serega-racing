@@ -1,0 +1,55 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_2bh8g"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1vf1l"]
+albedo_color = Color(0.15294118, 0.1882353, 0.26666668, 1)
+metallic = 0.55
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_0hkdf"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(0.2, 6, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_b0d7f"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(2.2, 0.2, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ag22"]
+albedo_color = Color(1, 0.24705882, 0.8117647, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.24705882, 0.8117647, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_6ml11"]
+material = SubResource("StandardMaterial3D_1ag22")
+size = Vector3(0.7, 0.4, 0.5)
+
+[node name="RoadsideLamp" type="Node3D" unique_id=1179513265 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_2bh8g")
+catalog_id = "roadside_lamp"
+display_name = "Roadside Lamp"
+category = "Street Props"
+footprint_radius = 2.5
+object_height = 7.0
+
+[node name="@MeshInstance3D@622" type="MeshInstance3D" parent="." unique_id=780827482]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_0hkdf")
+
+[node name="@MeshInstance3D@623" type="MeshInstance3D" parent="." unique_id=908594949]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 5.8, 0)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_b0d7f")
+
+[node name="@MeshInstance3D@624" type="MeshInstance3D" parent="." unique_id=1558930362]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 5.6, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_6ml11")

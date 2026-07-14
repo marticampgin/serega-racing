@@ -1,0 +1,82 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_ch7pc"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_63pls"]
+albedo_color = Color(0.14117648, 0.15686275, 0.19607843, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_cfw2f"]
+material = SubResource("StandardMaterial3D_63pls")
+size = Vector3(34, 0.25, 24)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tohcb"]
+albedo_color = Color(0.60784316, 0.47058824, 0.8117647, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ctjvp"]
+material = SubResource("StandardMaterial3D_tohcb")
+top_radius = 5.2
+bottom_radius = 7.0
+height = 1.2
+radial_segments = 16
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_7gybf"]
+material = SubResource("StandardMaterial3D_tohcb")
+top_radius = 5.2
+bottom_radius = 7.0
+height = 1.2
+radial_segments = 16
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q4e3w"]
+albedo_color = Color(1, 0.5019608, 0.4, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_87pd0"]
+material = SubResource("StandardMaterial3D_q4e3w")
+size = Vector3(9, 1.8, 6)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ag734"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_cr20b"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(11, 4.5, 0.5)
+
+[node name="NeonSkatePark" type="Node3D" unique_id=1552275632 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_ch7pc")
+catalog_id = "skate_park"
+display_name = "Neon Skate Park"
+category = "Landmarks"
+footprint_radius = 20.0
+object_height = 9.0
+
+[node name="@MeshInstance3D@539" type="MeshInstance3D" parent="." unique_id=1974863438]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.13, 0)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_cfw2f")
+
+[node name="@MeshInstance3D@540" type="MeshInstance3D" parent="." unique_id=1100743733]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.75, -9, 0.6, 0)
+visibility_range_end = 1800.0
+mesh = SubResource("CylinderMesh_ctjvp")
+
+[node name="@MeshInstance3D@541" type="MeshInstance3D" parent="." unique_id=1390192770]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.75, 9, 0.6, 0)
+visibility_range_end = 1800.0
+mesh = SubResource("CylinderMesh_7gybf")
+
+[node name="@MeshInstance3D@542" type="MeshInstance3D" parent="." unique_id=80398320]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, -7)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_87pd0")
+
+[node name="@MeshInstance3D@543" type="MeshInstance3D" parent="." unique_id=10668120]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 10)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_cr20b")

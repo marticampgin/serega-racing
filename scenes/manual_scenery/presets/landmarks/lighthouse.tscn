@@ -1,0 +1,96 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_el6r3"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0avfs"]
+albedo_color = Color(0.34901962, 0.2784314, 0.43529412, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_1seef"]
+material = SubResource("StandardMaterial3D_0avfs")
+top_radius = 5.5
+bottom_radius = 5.5
+height = 1.0
+radial_segments = 16
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_d5pun"]
+albedo_color = Color(0.9490196, 0.84705883, 0.70980394, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_qo0x7"]
+material = SubResource("StandardMaterial3D_d5pun")
+top_radius = 2.2
+bottom_radius = 3.2
+height = 25.0
+radial_segments = 16
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ag734"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_a5p84"]
+material = SubResource("StandardMaterial3D_ag734")
+top_radius = 4.2
+bottom_radius = 4.2
+height = 1.2
+radial_segments = 16
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e4177"]
+albedo_color = Color(0.07058824, 0.22745098, 0.40784314, 1)
+metallic = 0.35
+roughness = 0.16
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_iym61"]
+material = SubResource("StandardMaterial3D_e4177")
+top_radius = 3.2
+bottom_radius = 3.2
+height = 3.2
+radial_segments = 16
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ag22"]
+albedo_color = Color(1, 0.24705882, 0.8117647, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.24705882, 0.8117647, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_pmi4k"]
+material = SubResource("StandardMaterial3D_1ag22")
+top_radius = 0.8
+bottom_radius = 4.0
+height = 0.7
+radial_segments = 16
+
+[node name="CoastalLighthouse" type="Node3D" unique_id=817959065 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_el6r3")
+catalog_id = "lighthouse"
+display_name = "Coastal Lighthouse"
+category = "Landmarks"
+footprint_radius = 8.0
+object_height = 31.0
+
+[node name="@MeshInstance3D@501" type="MeshInstance3D" parent="." unique_id=2077014120]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+visibility_range_end = 2200.0
+mesh = SubResource("CylinderMesh_1seef")
+
+[node name="@MeshInstance3D@502" type="MeshInstance3D" parent="." unique_id=1792621513]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 13, 0)
+visibility_range_end = 2400.0
+mesh = SubResource("CylinderMesh_qo0x7")
+
+[node name="@MeshInstance3D@503" type="MeshInstance3D" parent="." unique_id=338027616]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 26, 0)
+visibility_range_end = 2400.0
+mesh = SubResource("CylinderMesh_a5p84")
+
+[node name="@MeshInstance3D@504" type="MeshInstance3D" parent="." unique_id=359621216]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 28, 0)
+visibility_range_end = 2400.0
+mesh = SubResource("CylinderMesh_iym61")
+
+[node name="@MeshInstance3D@505" type="MeshInstance3D" parent="." unique_id=470480317]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 30, 0)
+visibility_range_end = 2400.0
+mesh = SubResource("CylinderMesh_pmi4k")

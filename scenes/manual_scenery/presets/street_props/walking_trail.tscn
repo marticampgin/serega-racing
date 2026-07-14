@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_sy6td"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nac1l"]
+albedo_color = Color(0.50980395, 0.31764707, 0.21568628, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_nbaws"]
+material = SubResource("StandardMaterial3D_nac1l")
+size = Vector3(4, 0.16, 13)
+
+[node name="WalkingTrail" type="Node3D" unique_id=1286143284 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_sy6td")
+catalog_id = "walking_trail"
+display_name = "Walking Trail"
+category = "Street Props"
+footprint_radius = 7.0
+object_height = 0.2
+
+[node name="@MeshInstance3D@634" type="MeshInstance3D" parent="." unique_id=1537742429]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, 0)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_nbaws")

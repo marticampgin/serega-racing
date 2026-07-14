@@ -1,0 +1,79 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_1wx6e"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n5hhv"]
+albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_3n8rx"]
+material = SubResource("StandardMaterial3D_n5hhv")
+top_radius = 8.5
+bottom_radius = 8.5
+height = 0.45
+radial_segments = 18
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ag734"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_y0jdo"]
+material = SubResource("StandardMaterial3D_ag734")
+top_radius = 4.5
+bottom_radius = 4.5
+height = 1.0
+radial_segments = 16
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tohcb"]
+albedo_color = Color(0.60784316, 0.47058824, 0.8117647, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_swabe"]
+material = SubResource("StandardMaterial3D_tohcb")
+top_radius = 0.45
+bottom_radius = 1.5
+height = 14.0
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ag22"]
+albedo_color = Color(1, 0.24705882, 0.8117647, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.24705882, 0.8117647, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_e4hsk"]
+material = SubResource("StandardMaterial3D_1ag22")
+top_radius = 0.6
+bottom_radius = 2.6
+height = 0.8
+radial_segments = 12
+
+[node name="CityMonument" type="Node3D" unique_id=1464714562 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_1wx6e")
+catalog_id = "city_monument"
+display_name = "City Monument"
+category = "Landmarks"
+footprint_radius = 10.0
+object_height = 17.0
+
+[node name="@MeshInstance3D@506" type="MeshInstance3D" parent="." unique_id=2133361721]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.23, 0)
+visibility_range_end = 1900.0
+mesh = SubResource("CylinderMesh_3n8rx")
+
+[node name="@MeshInstance3D@507" type="MeshInstance3D" parent="." unique_id=914219336]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+visibility_range_end = 1900.0
+mesh = SubResource("CylinderMesh_y0jdo")
+
+[node name="@MeshInstance3D@508" type="MeshInstance3D" parent="." unique_id=912910198]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.8, 0)
+visibility_range_end = 2000.0
+mesh = SubResource("CylinderMesh_swabe")
+
+[node name="@MeshInstance3D@509" type="MeshInstance3D" parent="." unique_id=2002663536]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15.2, 0)
+visibility_range_end = 2000.0
+mesh = SubResource("CylinderMesh_e4hsk")

@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_84fde"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/8608460d-bd44-4e25-b2dc-ccf8a5003e87.jpg" id="2_c60xg"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ag22"]
+albedo_color = Color(1, 0.24705882, 0.8117647, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.24705882, 0.8117647, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_d2qnn"]
+material = SubResource("StandardMaterial3D_1ag22")
+size = Vector3(16.554348, 10.8, 0.25)
+
+[node name="AirBanner" type="Node3D" unique_id=233672377 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_84fde")
+catalog_id = "air_banner"
+display_name = "Air Banner"
+category = "Sky"
+surface = 2
+footprint_radius = 12.0
+object_height = 11.0
+poster_texture = ExtResource("2_c60xg")
+
+[node name="@MeshInstance3D@691" type="MeshInstance3D" parent="." unique_id=43065322]
+cast_shadow = 0
+visibility_range_end = 3000.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_d2qnn")
+
+[node name="PosterFace_Front" type="Sprite3D" parent="." unique_id=1910048669]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.38)
+visibility_range_end = 2800.0
+pixel_size = 0.018115941
+texture = ExtResource("2_c60xg")
+
+[node name="PosterFace_Back" type="Sprite3D" parent="." unique_id=1153800253]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0.38)
+visibility_range_end = 2800.0
+pixel_size = 0.018115941
+texture = ExtResource("2_c60xg")

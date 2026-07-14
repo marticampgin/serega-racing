@@ -1,0 +1,106 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_18gpe"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n5hhv"]
+albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_d117n"]
+material = SubResource("StandardMaterial3D_n5hhv")
+top_radius = 25.0
+bottom_radius = 31.0
+height = 8.0
+radial_segments = 22
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3vfx0"]
+albedo_color = Color(0.16862746, 0.60784316, 0.39215687, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_b6jc7"]
+material = SubResource("StandardMaterial3D_3vfx0")
+size = Vector3(54, 0.3, 24)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ag734"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_ug4y6"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(47, 1.2, 4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mgyn8"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(42, 1.2, 4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wyudm"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(37, 1.2, 4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5i4q3"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(47, 1.2, 4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_bhbyf"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(42, 1.2, 4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_f738t"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(37, 1.2, 4)
+
+[node name="SportComplex" type="Node3D" unique_id=1119873934 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_18gpe")
+catalog_id = "sport_complex"
+display_name = "Sport Complex"
+category = "Landmarks"
+footprint_radius = 38.0
+object_height = 18.0
+
+[node name="@MeshInstance3D@510" type="MeshInstance3D" parent="." unique_id=986922095]
+transform = Transform3D(1.4, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
+visibility_range_end = 2200.0
+mesh = SubResource("CylinderMesh_d117n")
+
+[node name="@MeshInstance3D@511" type="MeshInstance3D" parent="." unique_id=562238269]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.2, 0)
+cast_shadow = 0
+visibility_range_end = 2200.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_b6jc7")
+
+[node name="@MeshInstance3D@512" type="MeshInstance3D" parent="." unique_id=1422525771]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.8, -16)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_ug4y6")
+
+[node name="@MeshInstance3D@513" type="MeshInstance3D" parent="." unique_id=215586331]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9.8, -18)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_mgyn8")
+
+[node name="@MeshInstance3D@514" type="MeshInstance3D" parent="." unique_id=1094748075]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10.8, -20)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_wyudm")
+
+[node name="@MeshInstance3D@515" type="MeshInstance3D" parent="." unique_id=343968775]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.8, 16)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_5i4q3")
+
+[node name="@MeshInstance3D@516" type="MeshInstance3D" parent="." unique_id=952106417]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9.8, 18)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_bhbyf")
+
+[node name="@MeshInstance3D@517" type="MeshInstance3D" parent="." unique_id=975230168]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10.8, 20)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_f738t")

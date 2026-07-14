@@ -1,0 +1,61 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_bhush"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1vf1l"]
+albedo_color = Color(0.15294118, 0.1882353, 0.26666668, 1)
+metallic = 0.55
+roughness = 0.3
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_nijmq"]
+material = SubResource("StandardMaterial3D_1vf1l")
+top_radius = 0.12
+bottom_radius = 0.12
+height = 2.6
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q4e3w"]
+albedo_color = Color(1, 0.5019608, 0.4, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_r6f73"]
+material = SubResource("StandardMaterial3D_q4e3w")
+top_radius = 0.18
+bottom_radius = 2.3
+height = 0.5
+radial_segments = 12
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n5hhv"]
+albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_jso1q"]
+material = SubResource("StandardMaterial3D_n5hhv")
+top_radius = 1.2
+bottom_radius = 1.2
+height = 0.2
+radial_segments = 12
+
+[node name="CafeUmbrellaTable" type="Node3D" unique_id=986670569 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_bhush")
+catalog_id = "umbrella_table"
+display_name = "Cafe Umbrella Table"
+category = "Street Props"
+footprint_radius = 3.0
+object_height = 3.2
+
+[node name="@MeshInstance3D@639" type="MeshInstance3D" parent="." unique_id=1081658433]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+visibility_range_end = 1500.0
+mesh = SubResource("CylinderMesh_nijmq")
+
+[node name="@MeshInstance3D@640" type="MeshInstance3D" parent="." unique_id=1698814088]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.8, 0)
+visibility_range_end = 1500.0
+mesh = SubResource("CylinderMesh_r6f73")
+
+[node name="@MeshInstance3D@641" type="MeshInstance3D" parent="." unique_id=1887680034]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+cast_shadow = 0
+visibility_range_end = 1500.0
+mesh = SubResource("CylinderMesh_jso1q")

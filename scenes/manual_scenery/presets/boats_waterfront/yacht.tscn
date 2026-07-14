@@ -1,0 +1,70 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_jxqxs"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n5hhv"]
+albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_bwdor"]
+material = SubResource("StandardMaterial3D_n5hhv")
+size = Vector3(6.5, 1.4, 20)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1jmow"]
+material = SubResource("StandardMaterial3D_n5hhv")
+size = Vector3(5.2, 2.5, 10)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e4177"]
+albedo_color = Color(0.07058824, 0.22745098, 0.40784314, 1)
+metallic = 0.35
+roughness = 0.16
+
+[sub_resource type="BoxMesh" id="BoxMesh_pvhiy"]
+material = SubResource("StandardMaterial3D_e4177")
+size = Vector3(4.4, 1.5, 6)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xosth"]
+albedo_color = Color(0.20784314, 0.8784314, 0.8666667, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(0.20784314, 0.8784314, 0.8666667, 1)
+emission_energy_multiplier = 1.35
+
+[sub_resource type="BoxMesh" id="BoxMesh_sj3xg"]
+material = SubResource("StandardMaterial3D_xosth")
+size = Vector3(6.2, 0.25, 12)
+
+[node name="Yacht" type="Node3D" unique_id=729209774 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_jxqxs")
+catalog_id = "yacht"
+display_name = "Yacht"
+category = "Boats and Waterfront"
+surface = 1
+footprint_radius = 12.0
+object_height = 6.0
+
+[node name="@MeshInstance3D@659" type="MeshInstance3D" parent="." unique_id=239051297]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
+visibility_range_end = 2600.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_bwdor")
+
+[node name="@MeshInstance3D@660" type="MeshInstance3D" parent="." unique_id=1957282387]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.55, 1.2)
+visibility_range_end = 2600.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_1jmow")
+
+[node name="@MeshInstance3D@661" type="MeshInstance3D" parent="." unique_id=1893357843]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.45, 2.3)
+visibility_range_end = 2600.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_pvhiy")
+
+[node name="@MeshInstance3D@662" type="MeshInstance3D" parent="." unique_id=1177566557]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.35, 0.2)
+cast_shadow = 0
+visibility_range_end = 2700.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_sj3xg")

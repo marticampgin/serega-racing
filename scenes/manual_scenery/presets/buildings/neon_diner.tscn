@@ -1,0 +1,102 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_sw27l"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0avfs"]
+albedo_color = Color(0.34901962, 0.2784314, 0.43529412, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_h7nhu"]
+material = SubResource("StandardMaterial3D_0avfs")
+size = Vector3(24, 1, 16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q4e3w"]
+albedo_color = Color(1, 0.5019608, 0.4, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_ywt1i"]
+material = SubResource("StandardMaterial3D_q4e3w")
+size = Vector3(22, 7, 14)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xosth"]
+albedo_color = Color(0.20784314, 0.8784314, 0.8666667, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(0.20784314, 0.8784314, 0.8666667, 1)
+emission_energy_multiplier = 1.35
+
+[sub_resource type="BoxMesh" id="BoxMesh_8nv5q"]
+material = SubResource("StandardMaterial3D_xosth")
+size = Vector3(22.8, 0.55, 14.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e4177"]
+albedo_color = Color(0.07058824, 0.22745098, 0.40784314, 1)
+metallic = 0.35
+roughness = 0.16
+
+[sub_resource type="BoxMesh" id="BoxMesh_xv1o7"]
+material = SubResource("StandardMaterial3D_e4177")
+size = Vector3(3.6666667, 3.36, 0.22)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vwkvd"]
+material = SubResource("StandardMaterial3D_e4177")
+size = Vector3(3.6666667, 3.36, 0.22)
+
+[sub_resource type="BoxMesh" id="BoxMesh_awcq6"]
+material = SubResource("StandardMaterial3D_e4177")
+size = Vector3(3.6666667, 3.36, 0.22)
+
+[sub_resource type="BoxMesh" id="BoxMesh_yughc"]
+material = SubResource("StandardMaterial3D_xosth")
+size = Vector3(16.5, 0.45, 2.4)
+
+[node name="NeonDiner" type="Node3D" unique_id=30054618 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_sw27l")
+catalog_id = "neon_diner"
+display_name = "Neon Diner"
+category = "Buildings"
+footprint_radius = 14.0
+object_height = 10.0
+
+[node name="@MeshInstance3D@305" type="MeshInstance3D" parent="." unique_id=1609319571]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_h7nhu")
+
+[node name="@MeshInstance3D@306" type="MeshInstance3D" parent="." unique_id=1003805066]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.5, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_ywt1i")
+
+[node name="@MeshInstance3D@307" type="MeshInstance3D" parent="." unique_id=323681037]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.28, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_8nv5q")
+
+[node name="@MeshInstance3D@308" type="MeshInstance3D" parent="." unique_id=871148611]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.36, 3.85, -7.07)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_xv1o7")
+
+[node name="@MeshInstance3D@309" type="MeshInstance3D" parent="." unique_id=1757984372]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.85, -7.07)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_vwkvd")
+
+[node name="@MeshInstance3D@310" type="MeshInstance3D" parent="." unique_id=1099041212]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.36, 3.85, -7.07)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_awcq6")
+
+[node name="@MeshInstance3D@311" type="MeshInstance3D" parent="." unique_id=113833147]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.34, -8.12)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_yughc")

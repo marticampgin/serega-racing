@@ -1,0 +1,54 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_er60n"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q4e3w"]
+albedo_color = Color(1, 0.5019608, 0.4, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_0u1f0"]
+material = SubResource("StandardMaterial3D_q4e3w")
+size = Vector3(3.5, 0.8, 8.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n5hhv"]
+albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_513xe"]
+material = SubResource("StandardMaterial3D_n5hhv")
+size = Vector3(2.4, 1.5, 3.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e4177"]
+albedo_color = Color(0.07058824, 0.22745098, 0.40784314, 1)
+metallic = 0.35
+roughness = 0.16
+
+[sub_resource type="BoxMesh" id="BoxMesh_bxias"]
+material = SubResource("StandardMaterial3D_e4177")
+size = Vector3(1.8, 0.9, 0.2)
+
+[node name="SmallMotorboat" type="Node3D" unique_id=319954324 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_er60n")
+catalog_id = "motorboat"
+display_name = "Small Motorboat"
+category = "Boats and Waterfront"
+surface = 1
+footprint_radius = 6.0
+object_height = 3.0
+
+[node name="@MeshInstance3D@652" type="MeshInstance3D" parent="." unique_id=1004925194]
+visibility_range_end = 2200.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_0u1f0")
+
+[node name="@MeshInstance3D@653" type="MeshInstance3D" parent="." unique_id=1070413141]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0.7)
+visibility_range_end = 2200.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_513xe")
+
+[node name="@MeshInstance3D@654" type="MeshInstance3D" parent="." unique_id=1260456877]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, -0.92)
+visibility_range_end = 2200.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_bxias")

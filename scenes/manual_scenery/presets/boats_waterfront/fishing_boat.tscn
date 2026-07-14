@@ -1,0 +1,72 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_02po7"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0v520"]
+albedo_color = Color(0.30588236, 0.84313726, 0.7411765, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_mi2vh"]
+material = SubResource("StandardMaterial3D_0v520")
+size = Vector3(5.4, 1.3, 15)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_d5pun"]
+albedo_color = Color(0.9490196, 0.84705883, 0.70980394, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_8g5nr"]
+material = SubResource("StandardMaterial3D_d5pun")
+size = Vector3(4, 3.2, 5.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e4177"]
+albedo_color = Color(0.07058824, 0.22745098, 0.40784314, 1)
+metallic = 0.35
+roughness = 0.16
+
+[sub_resource type="BoxMesh" id="BoxMesh_765g5"]
+material = SubResource("StandardMaterial3D_e4177")
+size = Vector3(3.4, 1.2, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1vf1l"]
+albedo_color = Color(0.15294118, 0.1882353, 0.26666668, 1)
+metallic = 0.55
+roughness = 0.3
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_my2ml"]
+material = SubResource("StandardMaterial3D_1vf1l")
+top_radius = 0.13
+bottom_radius = 0.13
+height = 7.0
+radial_segments = 8
+
+[node name="FishingBoat" type="Node3D" unique_id=826845087 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_02po7")
+catalog_id = "fishing_boat"
+display_name = "Fishing Boat"
+category = "Boats and Waterfront"
+surface = 1
+footprint_radius = 9.0
+object_height = 8.0
+
+[node name="@MeshInstance3D@677" type="MeshInstance3D" parent="." unique_id=1711378666]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, 0)
+visibility_range_end = 2400.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_mi2vh")
+
+[node name="@MeshInstance3D@678" type="MeshInstance3D" parent="." unique_id=339243051]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 2.2)
+visibility_range_end = 2400.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_8g5nr")
+
+[node name="@MeshInstance3D@679" type="MeshInstance3D" parent="." unique_id=870727787]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, -0.58)
+visibility_range_end = 2400.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_765g5")
+
+[node name="@MeshInstance3D@680" type="MeshInstance3D" parent="." unique_id=557341771]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.2, 2)
+visibility_range_end = 2400.0
+mesh = SubResource("CylinderMesh_my2ml")

@@ -1,0 +1,78 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_j7dsn"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nac1l"]
+albedo_color = Color(0.50980395, 0.31764707, 0.21568628, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_e2mty"]
+material = SubResource("StandardMaterial3D_nac1l")
+size = Vector3(11, 0.25, 8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1vf1l"]
+albedo_color = Color(0.15294118, 0.1882353, 0.26666668, 1)
+metallic = 0.55
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_ab5jy"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(0.3, 4.2, 0.3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ldx6g"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(0.3, 4.2, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q4e3w"]
+albedo_color = Color(1, 0.5019608, 0.4, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_o144j"]
+material = SubResource("StandardMaterial3D_q4e3w")
+size = Vector3(11.5, 0.5, 8.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n5hhv"]
+albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_xcq2m"]
+material = SubResource("StandardMaterial3D_n5hhv")
+size = Vector3(7, 1, 2.2)
+
+[node name="IslandCabana" type="Node3D" unique_id=1134193894 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_j7dsn")
+catalog_id = "island_cabana"
+display_name = "Island Cabana"
+category = "Street Props"
+footprint_radius = 7.0
+
+[node name="@MeshInstance3D@642" type="MeshInstance3D" parent="." unique_id=1697403946]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.13, 0)
+cast_shadow = 0
+visibility_range_end = 1700.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_e2mty")
+
+[node name="@MeshInstance3D@643" type="MeshInstance3D" parent="." unique_id=1078387697]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 2.1, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_ab5jy")
+
+[node name="@MeshInstance3D@644" type="MeshInstance3D" parent="." unique_id=2048534812]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 2.1, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_ldx6g")
+
+[node name="@MeshInstance3D@645" type="MeshInstance3D" parent="." unique_id=230483871]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.3, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_o144j")
+
+[node name="@MeshInstance3D@646" type="MeshInstance3D" parent="." unique_id=1640684099]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, 1.8)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_xcq2m")

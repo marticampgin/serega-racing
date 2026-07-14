@@ -53,6 +53,15 @@ sandy island keys, palms, lamps, recognizable building silhouettes, shop rows,
 marinas, and a separate Party Island landmark. See `docs/course-map.md` for the
 course guide.
 
+### Manual scenery editing
+
+`main.tscn` includes an empty `ManualScenery` layer and an editor-only map
+guide. Drag any of the 57 checked-in presets from
+`scenes/manual_scenery/presets/` into that layer to decorate the course without
+changing the procedural road, terrain, bridge, or tunnel. See
+[`docs/manual_scenery.md`](docs/manual_scenery.md) for placement, artwork, water,
+aircraft-motion, and validation instructions.
+
 ## Verification
 
 Run the map and gameplay contracts without using Gemini quota:

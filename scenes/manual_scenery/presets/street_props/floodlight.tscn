@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_r1tbs"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1vf1l"]
+albedo_color = Color(0.15294118, 0.1882353, 0.26666668, 1)
+metallic = 0.55
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_pwucr"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(0.3, 15, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pp8a0"]
+albedo_color = Color(1, 0.89411765, 0.36862746, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.89411765, 0.36862746, 1)
+emission_energy_multiplier = 1.2
+
+[sub_resource type="BoxMesh" id="BoxMesh_5rlpr"]
+material = SubResource("StandardMaterial3D_pp8a0")
+size = Vector3(5, 1, 0.5)
+
+[node name="Floodlight" type="Node3D" unique_id=1513041040 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_r1tbs")
+catalog_id = "floodlight"
+display_name = "Floodlight"
+category = "Street Props"
+footprint_radius = 3.0
+object_height = 16.0
+
+[node name="@MeshInstance3D@625" type="MeshInstance3D" parent="." unique_id=2110067750]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.5, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_pwucr")
+
+[node name="@MeshInstance3D@626" type="MeshInstance3D" parent="." unique_id=2029035849]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_5rlpr")
