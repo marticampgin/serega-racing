@@ -24,6 +24,7 @@ var _materials: Dictionary = {}
 var _route_samples: Array[Dictionary] = []
 var _route_buckets: Dictionary = {}
 var _submerged_buckets: Dictionary = {}
+var _ocean_grid_origin := Vector2.ZERO
 var mesh_instance_count := 0
 
 
@@ -51,6 +52,25 @@ func build(parent: Node3D, course: CourseLayout) -> void:
 
 func terrain_height_at(world_xz: Vector2) -> float:
 	return _ground_height_at(world_xz)
+
+
+func ocean_rendered_height_at(world_xz: Vector2) -> float:
+	# Match the exact diagonal used by _build_heightfield_mesh so QA validates
+	# rendered triangle interpolation rather than only the height sampler.
+	var grid := (world_xz - _ocean_grid_origin) / OCEAN_GRID
+	var cell := Vector2(floorf(grid.x), floorf(grid.y))
+	var uv := grid - cell
+	var a_xz := _ocean_grid_origin + cell * OCEAN_GRID
+	var b_xz := a_xz + Vector2(0.0, OCEAN_GRID)
+	var c_xz := a_xz + Vector2(OCEAN_GRID, OCEAN_GRID)
+	var d_xz := a_xz + Vector2(OCEAN_GRID, 0.0)
+	var a := _ocean_height_at(a_xz)
+	var b := _ocean_height_at(b_xz)
+	var c := _ocean_height_at(c_xz)
+	var d := _ocean_height_at(d_xz)
+	if uv.y >= uv.x:
+		return a * (1.0 - uv.y) + b * (uv.y - uv.x) + c * uv.x
+	return a * (1.0 - uv.x) + c * uv.y + d * (uv.x - uv.y)
 
 
 func _cache_route_samples() -> void:
@@ -163,6 +183,7 @@ func _build_materials() -> void:
 		"pink": _emissive(Color("ff3fcf"), 1.4),
 		"orange": _emissive(Color("ff9c42"), 1.25),
 		"yellow": _emissive(Color("ffe45e"), 1.2),
+		"foam": _emissive(Color("c8fbff"), 1.05),
 		"tunnel_glass": _material(Color("174f6f"), 0.35, 0.16),
 	}
 	# Two-sided terrain and sea stay visible at low shoreline angles and through
@@ -330,6 +351,7 @@ func _build_ocean_and_islands() -> void:
 	var ocean_size := maximum - minimum + Vector2(650.0, 650.0)
 	var ocean_min := center - ocean_size * 0.5
 	var ocean_max := center + ocean_size * 0.5
+	_ocean_grid_origin = Vector2(floorf(ocean_min.x / OCEAN_GRID) * OCEAN_GRID, floorf(ocean_min.y / OCEAN_GRID) * OCEAN_GRID)
 	# Both layers are connected indexed heightfields. Sand slopes continuously to
 	# the seabed; the opaque sea overlays it and depresses smoothly beneath the
 	# enclosed tunnel. No cells are deleted, so there are no horizon holes.
@@ -338,6 +360,7 @@ func _build_ocean_and_islands() -> void:
 	ocean.name = "OceanSurface"
 	_parent.add_child(ocean)
 	ocean.add_to_group("ocean_scenery")
+	_build_shoreline_contour(ocean_min, ocean_max)
 	var terrain_mesh := _build_heightfield_mesh(ocean_min, ocean_max, TERRAIN_GRID, Callable(self, "_ground_height_at"))
 	var terrain := MeshInstance3D.new()
 	terrain.name = "IslandTerrain"
@@ -429,9 +452,90 @@ func _ocean_height_at(world_xz: Vector2) -> float:
 			nearest_point = point
 	if nearest_distance == INF:
 		return open_sea_height
-	var depression := minf(SEA_LEVEL, nearest_point.y - 0.8)
-	var weight := 1.0 - smoothstep(11.0, 24.0, nearest_distance)
+	# OCEAN_GRID is intentionally coarse outside the playable view. Its triangles
+	# span almost 20 m diagonally, so every vertex that can interpolate across the
+	# 19 m tunnel must already be below the road. A broad, deep plateau prevents
+	# those triangles from cutting back through the tunnel floor and shoulders.
+	var depression := minf(SEA_LEVEL, nearest_point.y - 2.2)
+	var weight := 1.0 - smoothstep(32.0, 48.0, nearest_distance)
 	return lerpf(open_sea_height, depression, weight)
+
+
+func _build_shoreline_contour(minimum: Vector2, maximum: Vector2) -> void:
+	# Marching-squares produces a narrow continuous foam line exactly where the
+	# shaped sand crosses sea level. It makes the beach readable without adding a
+	# second flat slab that could z-fight with either terrain surface.
+	const SPACING := 10.0
+	var aligned_min := Vector2(floorf(minimum.x / SPACING) * SPACING, floorf(minimum.y / SPACING) * SPACING)
+	var columns := ceili((maximum.x - aligned_min.x) / SPACING) + 1
+	var rows := ceili((maximum.y - aligned_min.y) / SPACING) + 1
+	var values := PackedFloat32Array()
+	values.resize(columns * rows)
+	for row in range(rows):
+		for column in range(columns):
+			var point := aligned_min + Vector2(column * SPACING, row * SPACING)
+			values[row * columns + column] = _ground_height_at(point) - SEA_LEVEL
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var segment_count := 0
+	for row in range(rows - 1):
+		for column in range(columns - 1):
+			var center := aligned_min + Vector2((column + 0.5) * SPACING, (row + 0.5) * SPACING)
+			if _submerged_distance(center) < 50.0:
+				continue
+			var corners := [
+				aligned_min + Vector2(column * SPACING, row * SPACING),
+				aligned_min + Vector2((column + 1) * SPACING, row * SPACING),
+				aligned_min + Vector2((column + 1) * SPACING, (row + 1) * SPACING),
+				aligned_min + Vector2(column * SPACING, (row + 1) * SPACING),
+			]
+			var scalar := [
+				values[row * columns + column],
+				values[row * columns + column + 1],
+				values[(row + 1) * columns + column + 1],
+				values[(row + 1) * columns + column],
+			]
+			var crossings: Array[Vector2] = []
+			for edge in range(4):
+				var next := (edge + 1) % 4
+				if (float(scalar[edge]) >= 0.0) == (float(scalar[next]) >= 0.0):
+					continue
+				var amount: float = float(scalar[edge]) / (float(scalar[edge]) - float(scalar[next]))
+				crossings.append((corners[edge] as Vector2).lerp(corners[next] as Vector2, amount))
+			if crossings.size() == 2:
+				_append_shoreline_segment(surface, crossings[0], crossings[1])
+				segment_count += 1
+			elif crossings.size() == 4:
+				_append_shoreline_segment(surface, crossings[0], crossings[1])
+				_append_shoreline_segment(surface, crossings[2], crossings[3])
+				segment_count += 2
+	if segment_count == 0:
+		return
+	surface.generate_normals()
+	var contour := _mesh_instance(surface.commit(), _materials.foam, 2600.0)
+	contour.name = "ShorelineContour"
+	contour.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	contour.add_to_group("shoreline_contour")
+	_parent.add_child(contour)
+
+
+func _append_shoreline_segment(surface: SurfaceTool, from: Vector2, to: Vector2) -> void:
+	var direction := (to - from).normalized()
+	if direction.length_squared() < 0.5:
+		return
+	var normal := Vector2(-direction.y, direction.x) * 0.48
+	var a := Vector3(from.x - normal.x, SEA_LEVEL + 0.07, from.y - normal.y)
+	var b := Vector3(to.x - normal.x, SEA_LEVEL + 0.07, to.y - normal.y)
+	var c := Vector3(to.x + normal.x, SEA_LEVEL + 0.07, to.y + normal.y)
+	var d := Vector3(from.x + normal.x, SEA_LEVEL + 0.07, from.y + normal.y)
+	_add_surface_quad(surface, a, b, c, d)
+
+
+func _submerged_distance(world_xz: Vector2) -> float:
+	var nearest := INF
+	for point: Vector3 in _nearby_submerged_samples(world_xz):
+		nearest = minf(nearest, world_xz.distance_to(Vector2(point.x, point.z)))
+	return nearest
 
 
 func _build_start_coast() -> void:
@@ -444,6 +548,12 @@ func _build_start_coast() -> void:
 			_add_villa(d, -1.0 if index % 2 == 0 else 1.0, 31.0 + (index % 2) * 8.0, index, false)
 			d += 88.0
 			index += 1
+		var promenade_offset := start + 55.0
+		var promenade_index := 0
+		while promenade_offset < finish:
+			_add_coastal_promenade(promenade_offset, 1.0 if promenade_index % 2 == 0 else -1.0, promenade_index)
+			promenade_offset += 176.0
+			promenade_index += 1
 	var lighthouse_offset := _zone_midpoint("start_coast")
 	var lighthouse := _roadside_root("StartCoast_Lighthouse", lighthouse_offset, -1.0, 72.0, ["start_coast_scenery"])
 	_cylinder(lighthouse, 4.2, 17.0, Vector3.UP * 8.5, _materials.white, 2.8, 650.0, 14)
@@ -479,6 +589,12 @@ func _build_party_town() -> void:
 				_add_villa(d + 24.0, 1.0 if index % 2 == 0 else -1.0, 39.0, index + 1, true)
 			d += 70.0
 			index += 1
+		var patio_offset := float(span.start_distance) + 76.0
+		var patio_index := 0
+		while patio_offset < float(span.end_distance) - 35.0:
+			_add_party_patio(patio_offset, 1.0 if patio_index % 2 == 0 else -1.0, patio_index)
+			patio_offset += 140.0
+			patio_index += 1
 
 
 func _add_nightclub(offset: float, side: float, setback: float, variant: int) -> void:
@@ -505,6 +621,13 @@ func _build_city_centre() -> void:
 	_cylinder(plaza, 10.0, 0.35, Vector3.UP * 0.18, _materials.white, 10.0, 500.0, 18)
 	_cylinder(plaza, 5.0, 1.4, Vector3.UP * 0.7, _materials.cyan, 5.0, 500.0, 18)
 	_cylinder(plaza, 1.0, 6.0, Vector3.UP * 3.0, _materials.pink, 0.35, 500.0, 12)
+	for placement in [
+		[middle - 265.0, -1.0, 0],
+		[middle - 205.0, 1.0, 1],
+		[middle + 205.0, -1.0, 2],
+		[middle + 265.0, 1.0, 3],
+	]:
+		_add_city_block(float(placement[0]), float(placement[1]), int(placement[2]))
 
 
 func _add_tower(offset: float, side: float, setback: float, variant: int) -> void:
@@ -522,9 +645,14 @@ func _add_tower(offset: float, side: float, setback: float, variant: int) -> voi
 
 func _build_shopping_alley() -> void:
 	for span: Dictionary in _zone_spans("shopping_alley"):
+		var start := float(span.start_distance)
+		var finish := float(span.end_distance)
 		var middle := (float(span.start_distance) + float(span.end_distance)) * 0.5
 		for side in [-1.0, 1.0]:
 			_add_storefront_row(middle, side, 27.0, 6)
+		var placements := [start + 78.0, start + 218.0, finish - 218.0, finish - 78.0]
+		for index in range(placements.size()):
+			_add_storefront_row(float(placements[index]), -1.0 if index % 2 == 0 else 1.0, 29.0, 4)
 
 
 func _add_storefront_row(offset: float, side: float, setback: float, count: int) -> void:
@@ -551,7 +679,12 @@ func _add_storefront_row(offset: float, side: float, setback: float, count: int)
 
 
 func _build_sport_complex() -> void:
-	var middle := _zone_midpoint("sport_complex")
+	var spans := _zone_spans("sport_complex")
+	if spans.is_empty():
+		return
+	var start := float(spans[0].start_distance)
+	var finish := float(spans[0].end_distance)
+	var middle := (start + finish) * 0.5
 	var root := _roadside_root("SportComplex", middle, 1.0, 76.0, ["sport_complex_scenery"])
 	var stadium := _cylinder(root, 31.0, 8.0, Vector3(0, 4.0, 0), _materials.white, 25.0, 750.0, 20)
 	stadium.scale.x = 1.42
@@ -568,6 +701,10 @@ func _build_sport_complex() -> void:
 	_box(root, Vector3(33.0, 0.22, 14.0), Vector3(34.0, 0.12, -38.0), _materials.cyan, 600.0)
 	for light_position: Vector3 in [Vector3(-35, 0, -25), Vector3(35, 0, -25), Vector3(-35, 0, 25), Vector3(35, 0, 25)]:
 		_add_floodlight(root, light_position)
+	_add_sport_facility(start + 105.0, -1.0, 0)
+	_add_sport_facility(start + 345.0, 1.0, 1)
+	_add_sport_facility(finish - 345.0, -1.0, 2)
+	_add_sport_facility(finish - 105.0, 1.0, 3)
 
 
 func _add_floodlight(parent: Node, position: Vector3) -> void:
@@ -585,6 +722,8 @@ func _build_north_coast() -> void:
 					_add_villa(d, -1.0, 38.0, index + 2, index % 6 == 0)
 				elif index % 3 == 1:
 					_add_marina(d, 1.0)
+				else:
+					_add_beach_bar(d, -1.0 if index % 2 == 0 else 1.0, index)
 				d += 118.0
 				index += 1
 
@@ -598,6 +737,108 @@ func _add_marina(offset: float, side: float) -> void:
 			var boat_z := -5.0 - boat_index * 10.0
 			_box(root, Vector3(2.8, 0.7, 6.0), Vector3(boat_x, -0.45, boat_z), _materials.coral if boat_index == 0 else _materials.cyan, 420.0)
 			_box(root, Vector3(1.8, 1.1, 2.6), Vector3(boat_x, 0.25, boat_z + 0.3), _materials.white, 420.0)
+
+
+func _add_coastal_promenade(offset: float, side: float, variant: int) -> void:
+	var root := _roadside_root("CoastalPromenade", offset, side, 54.0, ["start_coast_scenery", "neighborhood_scenery"])
+	_box(root, Vector3(30.0, 0.28, 12.0), Vector3(0, 0.14, 0), _materials.wood, 500.0)
+	_box(root, Vector3(10.0, 5.0, 7.0), Vector3(-7.5, 2.5, 0), _materials.cream if variant % 2 == 0 else _materials.mint, 500.0)
+	_box(root, Vector3(10.8, 0.45, 8.0), Vector3(-7.5, 5.2, 0), _materials.coral, 500.0)
+	_box(root, Vector3(7.5, 2.2, 0.2), Vector3(-7.5, 2.3, -3.58), _materials.glass, 500.0)
+	for index in range(3):
+		var x := 4.0 + index * 5.0
+		_cylinder(root, 0.14, 2.6, Vector3(x, 1.3, 0), _materials.steel, 0.14, 400.0, 8)
+		_cylinder(root, 2.4, 0.55, Vector3(x, 2.7, 0), _materials.pink if index % 2 == 0 else _materials.cyan, 0.2, 400.0, 12)
+	_box(root, Vector3(11.0, 0.45, 0.6), Vector3(7.0, 0.7, -4.0), _materials.white, 400.0)
+
+
+func _add_party_patio(offset: float, side: float, variant: int) -> void:
+	var root := _roadside_root("PartyTown_Patio", offset, side, 22.0, ["party_town_scenery", "neighborhood_scenery"])
+	_box(root, Vector3(16.0, 0.22, 11.0), Vector3(0, 0.11, 0), _materials.asphalt, 450.0)
+	_box(root, Vector3(13.0, 0.45, 7.0), Vector3(0, 5.2, 1.0), _materials.lavender, 450.0)
+	for x in [-5.8, 5.8]:
+		_box(root, Vector3(0.25, 5.0, 0.25), Vector3(x, 2.5, 1.0), _materials.steel, 450.0)
+	_box(root, Vector3(11.0, 1.15, 2.4), Vector3(0, 0.7, 2.2), _materials.coral, 450.0)
+	_box(root, Vector3(9.0, 0.3, 0.35), Vector3(0, 3.8, -4.0), _materials.cyan if variant % 2 == 0 else _materials.pink, 450.0)
+	for x in [-4.0, 0.0, 4.0]:
+		_cylinder(root, 1.0, 0.5, Vector3(x, 0.5, -2.0), _materials.white, 1.0, 400.0, 10)
+
+
+func _add_city_block(offset: float, side: float, variant: int) -> void:
+	var root := _roadside_root("CityCentre_MixedUseBlock", offset, side, 48.0, ["city_centre_scenery", "skyline_scenery"])
+	var body: Material = [_materials.cream, _materials.mint, _materials.coral, _materials.lavender][variant % 4]
+	_box(root, Vector3(25.0, 5.0, 14.0), Vector3(0, 2.5, 0), _materials.night, 700.0)
+	_box(root, Vector3(13.0, 19.0, 11.0), Vector3(-5.0, 14.5, 0.5), body, 700.0)
+	_box(root, Vector3(8.0, 13.0, 10.0), Vector3(7.0, 11.5, 1.0), _materials.cream, 700.0)
+	for x in [-8.0, -3.0, 4.5, 8.0]:
+		_box(root, Vector3(2.6, 2.5, 0.2), Vector3(x, 2.6, -7.08), _materials.glass, 700.0)
+	_box(root, Vector3(18.0, 0.5, 1.8), Vector3(0, 5.0, -7.7), _materials.pink if variant % 2 == 0 else _materials.cyan, 700.0)
+
+
+func _add_sport_facility(offset: float, side: float, variant: int) -> void:
+	var root := _roadside_root("SportDistrict_Facility", offset, side, 58.0, ["sport_complex_scenery", "neighborhood_scenery"])
+	if variant == 0:
+		_box(root, Vector3(38.0, 0.35, 18.0), Vector3(0, 0.18, 0), _materials.cyan, 700.0)
+		_box(root, Vector3(41.0, 3.8, 4.0), Vector3(0, 1.9, 11.0), _materials.white, 700.0)
+		for x in [-14.0, -5.0, 5.0, 14.0]:
+			_box(root, Vector3(4.5, 2.2, 0.2), Vector3(x, 2.0, 8.92), _materials.glass, 700.0)
+	elif variant == 1:
+		for x in [-13.0, 13.0]:
+			_box(root, Vector3(22.0, 0.25, 11.0), Vector3(x, 0.13, 0), _materials.court, 650.0)
+			_box(root, Vector3(0.18, 1.2, 11.0), Vector3(x, 0.65, 0), _materials.white, 650.0)
+		_box(root, Vector3(51.0, 4.0, 4.5), Vector3(0, 2.0, 10.0), _materials.cream, 650.0)
+	elif variant == 2:
+		_box(root, Vector3(44.0, 0.28, 24.0), Vector3(0, 0.14, 0), _materials.asphalt, 650.0)
+		for x in [-12.0, 0.0, 12.0]:
+			var ramp := _box(root, Vector3(8.0, 1.0 + absf(x) * 0.03, 5.0), Vector3(x, 0.5, 0), _materials.lavender, 650.0)
+			ramp.rotation.x = 0.12 if x >= 0.0 else -0.12
+		_box(root, Vector3(18.0, 0.5, 0.4), Vector3(0, 4.0, -10.0), _materials.pink, 650.0)
+	else:
+		_box(root, Vector3(48.0, 0.28, 25.0), Vector3(0, 0.14, 0), _materials.field, 650.0)
+		_box(root, Vector3(49.0, 0.22, 0.22), Vector3(0, 0.32, -12.0), _materials.white, 650.0)
+		for x in [-22.0, 22.0]:
+			_box(root, Vector3(0.3, 6.0, 0.3), Vector3(x, 3.0, 0), _materials.steel, 650.0)
+			_box(root, Vector3(3.0, 0.6, 0.5), Vector3(x, 6.0, 0), _materials.yellow, 650.0)
+
+
+func _add_beach_bar(offset: float, side: float, variant: int) -> void:
+	var root := _roadside_root("NorthCoast_BeachBar", offset, side, 43.0, ["north_coast_scenery", "neighborhood_scenery"])
+	var body: Material = _materials.mint if variant % 2 == 0 else _materials.coral
+	_box(root, Vector3(16.0, 5.5, 9.0), Vector3(0, 2.75, 0), body, 520.0)
+	_box(root, Vector3(18.0, 0.55, 10.0), Vector3(0, 5.7, 0), _materials.white, 520.0)
+	_box(root, Vector3(12.0, 2.6, 0.2), Vector3(0, 2.4, -4.58), _materials.glass, 520.0)
+	_box(root, Vector3(17.0, 0.45, 2.2), Vector3(0, 4.7, -5.4), _materials.pink if variant % 2 == 0 else _materials.cyan, 520.0)
+	_box(root, Vector3(24.0, 0.25, 8.0), Vector3(0, 0.13, -8.0), _materials.wood, 520.0)
+	for x in [-7.0, 0.0, 7.0]:
+		_cylinder(root, 0.12, 2.5, Vector3(x, 1.25, -8.0), _materials.steel, 0.12, 420.0, 8)
+		_cylinder(root, 2.2, 0.45, Vector3(x, 2.6, -8.0), _materials.orange, 0.18, 420.0, 10)
+
+
+func _add_island_cabana(parent: Node, position: Vector3, rotation_y: float, variant: int) -> void:
+	var root := Node3D.new()
+	root.name = "PartyIsland_Cabana"
+	root.position = position
+	root.rotation.y = rotation_y
+	root.add_to_group("party_island_scenery")
+	parent.add_child(root)
+	_box(root, Vector3(11.0, 0.25, 8.0), Vector3(0, 0.13, 0), _materials.wood, 800.0)
+	for x in [-4.5, 4.5]:
+		_box(root, Vector3(0.3, 4.2, 0.3), Vector3(x, 2.1, 0), _materials.steel, 800.0)
+	_box(root, Vector3(11.5, 0.5, 8.5), Vector3(0, 4.3, 0), _materials.coral if variant % 2 == 0 else _materials.lavender, 800.0)
+	_box(root, Vector3(7.0, 1.0, 2.2), Vector3(0, 0.65, 1.8), _materials.white, 800.0)
+	_box(root, Vector3(8.0, 0.3, 0.3), Vector3(0, 3.3, -4.0), _materials.cyan if variant % 2 == 0 else _materials.pink, 800.0)
+
+
+func _add_boat(parent: Node, position: Vector3, rotation_y: float, variant: int) -> void:
+	var root := Node3D.new()
+	root.name = "PartyIsland_Boat"
+	root.position = position
+	root.rotation.y = rotation_y
+	root.add_to_group("boat_scenery")
+	parent.add_child(root)
+	_box(root, Vector3(3.5, 0.8, 8.5), Vector3(0, 0, 0), _materials.coral if variant % 2 == 0 else _materials.cyan, 1000.0)
+	_box(root, Vector3(2.4, 1.5, 3.2), Vector3(0, 0.9, 0.7), _materials.white, 1000.0)
+	_box(root, Vector3(1.8, 0.9, 0.2), Vector3(0, 1.1, -0.92), _materials.glass, 1000.0)
 
 
 func _build_party_island() -> void:
@@ -623,6 +864,13 @@ func _build_party_island() -> void:
 	for index in range(12):
 		var angle := TAU * float(index) / 12.0
 		_add_palm_at(island, Vector3(cos(angle) * 52.0, 0, sin(angle) * 52.0), 0.85 + (index % 3) * 0.12)
+	for index in range(3):
+		var angle := -1.8 + index * 1.8
+		_add_island_cabana(island, Vector3(cos(angle) * 38.0, 0.0, sin(angle) * 38.0), angle + PI * 0.5, index)
+	for index in range(4):
+		var angle := -0.9 + index * 0.55
+		var boat_position := Vector3(cos(angle) * (82.0 + index * 4.0), -0.2, sin(angle) * (82.0 + index * 4.0))
+		_add_boat(island, boat_position, angle + PI * 0.5, index)
 
 
 func _build_roadside_rhythm() -> void:
@@ -672,29 +920,36 @@ func _build_bridge() -> void:
 	for span: Dictionary in _zone_spans("bridge"):
 		var start := float(span.start_distance)
 		var finish := float(span.end_distance)
-		var offset := start + 6.0
-		var support_index := 0
-		while offset < finish - 10.0:
-			var point := _course.point_at(offset)
+		for side in [-1.0, 1.0]:
+			_build_course_prism("BridgeRail", start + 4.0, finish - 4.0, side * 9.25, 0.58, 0.32, 1.15, _materials.pink, "bridge_boundary", 1200.0)
+			_build_course_prism("BridgeGirder", start + 4.0, finish - 4.0, side * 7.1, -0.65, 0.72, 0.8, _materials.night, "bridge_girder", 1200.0)
+		var offset := start + 24.0
+		while offset < finish - 18.0:
 			var frame := _course.sample_course(offset)
-			var rail_root := Node3D.new()
-			rail_root.name = "BridgeRail"
-			rail_root.transform = frame
-			rail_root.add_to_group("bridge")
-			_parent.add_child(rail_root)
+			var cap := Node3D.new()
+			cap.name = "BridgePierCap"
+			cap.transform = frame
+			cap.add_to_group("bridge")
+			_parent.add_child(cap)
+			var beam := _box(cap, Vector3(16.2, 0.8, 2.2), Vector3(0, -0.65, 0), _materials.night, 1200.0)
+			beam.add_to_group("bridge_pier_cap")
 			for side in [-1.0, 1.0]:
-				var rail := _box(rail_root, Vector3(0.32, 1.15, 13.0), Vector3(side * 9.25, 0.58, 0), _materials.pink, 1200.0)
-				rail.add_to_group("bridge_boundary")
-			if support_index % 4 == 0:
-				var column_height := maxf(1.0, point.y - SEA_FLOOR - 0.7)
-				for side in [-1.0, 1.0]:
-					var column_xz := point + _course.lateral_at(offset) * float(side) * 7.1
-					var column := _cylinder(_parent, 0.9, column_height, Vector3(column_xz.x, SEA_FLOOR + column_height * 0.5, column_xz.z), _materials.lavender, 0.75, 1200.0, 10)
-					column.add_to_group("bridge")
-				var beam := _box(rail_root, Vector3(19.5, 0.8, 2.0), Vector3(0, -0.65, 0), _materials.night, 1200.0)
-				beam.add_to_group("bridge")
-			offset += 12.0
-			support_index += 1
+				# The contact is derived from the pitched cap underside, not a world-y
+				# approximation. Columns therefore visibly meet the bridge on grades.
+				var contact: Vector3 = frame * Vector3(side * 7.1, -1.07, 0.0)
+				var ground_y := _ground_height_at(Vector2(contact.x, contact.z))
+				var column_height := maxf(1.0, contact.y - ground_y + 0.12)
+				var column := _cylinder(_parent, 0.95, column_height, Vector3(contact.x, ground_y + column_height * 0.5, contact.z), _materials.lavender, 0.78, 1200.0, 12)
+				column.name = "BridgePier"
+				column.add_to_group("bridge")
+				column.add_to_group("bridge_support")
+				column.set_meta("course_offset", offset)
+				column.set_meta("contact_y", contact.y)
+				if ground_y < SEA_LEVEL and contact.y > SEA_LEVEL:
+					var collar := _cylinder(_parent, 1.22, 0.45, Vector3(contact.x, SEA_LEVEL, contact.z), _materials.steel, 1.22, 1200.0, 12)
+					collar.name = "BridgePierWaterlineCollar"
+					collar.add_to_group("bridge")
+			offset += 48.0
 		for portal_offset in [start + 8.0, finish - 8.0]:
 			var portal := Node3D.new()
 			portal.name = "BridgeGateway"
@@ -707,39 +962,89 @@ func _build_bridge() -> void:
 
 
 func _build_elevated_flyovers() -> void:
+	var run_start := -1.0
 	var offset := 0.0
-	var elevated_index := 0
-	while offset < _course.length():
+	while offset <= _course.length():
+		var elevated := offset < _course.length() and _is_flyover_offset(offset)
+		if elevated and run_start < 0.0:
+			run_start = offset
+		elif not elevated and run_start >= 0.0:
+			var finish := minf(offset, _course.length())
+			if finish - run_start >= 12.0:
+				for side in [-1.0, 1.0]:
+					_build_course_prism("FlyoverRail", run_start, finish, side * 9.2, 0.37, 0.34, 0.72, _materials.steel, "flyover_boundary", 1000.0)
+					_build_course_prism("FlyoverAccent", run_start, finish, side * 9.2, 0.8, 0.16, 0.13, _materials.cyan, "flyover_accent", 1000.0)
+				_build_flyover_supports(run_start, finish)
+			run_start = -1.0
+		offset += 6.0
+
+
+func _is_flyover_offset(offset: float) -> bool:
+	var point := _course.point_at(offset)
+	var zone := _course.zone_at(offset)
+	return point.y > TERRAIN_TOP + 2.6 and zone not in ["bridge", "underwater_tunnel"]
+
+
+func _build_flyover_supports(start: float, finish: float) -> void:
+	var offset := start + 18.0
+	while offset < finish - 8.0:
 		var point := _course.point_at(offset)
-		var zone := _course.zone_at(offset)
-		if point.y > TERRAIN_TOP + 2.6 and zone not in ["bridge", "underwater_tunnel"]:
-			var frame := _course.sample_course(offset)
-			var rail_root := Node3D.new()
-			rail_root.name = "FlyoverDeck"
-			rail_root.transform = frame
-			rail_root.add_to_group("flyover")
-			_parent.add_child(rail_root)
-			for side in [-1.0, 1.0]:
-				var rail := _box(rail_root, Vector3(0.34, 0.72, 13.0), Vector3(side * 9.2, 0.37, 0), _materials.steel, 1000.0)
-				rail.add_to_group("flyover_boundary")
-				_box(rail_root, Vector3(0.16, 0.13, 13.0), Vector3(side * 9.2, 0.8, 0), _materials.cyan, 1000.0)
-			if elevated_index % 3 == 0:
-				var support_lateral := 10.6
-				var support_ground := _ground_height_at(Vector2(point.x, point.z))
-				var support_height := point.y - support_ground - 0.35
-				if support_height > 1.0:
-					for side in [-1.0, 1.0]:
-						var support_xz := point + _course.lateral_at(offset) * float(side) * support_lateral
-						var ground_y := _ground_height_at(Vector2(support_xz.x, support_xz.z))
-						var candidate_height := point.y - ground_y - 0.35
-						var candidate_position := Vector3(support_xz.x, ground_y + candidate_height * 0.5, support_xz.z)
-						if candidate_height > 1.0 and _road_prism_is_clear(candidate_position, offset, 0.7, ground_y, point.y):
-							var support := _cylinder(_parent, 0.7, candidate_height, candidate_position, _materials.steel, 0.62, 900.0, 10)
-							support.add_to_group("flyover")
-							support.add_to_group("flyover_support")
-							support.set_meta("course_offset", offset)
-			elevated_index += 1
-		offset += 12.0
+		for side in [-1.0, 1.0]:
+			var support_xz: Vector3 = point + _course.lateral_at(offset) * float(side) * 10.6
+			var ground_y := _ground_height_at(Vector2(support_xz.x, support_xz.z))
+			var support_height := point.y - ground_y - 0.35
+			var candidate_position := Vector3(support_xz.x, ground_y + support_height * 0.5, support_xz.z)
+			if support_height > 1.0 and _road_prism_is_clear(candidate_position, offset, 0.7, ground_y, point.y):
+				var support := _cylinder(_parent, 0.7, support_height, candidate_position, _materials.steel, 0.62, 900.0, 10)
+				support.add_to_group("flyover")
+				support.add_to_group("flyover_support")
+				support.set_meta("course_offset", offset)
+		offset += 36.0
+
+
+func _build_course_prism(name: String, start: float, finish: float, lateral: float, center_y: float, width: float, height: float, material: Material, group: String, visibility: float) -> MeshInstance3D:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var samples := maxi(1, ceili((finish - start) / 2.0))
+	for index in range(samples):
+		var from_offset := lerpf(start, finish, float(index) / samples)
+		var to_offset := lerpf(start, finish, float(index + 1) / samples)
+		var from_frame := _course.sample_course(from_offset)
+		var to_frame := _course.sample_course(to_offset)
+		var from_center := from_frame.origin + from_frame.basis.x * lateral + from_frame.basis.y * center_y
+		var to_center := to_frame.origin + to_frame.basis.x * lateral + to_frame.basis.y * center_y
+		var fx := from_frame.basis.x * width * 0.5
+		var fy := from_frame.basis.y * height * 0.5
+		var tx := to_frame.basis.x * width * 0.5
+		var ty := to_frame.basis.y * height * 0.5
+		var p0 := from_center - fx - fy
+		var p1 := from_center + fx - fy
+		var p2 := from_center + fx + fy
+		var p3 := from_center - fx + fy
+		var q0 := to_center - tx - ty
+		var q1 := to_center + tx - ty
+		var q2 := to_center + tx + ty
+		var q3 := to_center - tx + ty
+		_add_surface_quad(surface, p1, q1, q2, p2)
+		_add_surface_quad(surface, q0, p0, p3, q3)
+		_add_surface_quad(surface, p0, q0, q1, p1)
+		_add_surface_quad(surface, p3, p2, q2, q3)
+		if index == 0:
+			_add_surface_quad(surface, p0, p1, p2, p3)
+		if index == samples - 1:
+			_add_surface_quad(surface, q1, q0, q3, q2)
+	surface.generate_normals()
+	var rail := _mesh_instance(surface.commit(), material, visibility)
+	rail.name = name
+	rail.add_to_group(group)
+	rail.add_to_group("bridge" if group.begins_with("bridge") else "flyover")
+	_parent.add_child(rail)
+	return rail
+
+
+func _add_surface_quad(surface: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3) -> void:
+	for vertex in [a, b, c, a, c, d]:
+		surface.add_vertex(vertex)
 
 
 func _build_underwater_tunnel() -> void:

@@ -48,13 +48,24 @@ func _run() -> void:
 			if box.size.x > 15.0 and box.size.y > 3.0 and box.size.z > 3.0:
 				transparent_lane_volumes += 1
 	check(transparent_lane_volumes == 0, "tunnel has no full-lane volume boxes")
-	check(get_nodes_in_group("bridge_boundary").size() > 50, "bridge has continuous visual boundaries")
-	check(get_nodes_in_group("flyover_boundary").size() > 20, "elevated crossings have continuous visual boundaries")
+	var bridge_boundaries := get_nodes_in_group("bridge_boundary")
+	check(bridge_boundaries.size() >= 2, "bridge has course-length continuous visual boundaries")
+	for node in bridge_boundaries:
+		if node is MeshInstance3D:
+			check((node as MeshInstance3D).mesh.get_faces().size() > 100, "bridge boundary is a substantial continuous mesh")
+	var flyover_boundaries := get_nodes_in_group("flyover_boundary")
+	check(flyover_boundaries.size() >= 2, "elevated crossings have course-length continuous visual boundaries")
+	for node in flyover_boundaries:
+		if node is MeshInstance3D:
+			check((node as MeshInstance3D).mesh.get_faces().size() > 24, "flyover boundary is a substantial continuous mesh")
+	check(get_nodes_in_group("shoreline_contour").size() == 1, "one continuous shoreline contour separates sand from water")
+	_check_bridge_support_contact()
 	var curve := QAUtil.find_course_curve(race)
 	check(curve != null, "course curve is available for dense geometry checks")
 	if curve != null:
 		await _check_road_edges(race, curve.get_baked_length())
 		_check_ground_clearance(race, curve.get_baked_length())
+		_check_tunnel_ocean_clearance(race)
 		_check_crossing_clearance(race, curve.get_baked_length())
 		_check_scenery_clearance(race, curve.get_baked_length())
 	_check_opaque_surfaces()
@@ -127,6 +138,41 @@ func _check_ground_clearance(race: Node, length: float) -> void:
 		offset += 12.0
 	print("INFO: road/ground clearance violations = ", violations)
 	check(violations == 0, "sand and seabed remain below the road and both shoulders for the full lap")
+
+
+func _check_tunnel_ocean_clearance(race: Node) -> void:
+	var course: Object = race.get("course")
+	var builder: Object = race.get("world_builder")
+	var violations := 0
+	for span: Dictionary in course.get("course_zones"):
+		if str(span.get("name", "")) != "underwater_tunnel":
+			continue
+		var offset := float(span.start_distance) + 18.0
+		while offset < float(span.end_distance) - 18.0:
+			var frame := race.call("sample_course", offset) as Transform3D
+			for lateral in [-8.8, 0.0, 8.8]:
+				var road_point: Vector3 = frame.origin + frame.basis.x * lateral
+				var rendered_ocean := float(builder.call("ocean_rendered_height_at", Vector2(road_point.x, road_point.z)))
+				if rendered_ocean > road_point.y - 0.45:
+					violations += 1
+			offset += 12.0
+	print("INFO: rendered tunnel/ocean triangle violations = ", violations)
+	check(violations == 0, "rendered ocean triangles stay below the tunnel road and shoulders")
+
+
+func _check_bridge_support_contact() -> void:
+	var violations := 0
+	var supports := get_nodes_in_group("bridge_support")
+	for node in supports:
+		if not node is MeshInstance3D or not node.has_meta("contact_y"):
+			violations += 1
+			continue
+		var cylinder := (node as MeshInstance3D).mesh as CylinderMesh
+		var top := (node as MeshInstance3D).global_position.y + cylinder.height * 0.5
+		if absf(top - float(node.get_meta("contact_y"))) > 0.18:
+			violations += 1
+	print("INFO: bridge pier/cap contact violations = ", violations)
+	check(not supports.is_empty() and violations == 0, "bridge piers meet their pitched cap undersides")
 
 
 func _check_scenery_clearance(race: Node, length: float) -> void:
