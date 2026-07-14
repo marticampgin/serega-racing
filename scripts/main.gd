@@ -264,6 +264,19 @@ func build_world() -> void:
 	sun.rotation_degrees = Vector3(-52, -28, 0)
 	sun.light_energy = 0.92
 	sun.shadow_enabled = true
+	# District meshes remain visible for at least 1.2 km. Match the sunlight to
+	# that baseline while retaining four progressively coarser near-to-far maps.
+	# Small props already opt out of shadow casting in WorldBuilder, keeping this
+	# substantially longer range practical for the Compatibility renderer.
+	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
+	sun.directional_shadow_max_distance = 1200.0
+	sun.directional_shadow_split_1 = 0.06
+	sun.directional_shadow_split_2 = 0.18
+	sun.directional_shadow_split_3 = 0.45
+	sun.directional_shadow_fade_start = 0.82
+	sun.directional_shadow_blend_splits = false
+	sun.shadow_bias = 0.08
+	sun.shadow_normal_bias = 1.5
 	add_child(sun)
 
 
