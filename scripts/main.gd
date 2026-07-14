@@ -3,7 +3,7 @@ extends Node3D
 const CourseLayoutScript := preload("res://scripts/course_layout.gd")
 const WorldBuilderScript := preload("res://scripts/world_builder.gd")
 const ROAD_WIDTH := 17.0
-const ROAD_SAMPLE_STEP := 3.0
+const ROAD_SAMPLE_STEP := 2.0
 
 var course: CourseLayout
 var course_curve: Curve3D
@@ -248,7 +248,7 @@ func build_world() -> void:
 	var environment := WorldEnvironment.new()
 	var env := Environment.new()
 	var panorama := PanoramaSkyMaterial.new()
-	panorama.panorama = load("res://assets/generated/backgrounds/synthwave-island-horizon.png")
+	panorama.panorama = load("res://assets/generated/backgrounds/synthwave-sky-only-v2.png")
 	panorama.energy_multiplier = 0.72
 	var synthwave_sky := Sky.new()
 	synthwave_sky.sky_material = panorama

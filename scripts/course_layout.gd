@@ -17,7 +17,7 @@ var course_zones: Array[Dictionary] = []
 
 var _closed := true
 var _world_scale := 1.0
-var _bake_interval := 4.0
+var _bake_interval := 2.0
 var _controls: Array[Vector3] = []
 var _control_zones: Array[String] = []
 var _sample_points: PackedVector3Array = PackedVector3Array()
@@ -47,7 +47,7 @@ func load_from_file(path: String) -> Error:
 	course_name = str(data.get("name", "Untitled course"))
 	_closed = bool(data.get("closed", true))
 	_world_scale = float(data.get("world_scale", 1.0))
-	_bake_interval = maxf(0.5, float(data.get("bake_interval", 4.0)))
+	_bake_interval = maxf(0.5, float(data.get("bake_interval", 2.0)))
 	road_half_width = float(data.get("road_half_width", 9.0))
 	landmarks.clear()
 	for landmark: Variant in data.get("landmarks", []):
