@@ -24,6 +24,7 @@ var _materials: Dictionary = {}
 var _route_samples: Array[Dictionary] = []
 var _route_buckets: Dictionary = {}
 var _submerged_buckets: Dictionary = {}
+var _tunnel_buckets: Dictionary = {}
 var _ocean_grid_origin := Vector2.ZERO
 var _terrain_grid_origin := Vector2.ZERO
 var _ocean_render_cache: Dictionary = {}
@@ -96,12 +97,15 @@ func _cache_route_samples() -> void:
 	_route_samples.clear()
 	_route_buckets.clear()
 	_submerged_buckets.clear()
+	_tunnel_buckets.clear()
 	var offset := 0.0
 	while offset < _course.length():
 		var point := _course.point_at(offset)
 		var zone := _course.zone_at(offset)
 		var truly_submerged_tunnel := zone == "underwater_tunnel" and point.y < SEA_LEVEL - 0.8
-		var water_route := zone == "bridge" or truly_submerged_tunnel
+		# Tunnel depression belongs to the sea mesh only. Treating the same samples
+		# as terrain channels carved two cyan ditches into the sandy approaches.
+		var water_route := zone == "bridge"
 		# Only the enclosed tunnel needs the sea surface lowered. Extending this
 		# profile into Loop 2 exposed the seabed as large purple wedges and cyan
 		# puddles when viewed from the elevated crossing around 3234 m.
@@ -109,6 +113,8 @@ func _cache_route_samples() -> void:
 		var route_sample := {"offset": offset, "point": point, "zone": zone, "water": water_route, "submerged": submerged_route}
 		_route_samples.append(route_sample)
 		_add_to_bucket(_route_buckets, _bucket_key(Vector2(point.x, point.z)), route_sample)
+		if zone == "underwater_tunnel":
+			_add_to_bucket(_tunnel_buckets, _bucket_key(Vector2(point.x, point.z)), point)
 		if submerged_route:
 			_add_to_bucket(_submerged_buckets, _bucket_key(Vector2(point.x, point.z)), point)
 		offset += 12.0
@@ -144,6 +150,18 @@ func _nearby_submerged_samples(position: Vector2) -> Array[Vector3]:
 			var key := Vector2i(bucket_x, bucket_y)
 			if _submerged_buckets.has(key):
 				for point: Vector3 in _submerged_buckets[key]:
+					result.append(point)
+	return result
+
+
+func _nearby_tunnel_samples(position: Vector2) -> Array[Vector3]:
+	var result: Array[Vector3] = []
+	var center := _bucket_key(position)
+	for bucket_x in range(center.x - 1, center.x + 2):
+		for bucket_y in range(center.y - 1, center.y + 2):
+			var key := Vector2i(bucket_x, bucket_y)
+			if _tunnel_buckets.has(key):
+				for point: Vector3 in _tunnel_buckets[key]:
 					result.append(point)
 	return result
 
@@ -443,8 +461,13 @@ func _ground_height_at(world_xz: Vector2) -> float:
 			if distance < nearest_land_distance:
 				nearest_land_distance = distance
 				nearest_land_zone = str(sample.zone)
-		if distance < 23.0:
-			var submerged := bool(sample.get("submerged", false))
+		var submerged := bool(sample.get("submerged", false))
+		var tunnel_sample := str(sample.zone) == "underwater_tunnel"
+		# Every tunnel sample, including the shallow entrance ramps, only needs
+		# clearance beneath the 8.5 m road/tunnel shell. Giving those ramps the
+		# ordinary 23 m roadside clearance carved the two approach puddles.
+		var ceiling_radius := 10.5 if tunnel_sample else 23.0
+		if distance < ceiling_radius:
 			var gap := SUBMERGED_GROUND_GAP if submerged else ROAD_GROUND_GAP
 			road_ceiling = minf(road_ceiling, point.y - gap)
 	var island_width := _terrain_half_width(nearest_land_zone)
@@ -465,22 +488,37 @@ func _ocean_height_at(world_xz: Vector2) -> float:
 	# The sea stays level at shore. Sand supplies the elevation variation; waves
 	# here would repeatedly cross the sloped beach and create cyan polygon islands.
 	var open_sea_height := SEA_LEVEL
-	var nearest_distance := INF
-	var nearest_point := Vector3.ZERO
+	var rendered_height := open_sea_height
+	var has_tunnel_influence := false
 	for point: Vector3 in _nearby_submerged_samples(world_xz):
 		var distance := world_xz.distance_to(Vector2(point.x, point.z))
-		if distance < nearest_distance:
-			nearest_distance = distance
-			nearest_point = point
-	if nearest_distance == INF:
-		return open_sea_height
-	# OCEAN_GRID is intentionally coarse outside the playable view. Its triangles
-	# span almost 20 m diagonally, so every vertex that can interpolate across the
-	# 19 m tunnel must already be below the road. A broad, deep plateau prevents
-	# those triangles from cutting back through the tunnel floor and shoulders.
-	var depression := minf(SEA_LEVEL, nearest_point.y - 2.2)
-	var weight := 1.0 - smoothstep(32.0, 48.0, nearest_distance)
-	return lerpf(open_sea_height, depression, weight)
+		if distance >= 72.0:
+			continue
+		has_tunnel_influence = true
+		# Use the lowest overlapping tunnel influence, not merely the nearest
+		# sample. On a steep approach the nearest sample can be shallow while the
+		# terrain triangle is already clamped by the next deeper sample, exposing a
+		# small cyan patch between them.
+		var depression := minf(SEA_LEVEL, point.y - 2.6)
+		var weight := 1.0 - smoothstep(48.0, 72.0, distance)
+		rendered_height = minf(rendered_height, lerpf(open_sea_height, depression, weight))
+	# Ocean and terrain are sampled independently, so interpolated triangles can
+	# otherwise cross even when their nearest route samples do not. The terrain is the
+	# authoritative tunnel envelope: keep water just beneath it throughout the
+	# local influence field to eliminate the two approach puddles deterministically.
+	if has_tunnel_influence:
+		rendered_height = minf(rendered_height, _ground_height_at(world_xz) - 0.16)
+	# Shallow entrance/exit samples are intentionally absent from the submerged
+	# set, but their descending road still pushes the sand below sea level. Seal
+	# that complete approach corridor as well, keeping its water under the sand.
+	var nearest_tunnel_distance := INF
+	for point: Vector3 in _nearby_tunnel_samples(world_xz):
+		nearest_tunnel_distance = minf(nearest_tunnel_distance, world_xz.distance_to(Vector2(point.x, point.z)))
+	if nearest_tunnel_distance < 120.0:
+		var approach_target := _ground_height_at(world_xz) - 0.16
+		var approach_weight := 1.0 - smoothstep(96.0, 120.0, nearest_tunnel_distance)
+		rendered_height = minf(rendered_height, lerpf(rendered_height, approach_target, approach_weight))
+	return rendered_height
 
 
 func _build_shoreline_contour(minimum: Vector2, maximum: Vector2) -> void:
@@ -1123,7 +1161,10 @@ func _build_bridge() -> void:
 		var finish := float(span.end_distance)
 		for side in [-1.0, 1.0]:
 			_build_course_prism("BridgeRail", start + 4.0, finish - 4.0, side * 9.25, 0.58, 0.32, 1.15, _materials.pink, "bridge_boundary", 1200.0)
-			_build_course_prism("BridgeGirder", start + 4.0, finish - 4.0, side * 7.1, -0.65, 0.72, 0.8, _materials.night, "bridge_girder", 1200.0)
+			# The girder overlaps the lower road ribbon instead of ending just below
+			# it, so low side views read as one continuous load-bearing structure.
+			var girder := _build_course_prism("BridgeGirder", start + 4.0, finish - 4.0, side * 7.1, -0.65, 0.72, 1.0, _materials.night, "bridge_girder", 1200.0)
+			girder.set_meta("top_local_y", -0.15)
 		var offset := start + 24.0
 		while offset < finish - 18.0:
 			var frame := _course.sample_course(offset)
@@ -1132,12 +1173,14 @@ func _build_bridge() -> void:
 			cap.transform = frame
 			cap.add_to_group("bridge")
 			_parent.add_child(cap)
-			var beam := _box(cap, Vector3(16.2, 0.8, 2.2), Vector3(0, -0.65, 0), _materials.night, 1200.0)
+			var beam := _box(cap, Vector3(16.2, 1.05, 2.2), Vector3(0, -0.65, 0), _materials.night, 1200.0)
 			beam.add_to_group("bridge_pier_cap")
+			beam.set_meta("top_local_y", -0.125)
+			beam.set_meta("bottom_local_y", -1.175)
 			for side in [-1.0, 1.0]:
 				# The contact is derived from the pitched cap underside, not a world-y
 				# approximation. Columns therefore visibly meet the bridge on grades.
-				var contact: Vector3 = frame * Vector3(side * 7.1, -1.07, 0.0)
+				var contact: Vector3 = frame * Vector3(side * 7.1, -1.20, 0.0)
 				var ground_y := _ground_height_at(Vector2(contact.x, contact.z))
 				var column_height := maxf(1.0, contact.y - ground_y + 0.12)
 				var column := _cylinder(_parent, 0.95, column_height, Vector3(contact.x, ground_y + column_height * 0.5, contact.z), _materials.lavender, 0.78, 1200.0, 12)
@@ -1146,6 +1189,7 @@ func _build_bridge() -> void:
 				column.add_to_group("bridge_support")
 				column.set_meta("course_offset", offset)
 				column.set_meta("contact_y", contact.y)
+				column.set_meta("cap_bottom_y", (frame * Vector3(side * 7.1, -1.175, 0.0)).y)
 				if ground_y < SEA_LEVEL and contact.y > SEA_LEVEL:
 					var collar := _cylinder(_parent, 1.22, 0.45, Vector3(contact.x, SEA_LEVEL, contact.z), _materials.steel, 1.22, 1200.0, 12)
 					collar.name = "BridgePierWaterlineCollar"
