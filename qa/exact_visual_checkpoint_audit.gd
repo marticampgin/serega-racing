@@ -138,8 +138,57 @@ func _run() -> void:
 			"target": poster,
 		})
 		poster_checkpoint_count += 1
+	var new_scenery_checkpoint_count := 0
+	for value in get_nodes_in_group("tunnel_wall_poster"):
+		if not value is Node3D or not race.is_ancestor_of(value):
+			continue
+		var tunnel_poster := value as Node3D
+		checkpoints.append({
+			"file": "tunnel_art_%s.png" % str(tunnel_poster.name).to_snake_case(),
+			"offset": float(tunnel_poster.get_meta("course_offset", 0.0)) - 18.0,
+			"mode": "chase",
+		})
+		new_scenery_checkpoint_count += 1
+	var mural_index := 0
+	for value in get_nodes_in_group("building_mural_scenery"):
+		if not value is Sprite3D or not race.is_ancestor_of(value):
+			continue
+		var mural := value as Sprite3D
+		var landmark := mural.get_parent() as Node3D
+		checkpoints.append({
+			"file": "building_mural_%02d_%s.png" % [mural_index, str(landmark.name).to_snake_case()],
+			"offset": float(landmark.get_meta("course_offset", 0.0)),
+			"mode": "wall_art_closeup",
+			"target": mural,
+		})
+		mural_index += 1
+		new_scenery_checkpoint_count += 1
+	for value in get_nodes_in_group("sky_traffic_vehicle"):
+		if not value is Node3D or not race.is_ancestor_of(value):
+			continue
+		var aircraft := value as Node3D
+		checkpoints.append({
+			"file": "sky_%s.png" % str(aircraft.name).to_snake_case(),
+			"offset": 10042.7 if aircraft.is_in_group("zeppelin_scenery") else 720.0,
+			"mode": "sky_closeup",
+			"target": aircraft,
+		})
+		new_scenery_checkpoint_count += 1
+	var water_index := 0
+	for value in get_nodes_in_group("water_scenery"):
+		if not value is Node3D or not race.is_ancestor_of(value):
+			continue
+		var vessel := value as Node3D
+		checkpoints.append({
+			"file": "maritime_%02d_%s.png" % [water_index, str(vessel.name).to_snake_case()],
+			"offset": float(vessel.get_meta("course_offset", 0.0)),
+			"mode": "water_closeup",
+			"target": vessel,
+		})
+		water_index += 1
+		new_scenery_checkpoint_count += 1
 
-	var failures := DISTRICT_CHECKPOINTS.size() + FIXED_CHECKPOINTS.size() + ZONE_RELATIVE_CHECKPOINTS.size() + poster_checkpoint_count - checkpoints.size()
+	var failures := DISTRICT_CHECKPOINTS.size() + FIXED_CHECKPOINTS.size() + ZONE_RELATIVE_CHECKPOINTS.size() + poster_checkpoint_count + new_scenery_checkpoint_count - checkpoints.size()
 	for checkpoint: Dictionary in checkpoints:
 		var offset := float(checkpoint.offset)
 		var frame := race.call("sample_course", offset) as Transform3D
@@ -148,6 +197,19 @@ func _run() -> void:
 			var target := checkpoint.target as Node3D
 			camera.global_position = target.global_transform * Vector3(0.0, 4.2, -15.0)
 			camera.look_at(target.global_position + Vector3.UP * 4.2, Vector3.UP)
+		elif str(checkpoint.mode) == "sky_closeup":
+			var target := checkpoint.target as Node3D
+			camera.global_position = target.global_position + Vector3(0.0, 16.0, 72.0)
+			camera.look_at(target.global_position - Vector3.UP * 1.5, Vector3.UP)
+		elif str(checkpoint.mode) == "wall_art_closeup":
+			var target := checkpoint.target as Node3D
+			camera.global_position = target.global_transform * Vector3(0.0, 0.0, -20.0)
+			camera.look_at(target.global_position, Vector3.UP)
+		elif str(checkpoint.mode) == "water_closeup":
+			var target := checkpoint.target as Node3D
+			var roadward := (frame.origin - target.global_position).normalized()
+			camera.global_position = target.global_position + roadward * 40.0 + Vector3.UP * 15.0
+			camera.look_at(target.global_position + Vector3.UP * 3.0, Vector3.UP)
 		elif str(checkpoint.mode) == "party_island_overview":
 			var course: Object = race.get("course")
 			var landmark: Vector3 = course.call("landmark_position", &"party_island")

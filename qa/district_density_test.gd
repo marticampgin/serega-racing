@@ -1,6 +1,6 @@
 extends SceneTree
 
-const MAX_TOTAL_MESHES := 5200
+const MAX_TOTAL_MESHES := 5400
 const OVERLAP_TOLERANCE := 0.75
 const MESH_OVERLAP_AREA_TOLERANCE := 0.35
 const FILLER_GROUPS := [&"palm_scenery", &"lamp_scenery", &"portrait_scenery"]
@@ -9,6 +9,10 @@ const REQUIRED_POSTER_TEXTURES := [
 	"res://assets/generated/friends/1daf0fdc-2536-4e54-b476-fc61c770b23d.jpg",
 	"res://assets/generated/friends/61b5ddf7-ae71-4d13-b677-660bd070a785.jpg",
 	"res://assets/generated/friends/71b38443-851b-401f-a174-0b72d699a284.jpg",
+	"res://assets/generated/friends/481d5ab6-7c3f-47be-a2bd-e02bdfb2c1d5.jpg",
+	"res://assets/generated/friends/5213d1b1-6e99-448d-ad81-26f61e859010.jpg",
+	"res://assets/generated/friends/8608460d-bd44-4e25-b2dc-ccf8a5003e87.jpg",
+	"res://assets/generated/friends/882a2791-af8b-4378-b3b7-a05b4cf0dd08.jpg",
 ]
 const DENSITY_RULES := {
 	"start_coast": {"min_featured": 4, "max_gap": 100.0},
@@ -112,9 +116,22 @@ func _run() -> void:
 			"%s span %d has no obvious long empty stretch" % [zone_name, int(span.index)]
 		)
 	_check_feature_anchor_overlaps(featured_anchors)
+	check(_group_count_inside("loop_landmark", race) >= 5, "multiple unique landmarks animate the formerly empty loop sectors")
+	check(_group_count_inside("building_mural_scenery", race) >= 4, "major district buildings carry personalized facade art")
 	_check_personalized_posters(race)
+	_check_tunnel_art(race)
+	await _check_sky_traffic(race)
+	_check_maritime_scenery(race, course)
 
 	_finish()
+
+
+func _group_count_inside(group_name: StringName, ancestor: Node) -> int:
+	var count := 0
+	for value in get_nodes_in_group(group_name):
+		if value is Node and ancestor.is_ancestor_of(value):
+			count += 1
+	return count
 
 
 func _span_index_for_offset(spans: Array[Dictionary], offset: float) -> int:
@@ -181,6 +198,52 @@ func _check_personalized_posters(race: Node) -> void:
 	print("INFO: personalized poster roots = %d; required textures = %d" % [poster_count, REQUIRED_POSTER_TEXTURES.size()])
 	for texture_path in REQUIRED_POSTER_TEXTURES:
 		check(bool(represented[texture_path]), "required personalized poster is represented: %s" % texture_path)
+
+
+func _check_tunnel_art(race: Node) -> void:
+	var posters: Array[Node] = []
+	for value in get_nodes_in_group("tunnel_wall_poster"):
+		if value is Node3D and race.is_ancestor_of(value):
+			posters.append(value)
+	check(posters.size() >= 2, "multiple personalized posters are mounted inside the tunnel")
+	for value in posters:
+		var poster := value as Node3D
+		check(poster.has_meta("course_offset") and poster.has_meta("poster_texture"), "%s has tunnel placement metadata" % poster.name)
+		check(not poster.find_children("*", "Sprite3D", true, false).is_empty(), "%s has a visible poster face" % poster.name)
+
+
+func _check_sky_traffic(race: Node) -> void:
+	var vehicles: Array[Node3D] = []
+	for value in get_nodes_in_group("sky_traffic_vehicle"):
+		if value is Node3D and race.is_ancestor_of(value):
+			vehicles.append(value)
+	check(vehicles.size() == 2, "zeppelin and banner plane populate the sky")
+	check(get_nodes_in_group("zeppelin_scenery").size() == 1, "one zeppelin crosses the north-coast straight")
+	check(get_nodes_in_group("plane_scenery").size() == 1, "one banner plane crosses the start coast")
+	check(get_nodes_in_group("air_banner_scenery").size() >= 2, "both aircraft tow large personalized flags")
+	var starting_positions: Array[Vector3] = []
+	for vehicle in vehicles:
+		starting_positions.append(vehicle.global_position)
+		for metadata_name in [&"flight_centre", &"flight_axis", &"flight_half_span", &"flight_speed", &"flight_period"]:
+			check(vehicle.has_meta(metadata_name), "%s carries %s flight metadata" % [vehicle.name, metadata_name])
+		check(float(vehicle.get_meta("flight_speed", 0.0)) > 0.0, "%s has positive flight speed" % vehicle.name)
+		check(vehicle.global_position.y > 70.0, "%s stays clearly above the scenery" % vehicle.name)
+	await create_timer(0.08).timeout
+	for index in range(vehicles.size()):
+		check(vehicles[index].global_position.distance_to(starting_positions[index]) > 0.1, "%s visibly advances along its flight path" % vehicles[index].name)
+
+
+func _check_maritime_scenery(race: Node, course: Object) -> void:
+	var boats: Array[Node3D] = []
+	for value in get_nodes_in_group("water_scenery"):
+		if value is Node3D and race.is_ancestor_of(value):
+			boats.append(value)
+	check(boats.size() >= 6, "ships and boats populate several coasts")
+	for boat in boats:
+		check(boat.has_meta("water_y") and boat.has_meta("scenery_radius") and boat.has_meta("course_offset"), "%s carries collision-safe water placement metadata" % boat.name)
+		var offset := float(boat.get_meta("course_offset", 0.0))
+		var road_point: Vector3 = course.call("point_at", offset)
+		check(Vector2(boat.global_position.x, boat.global_position.z).distance_to(Vector2(road_point.x, road_point.z)) > 45.0, "%s remains safely offshore" % boat.name)
 
 
 func _check_feature_anchor_overlaps(anchors: Array[Node3D]) -> void:
