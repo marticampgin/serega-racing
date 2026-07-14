@@ -29,6 +29,18 @@ const FIXED_CHECKPOINTS := [
 	{"file": "city_crossing_5823.png", "offset": 5823.0, "mode": "chase"},
 ]
 
+# These checkpoint offsets are derived from zone boundaries so they continue to
+# target the same physical construction detail if the course bake changes.
+const ZONE_RELATIVE_CHECKPOINTS := [
+	{"file": "tunnel_water_patch_before.png", "zone": "underwater tunnel", "from": "start", "delta": -28.0, "mode": "chase"},
+	{"file": "tunnel_water_patch_after.png", "zone": "underwater tunnel", "from": "end", "delta": 28.0, "mode": "chase"},
+	# Bridge supports are emitted at zone start + 24 + 48*n. These three views
+	# therefore aim at exact cap/pier locations, not arbitrary points between piers.
+	{"file": "bridge_contact_near.png", "zone": "bridge", "from": "start", "delta": 216.0, "mode": "bridge_low_side_left"},
+	{"file": "bridge_contact_middle.png", "zone": "bridge", "from": "start", "delta": 600.0, "mode": "bridge_low_side_right"},
+	{"file": "bridge_contact_far.png", "zone": "bridge", "from": "start", "delta": 984.0, "mode": "bridge_low_side_left"},
+]
+
 const DISTRICT_CHECKPOINTS := [
 	{"file": "party_town_far.png", "zone": "party town", "mode": "far_overview"},
 	{"file": "city_centre_far.png", "zone": "city centre", "mode": "far_overview"},
@@ -88,6 +100,20 @@ func _run() -> void:
 	var checkpoints: Array[Dictionary] = []
 	for checkpoint: Dictionary in FIXED_CHECKPOINTS:
 		checkpoints.append(checkpoint)
+	for relative: Dictionary in ZONE_RELATIVE_CHECKPOINTS:
+		var relative_zone := QAUtil.find_zone(zones, str(relative.zone))
+		if relative_zone.is_empty():
+			push_error("missing exact visual audit zone: %s" % relative.zone)
+			continue
+		var relative_length := curve.get_baked_length()
+		var boundary := QAUtil.zone_start(relative_zone, relative_length)
+		if str(relative.get("from", "start")) == "end":
+			boundary = QAUtil.zone_end(relative_zone, relative_length)
+		checkpoints.append({
+			"file": relative.file,
+			"offset": boundary + float(relative.get("delta", 0.0)),
+			"mode": relative.mode,
+		})
 	for district: Dictionary in DISTRICT_CHECKPOINTS:
 		var zone := QAUtil.find_zone(zones, str(district.zone))
 		if zone.is_empty():
@@ -100,7 +126,7 @@ func _run() -> void:
 			"mode": district.get("mode", "overview"),
 		})
 
-	var failures := DISTRICT_CHECKPOINTS.size() + FIXED_CHECKPOINTS.size() - checkpoints.size()
+	var failures := DISTRICT_CHECKPOINTS.size() + FIXED_CHECKPOINTS.size() + ZONE_RELATIVE_CHECKPOINTS.size() - checkpoints.size()
 	for checkpoint: Dictionary in checkpoints:
 		var offset := float(checkpoint.offset)
 		var frame := race.call("sample_course", offset) as Transform3D
@@ -120,6 +146,13 @@ func _run() -> void:
 		elif str(checkpoint.mode) == "side_overview":
 			camera.global_position = frame.origin + frame.basis.z * 16.0 + frame.basis.x * 64.0 + Vector3.UP * 25.0
 			camera.look_at(frame.origin + Vector3.UP * 3.0, Vector3.UP)
+		elif str(checkpoint.mode).begins_with("bridge_low_side"):
+			var camera_side := -1.0 if str(checkpoint.mode).ends_with("right") else 1.0
+			camera.global_position = frame.origin + frame.basis.z * 10.0 + frame.basis.x * 34.0 * camera_side
+			# Keep the lens just above the water/terrain rather than inheriting the
+			# road deck height. This exposes column-to-cap and cap-to-deck contact.
+			camera.global_position.y = 2.4
+			camera.look_at(frame.origin - Vector3.UP * 0.7, Vector3.UP)
 		elif str(checkpoint.mode) == "overview":
 			camera.global_position = frame.origin + frame.basis.z * 52.0 + frame.basis.x * 58.0 + Vector3.UP * 34.0
 			camera.look_at(frame.origin + Vector3.UP * 2.0, Vector3.UP)

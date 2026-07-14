@@ -61,6 +61,7 @@ func _run() -> void:
 	check(get_nodes_in_group("shoreline_contour").size() == 1, "one continuous shoreline contour separates sand from water")
 	_check_bridge_support_contact()
 	_check_loop2_tunnel_separation(race)
+	_check_tunnel_approach_surface(race)
 	_check_render_distance(race, terrain, ocean_nodes[0] as MeshInstance3D)
 	var curve := QAUtil.find_course_curve(race)
 	check(curve != null, "course curve is available for dense geometry checks")
@@ -174,8 +175,16 @@ func _check_bridge_support_contact() -> void:
 		var top := (node as MeshInstance3D).global_position.y + cylinder.height * 0.5
 		if absf(top - float(node.get_meta("contact_y"))) > 0.18:
 			violations += 1
+		if not node.has_meta("cap_bottom_y") or top - float(node.get_meta("cap_bottom_y")) < 0.04:
+			violations += 1
+	var deck_intrusions := 0
+	for group_name in ["bridge_girder", "bridge_pier_cap"]:
+		for node in get_nodes_in_group(group_name):
+			if not node.has_meta("top_local_y") or float(node.get_meta("top_local_y")) > -0.08:
+				deck_intrusions += 1
 	print("INFO: bridge pier/cap contact violations = ", violations)
 	check(not supports.is_empty() and violations == 0, "bridge piers meet their pitched cap undersides")
+	check(deck_intrusions == 0, "bridge girders and pier caps overlap the lower deck without bleeding through asphalt")
 
 
 func _check_loop2_tunnel_separation(race: Node) -> void:
@@ -200,6 +209,32 @@ func _check_loop2_tunnel_separation(race: Node) -> void:
 	print("INFO: Loop 2 ocean variations=%d exposed tunnel roofs=%d" % [ocean_variation, exposed_roofs])
 	check(ocean_variation == 0, "Loop 2 crossing keeps a level sea instead of exposed depression patches")
 	check(exposed_roofs == 0, "no shallow tunnel roof protrudes beneath the Loop 2 crossing")
+
+
+func _check_tunnel_approach_surface(race: Node) -> void:
+	var builder: Object = race.get("world_builder")
+	var course: Object = race.get("course")
+	var exposed_samples := 0
+	var sample_count := 0
+	for span: Dictionary in course.get("course_zones"):
+		if str(span.get("name", "")) != "underwater_tunnel":
+			continue
+		# Include both cameras' lead-in view and the complete tunnel corridor;
+		# checking only one cross-section missed cutouts farther down the entrance.
+		var offset := float(span.start_distance) - 72.0
+		while offset <= float(span.end_distance) + 72.0:
+			var frame := race.call("sample_course", offset) as Transform3D
+			for lateral in [-36.0, -30.0, -24.0, -18.0, -12.0, 12.0, 18.0, 24.0, 30.0, 36.0]:
+				var point: Vector3 = frame.origin + frame.basis.x * lateral
+				var terrain_height := float(builder.call("terrain_rendered_height_at", Vector2(point.x, point.z)))
+				var ocean_height := float(builder.call("ocean_rendered_height_at", Vector2(point.x, point.z)))
+				sample_count += 1
+				if terrain_height < ocean_height + 0.04:
+					exposed_samples += 1
+					print("INFO: exposed tunnel shoulder offset=%.0f lateral=%.0f terrain=%.2f ocean=%.2f" % [offset, lateral, terrain_height, ocean_height])
+			offset += 18.0
+	print("INFO: tunnel shoulder surface samples=%d exposed=%d" % [sample_count, exposed_samples])
+	check(exposed_samples == 0, "sandy tunnel approaches cover the depressed ocean on both sides")
 
 
 func _check_render_distance(race: Node, terrain: MeshInstance3D, ocean: MeshInstance3D) -> void:
