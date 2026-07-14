@@ -51,9 +51,16 @@ func _run() -> void:
 		_finish()
 		return
 
-	var total_meshes := race.find_children("*", "MeshInstance3D", true, false).size()
-	print("INFO: total MeshInstance3D nodes = %d (cap %d)" % [total_meshes, MAX_TOTAL_MESHES])
-	check(total_meshes <= MAX_TOTAL_MESHES, "world remains within the generous scenery mesh budget")
+	var all_meshes := race.find_children("*", "MeshInstance3D", true, false)
+	var manual_root := race.get_node_or_null("ManualScenery")
+	var manual_meshes := 0
+	if manual_root != null:
+		for mesh in all_meshes:
+			if manual_root.is_ancestor_of(mesh):
+				manual_meshes += 1
+	var procedural_meshes := all_meshes.size() - manual_meshes
+	print("INFO: procedural MeshInstance3D nodes = %d (cap %d); manual = %d" % [procedural_meshes, MAX_TOTAL_MESHES, manual_meshes])
+	check(procedural_meshes <= MAX_TOTAL_MESHES, "generated world remains within the generous scenery mesh budget")
 
 	var zones: Array = course.get("course_zones")
 	var spans: Array[Dictionary] = []

@@ -23,3 +23,28 @@ Run the full-course collider traversal and off-track recovery regression test wi
 ```
 
 It raycasts the road every 60 metres across all 12 km and reproduces the reported 1.68 km fall-through state.
+## Manual scenery catalog
+
+Validate every draggable preset, the empty serialized manual layer, infrastructure exclusion and unchanged procedural mesh baseline:
+
+```powershell
+.\godot\Godot_v4.7-stable_win64_console.exe --path . --headless --rendering-method gl_compatibility --script res://qa/manual_scenery_catalog_test.gd
+```
+
+Capture one labeled visual sheet per scenery category:
+
+```powershell
+.\godot\Godot_v4.7-stable_win64_console.exe --path . --rendering-method gl_compatibility --script res://qa/manual_scenery_visual_audit.gd
+```
+
+Verify the editor-only road/land placement guide (and that it has no collision):
+
+```powershell
+.\godot\Godot_v4.7-stable_win64_console.exe --path . --headless --editor --script res://qa/editor_placement_guide_test.gd
+```
+
+Verify that generated buildings, palms and lamps reserve around a manually placed hotel:
+
+```powershell
+.\godot\Godot_v4.7-stable_win64_console.exe --path . --headless --rendering-method gl_compatibility --script res://qa/manual_scenery_reservation_test.gd
+```

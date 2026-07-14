@@ -406,9 +406,10 @@ func _roadside_root(name: String, offset: float, side: float, setback: float, gr
 	for candidate in [
 		[side, setback], [-side, setback],
 		[side, setback + 24.0], [-side, setback + 24.0],
+		[side, setback + 48.0], [-side, setback + 48.0],
 	]:
 		var candidate_position := road + lateral * float(candidate[0]) * float(candidate[1])
-		if _other_road_clearance(candidate_position, offset) >= ROAD_CLEARANCE:
+		if _other_road_clearance(candidate_position, offset) >= ROAD_CLEARANCE and _manual_scenery_footprint_is_clear(candidate_position, 18.0):
 			position = candidate_position
 			break
 	position.y = _ground_height_at(Vector2(position.x, position.z))
@@ -1228,6 +1229,19 @@ func _scenery_footprint_is_clear(position: Vector3, radius: float) -> bool:
 	return true
 
 
+func _manual_scenery_footprint_is_clear(position: Vector3, radius: float) -> bool:
+	for value in _parent.get_tree().get_nodes_in_group("manual_scenery"):
+		if not value is Node3D or not _parent.is_ancestor_of(value):
+			continue
+		var root := value as Node3D
+		var existing_radius := float(root.get_meta("scenery_radius", 3.0))
+		var existing_scale := root.global_transform.basis.get_scale()
+		existing_radius *= maxf(absf(existing_scale.x), absf(existing_scale.z))
+		if Vector2(position.x, position.z).distance_to(Vector2(root.global_position.x, root.global_position.z)) < radius + existing_radius + 2.5:
+			return false
+	return true
+
+
 func _estimate_scenery_radius(root: Node3D) -> float:
 	var radius := 3.0
 	var inverse := root.global_transform.affine_inverse()
@@ -1786,7 +1800,7 @@ func _build_roadside_rhythm() -> void:
 				# Rhythm palms used to bypass all route-clearance logic, allowing a
 				# different loop branch to pass through trunks and fronds.
 				position.y = _ground_height_at(Vector2(position.x, position.z))
-				if position.y > SEA_LEVEL + 0.12 and _road_prism_is_clear(position, offset, 4.6, position.y, position.y + 11.0):
+				if position.y > SEA_LEVEL + 0.12 and _road_prism_is_clear(position, offset, 4.6, position.y, position.y + 11.0) and _manual_scenery_footprint_is_clear(position, 4.6):
 					var palm := _grounded_root("Palm", position, ["palm_scenery"])
 					palm.set_meta("course_offset", offset)
 					_add_palm_at(palm, Vector3.ZERO, 0.72 + (index % 4) * 0.11)
