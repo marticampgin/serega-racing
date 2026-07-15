@@ -5,12 +5,15 @@ The course, terrain, ocean, bridge, flyovers and tunnel structure remain generat
 ## Drag and drop
 
 1. Open `scenes/main.tscn` in Godot.
-2. Expand `scenes/manual_scenery/presets` in the FileSystem panel. Presets are grouped by buildings, landmarks, vegetation, street props, signs, boats and sky scenery.
-3. Drag a `.tscn` preset into the 3D viewport or onto `Race/ManualScenery` in the Scene tree.
-4. Ensure the new instance is a **direct child** of `ManualScenery`.
-5. Use Godot's move and rotate tools. Every building faces local `-Z`; rotate its Y axis toward the road.
+2. Wait for `Editor world preview` in the Output panel. The complete generated road, terrain, water, bridges, tunnels, districts and existing decorations are now visible but locked.
+3. Expand `scenes/manual_scenery/presets` in the FileSystem panel. Presets are grouped by buildings, landmarks, vegetation, street props, signs, boats and sky scenery.
+4. Drag a `.tscn` preset into the 3D viewport or onto `Race/ManualScenery` in the Scene tree.
+5. Ensure the new instance is a **direct child** of `ManualScenery`.
+6. Use Godot's move and rotate tools. Every building faces local `-Z`; rotate its Y axis toward the road.
 
-The blue plane marks sea level, the grey ribbon is the generated road, the pink line is its centre and the translucent coral ribbon is an approximate land-placement corridor. These guides only exist in the editor and add no runtime meshes.
+The detailed preview is editor-only, has no physics and is never saved into the scene or included in the game. Select `EditorPlacementGuide` to disable `Show World Preview` on slower computers. Toggle `Refresh Preview` after moving several manual objects to rebuild the generated decorations around their reserved footprints.
+
+The lightweight guides remain available through `Show Land Corridor` and `Show Water Plane`. They only exist in the editor and add no runtime meshes.
 
 ## Inspector controls and warnings
 

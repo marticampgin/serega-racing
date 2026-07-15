@@ -43,6 +43,13 @@ Verify the editor-only road/land placement guide (and that it has no collision):
 .\godot\Godot_v4.7-stable_win64_console.exe --path . --headless --editor --script res://qa/editor_placement_guide_test.gd
 ```
 
+Verify the detailed editor world preview contains the full track, ocean, terrain,
+bridges, tunnels, flyovers and districts without adding collision or processing:
+
+```powershell
+.\godot\Godot_v4.7-stable_win64_console.exe --path . --headless --editor --rendering-method gl_compatibility --script res://qa/editor_world_preview_test.gd
+```
+
 Verify that generated buildings, palms and lamps reserve around a manually placed hotel:
 
 ```powershell

@@ -15,6 +15,9 @@ func _run() -> void:
 	var guide := Node3D.new()
 	guide.name = "EditorPlacementGuide"
 	guide.set_script(GuideScript)
+	guide.set("show_world_preview", false)
+	guide.set("show_land_corridor", true)
+	guide.set("show_water_plane", true)
 	root.add_child(guide)
 	await process_frame
 	await process_frame
