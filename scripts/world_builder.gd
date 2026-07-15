@@ -87,10 +87,10 @@ func _build_decoration_pass() -> void:
 	_build_north_coast()
 	_build_district_landmarks()
 	_build_loop_landmarks()
-	_build_district_infill()
+	_build_personalized_billboards()
+	_build_symmetric_building_rows()
 	_build_party_island_decorations()
 	_build_maritime_scenery()
-	_build_personalized_billboards()
 	_build_sky_traffic()
 	_build_roadside_rhythm()
 
@@ -766,27 +766,10 @@ func _submerged_distance(world_xz: Vector2) -> float:
 
 
 func _build_start_coast() -> void:
-	for span: Dictionary in _zone_spans("start_coast"):
-		var start := float(span.start_distance) + 45.0
-		var finish := float(span.end_distance) - 25.0
-		var d := start
-		var index := 0
-		while d < finish:
-			_add_villa(d, -1.0 if index % 2 == 0 else 1.0, 31.0 + (index % 2) * 8.0, index, false)
-			d += 88.0
-			index += 1
-		var promenade_offset := start + 55.0
-		var promenade_index := 0
-		while promenade_offset < finish:
-			# Closed-lap scenery must also clear the first sector. The final
-			# promenade previously overlapped the Villa at 45 m across the seam.
-			if promenade_offset > _course.length() - 80.0:
-				break
-			_add_coastal_promenade(promenade_offset, 1.0 if promenade_index % 2 == 0 else -1.0, promenade_index)
-			promenade_offset += 176.0
-			promenade_index += 1
 	var lighthouse_offset := _zone_midpoint("start_coast")
 	var lighthouse := _roadside_root("StartCoast_Lighthouse", lighthouse_offset, -1.0, 72.0, ["start_coast_scenery"])
+	lighthouse.add_to_group("unique_landmark")
+	lighthouse.set_meta("unique_landmark_id", "start_coast_lighthouse")
 	_cylinder(lighthouse, 4.2, 17.0, Vector3.UP * 8.5, _materials.white, 2.8, 650.0, 14)
 	_cylinder(lighthouse, 4.35, 1.2, Vector3.UP * 11.0, _materials.coral, 4.35, 650.0, 14)
 	_cylinder(lighthouse, 3.1, 3.0, Vector3.UP * 17.5, _materials.glass, 3.1, 650.0, 14)
@@ -812,14 +795,6 @@ func _add_villa(offset: float, side: float, setback: float, variant: int, large:
 
 func _build_party_town() -> void:
 	for span: Dictionary in _zone_spans("party_town"):
-		var d := float(span.start_distance) + 40.0
-		var index := 0
-		while d < float(span.end_distance) - 30.0:
-			_add_nightclub(d, -1.0 if index % 2 == 0 else 1.0, 30.0 + (index % 3) * 6.0, index)
-			if index % 2 == 0:
-				_add_villa(d + 24.0, 1.0 if index % 2 == 0 else -1.0, 39.0, index + 1, true)
-			d += 70.0
-			index += 1
 		var patio_offset := float(span.start_distance) + 76.0
 		var patio_index := 0
 		while patio_offset < float(span.end_distance) - 35.0:
@@ -844,21 +819,10 @@ func _add_nightclub(offset: float, side: float, setback: float, variant: int) ->
 
 func _build_city_centre() -> void:
 	var middle := _zone_midpoint("city_centre")
-	for index in range(7):
-		var offset := middle + (index - 3) * 44.0
-		var side := -1.0 if index % 2 == 0 else 1.0
-		_add_tower(offset, side, 48.0 + (index % 3) * 17.0, index)
 	var plaza := _roadside_root("CityCentre_Plaza", middle, 1.0, 28.0, ["city_centre_scenery"])
 	_cylinder(plaza, 10.0, 0.35, Vector3.UP * 0.18, _materials.white, 10.0, 500.0, 18)
 	_cylinder(plaza, 5.0, 1.4, Vector3.UP * 0.7, _materials.cyan, 5.0, 500.0, 18)
 	_cylinder(plaza, 1.0, 6.0, Vector3.UP * 3.0, _materials.pink, 0.35, 500.0, 12)
-	for placement in [
-		[middle - 265.0, -1.0, 0],
-		[middle - 205.0, 1.0, 1],
-		[middle + 205.0, -1.0, 2],
-		[middle + 265.0, 1.0, 3],
-	]:
-		_add_city_block(float(placement[0]), float(placement[1]), int(placement[2]))
 
 
 func _add_tower(offset: float, side: float, setback: float, variant: int) -> void:
@@ -875,15 +839,7 @@ func _add_tower(offset: float, side: float, setback: float, variant: int) -> voi
 
 
 func _build_shopping_alley() -> void:
-	for span: Dictionary in _zone_spans("shopping_alley"):
-		var start := float(span.start_distance)
-		var finish := float(span.end_distance)
-		var middle := (float(span.start_distance) + float(span.end_distance)) * 0.5
-		for side in [-1.0, 1.0]:
-			_add_storefront_row(middle, side, 27.0, 6)
-		var placements := [start + 78.0, start + 218.0, finish - 218.0, finish - 78.0]
-		for index in range(placements.size()):
-			_add_storefront_row(float(placements[index]), -1.0 if index % 2 == 0 else 1.0, 29.0, 4)
+	pass
 
 
 func _add_storefront_row(offset: float, side: float, setback: float, count: int) -> void:
@@ -917,7 +873,8 @@ func _build_sport_complex() -> void:
 	var start := float(spans[0].start_distance)
 	var finish := float(spans[0].end_distance)
 	var middle := (start + finish) * 0.5
-	var root := _roadside_root("SportComplex", middle, 1.0, 76.0, ["sport_complex_scenery"])
+	var root := _roadside_root("SportComplex", middle, 1.0, 76.0, ["sport_complex_scenery", "building_scenery", "unique_landmark"])
+	root.set_meta("unique_landmark_id", "sport_complex_stadium")
 	var stadium := _cylinder(root, 31.0, 8.0, Vector3(0, 4.0, 0), _materials.white, 25.0, 750.0, 20)
 	stadium.scale.x = 1.42
 	var field := _box(root, Vector3(54.0, 0.35, 24.0), Vector3(0, 8.2, 0), _materials.field, 750.0)
@@ -952,13 +909,9 @@ func _build_north_coast() -> void:
 			var d := float(span.start_distance) + 65.0
 			var index := 0
 			while d < float(span.end_distance) - 35.0:
-				if index % 3 == 0:
-					_add_villa(d, -1.0, 38.0, index + 2, index % 6 == 0)
-				elif index % 3 == 1:
+				if index % 2 == 0:
 					_add_marina(d, 1.0)
-				else:
-					_add_beach_bar(d, -1.0 if index % 2 == 0 else 1.0, index)
-				d += 118.0
+				d += 236.0
 				index += 1
 
 
@@ -970,7 +923,7 @@ func _build_district_landmarks() -> void:
 		{"name": "PartyTown_NeonTheatre", "zone": "party_town", "fraction": 0.52, "side": -1.0, "setback": 66.0, "radius": 21.0, "height": 35.0, "kind": "theatre"},
 		{"name": "CityCentre_TwinTowers", "zone": "city_centre", "fraction": 0.52, "side": 1.0, "setback": 92.0, "radius": 24.0, "height": 66.0, "kind": "towers"},
 		{"name": "CityCentre_Monument", "zone": "city_centre", "fraction": 0.80, "side": -1.0, "setback": 36.0, "radius": 10.0, "height": 20.0, "kind": "monument"},
-		{"name": "ShoppingAlley_MarketHall", "zone": "shopping_alley", "fraction": 0.58, "side": -1.0, "setback": 62.0, "radius": 22.0, "height": 20.0, "kind": "market"},
+		{"name": "ShoppingAlley_MarketHall", "zone": "shopping_alley", "fraction": 0.50, "side": -1.0, "setback": 62.0, "radius": 22.0, "height": 20.0, "kind": "market"},
 		{"name": "SportComplex_NeonArena", "zone": "sport_complex", "fraction": 0.58, "side": -1.0, "setback": 70.0, "radius": 25.0, "height": 30.0, "kind": "arena"},
 		{"name": "NorthCoast_MarinaHotel", "zone": "north_coast", "fraction": 0.34, "side": 1.0, "setback": 70.0, "radius": 21.0, "height": 34.0, "kind": "marina_hotel"},
 	]
@@ -980,11 +933,14 @@ func _build_district_landmarks() -> void:
 		var root := _try_feature_root(
 			str(placement.name), offset, float(placement.side), float(placement.setback),
 			float(placement.radius), float(placement.height),
-			["district_landmark", "%s_scenery" % zone_name]
+			["district_landmark", "unique_landmark", "%s_scenery" % zone_name]
 		)
 		if root == null:
 			push_warning("No collision-safe district landmark plot for %s" % placement.name)
 			continue
+		root.set_meta("unique_landmark_id", str(placement.name).to_snake_case())
+		if str(placement.kind) != "monument":
+			root.add_to_group("building_scenery")
 		match str(placement.kind):
 			"hotel":
 				_add_grand_hotel(root)
@@ -1113,11 +1069,13 @@ func _build_loop_landmarks() -> void:
 	for placement: Dictionary in placements:
 		var root := _try_feature_root(
 			str(placement.name), float(placement.offset), float(placement.side), float(placement.setback),
-			float(placement.radius), float(placement.height), ["loop_landmark", "district_landmark"]
+			float(placement.radius), float(placement.height), ["loop_landmark", "district_landmark", "unique_landmark"]
 		)
 		if root == null:
 			push_warning("No collision-safe loop landmark plot for %s" % placement.name)
 			continue
+		root.set_meta("unique_landmark_id", str(placement.name).to_snake_case())
+		root.add_to_group("building_scenery")
 		match str(placement.kind):
 			"diner": _add_neon_diner(root)
 			"motel": _add_beach_motel(root, false)
@@ -1189,6 +1147,185 @@ func _add_skate_park(root: Node3D) -> void:
 	_box(root, Vector3(9.0, 1.8, 6.0), Vector3(0, 0.9, -7.0), _materials.coral, 1500.0)
 	_box(root, Vector3(0.3, 2.0, 12.0), Vector3(0, 2.2, 2.0), _materials.cyan, 1500.0)
 	_box(root, Vector3(11.0, 4.5, 0.5), Vector3(0, 6.0, 10.0), _materials.night, 1700.0)
+
+
+func _build_symmetric_building_rows() -> void:
+	# Buildings use exact road-relative grids. A blocked cell is never moved to
+	# another side or setback: the complete column is omitted, preserving the
+	# readable street rhythm instead of producing opportunistic scatter.
+	var layouts := {
+		"start_coast": {"spacing": 36.0, "slots": 8, "rows": [38.0, 68.0], "margin": 52.0, "gap": 72.0, "max_blocks": 2, "radius": 11.0, "half_extents": Vector2(9.0, 6.0), "archetypes": ["villa", "villa", "bungalow", "villa", "apartment", "villa", "bungalow", "villa"]},
+		"party_town": {"spacing": 40.0, "slots": 7, "rows": [36.0, 68.0], "margin": 48.0, "gap": 72.0, "max_blocks": 2, "radius": 12.0, "half_extents": Vector2(10.5, 6.5), "archetypes": ["bar", "party_hotel", "bar", "nightclub", "bar", "party_hotel", "nightclub"]},
+		"city_centre": {"spacing": 48.0, "slots": 6, "rows": [46.0, 82.0, 118.0], "margin": 48.0, "gap": 68.0, "max_blocks": 2, "radius": 15.0, "half_extents": Vector2(14.0, 8.0), "archetypes": ["midrise", "tower", "city_complex", "midrise", "tower", "city_complex"]},
+		"shopping_alley": {"spacing": 36.0, "slots": 12, "rows": [32.0, 60.0], "margin": 44.0, "gap": 54.0, "max_blocks": 1, "radius": 12.0, "half_extents": Vector2(11.5, 6.5), "archetypes": ["shop_pair", "arcade", "shop_pair", "shop_pair", "arcade", "shop_pair", "shop_pair"]},
+		"sport_complex": {"spacing": 50.0, "slots": 6, "rows": [52.0, 90.0], "margin": 60.0, "gap": 96.0, "max_blocks": 3, "radius": 16.0, "half_extents": Vector2(15.0, 9.0), "archetypes": ["sport_hall", "sport_hall", "campus_building", "sport_hall", "campus_building", "sport_hall"]},
+		"north_coast": {"spacing": 42.0, "slots": 7, "rows": [38.0, 70.0], "margin": 62.0, "gap": 108.0, "max_blocks": 4, "radius": 11.5, "half_extents": Vector2(10.5, 6.5), "archetypes": ["villa", "bungalow", "apartment", "villa", "bungalow", "apartment", "villa"]},
+		"party_island_view": {"spacing": 40.0, "slots": 6, "rows": [40.0, 72.0], "margin": 48.0, "gap": 80.0, "max_blocks": 1, "radius": 11.5, "half_extents": Vector2(10.5, 6.5), "archetypes": ["villa", "bungalow", "apartment", "villa", "bungalow", "villa"]},
+	}
+	for zone_name: String in layouts:
+		var layout: Dictionary = layouts[zone_name]
+		var span_index := 0
+		for span: Dictionary in _zone_spans(zone_name):
+			_build_symmetric_span(zone_name, span, span_index, layout)
+			span_index += 1
+
+
+func _build_symmetric_span(zone_name: String, span: Dictionary, span_index: int, layout: Dictionary) -> void:
+	var spacing := float(layout.spacing)
+	var requested_slots := int(layout.slots)
+	var margin := float(layout.margin)
+	var gap := float(layout.gap)
+	var usable_start := float(span.start_distance) + margin
+	var usable_end := float(span.end_distance) - margin
+	var usable_length := usable_end - usable_start
+	if usable_length < spacing * 3.0:
+		return
+	var slots := mini(requested_slots, int(floor(usable_length / spacing)) + 1)
+	var block_span := float(slots - 1) * spacing
+	var possible_blocks := maxi(1, int(floor((usable_length + gap) / (block_span + gap))))
+	var block_count := mini(int(layout.max_blocks), possible_blocks)
+	var distribution_gap := maxf(0.0, (usable_length - float(block_count) * block_span) / float(block_count + 1))
+	for block_index in range(block_count):
+		var block_start := usable_start + distribution_gap + float(block_index) * (block_span + distribution_gap)
+		var block_id := "%s_%02d_%02d" % [zone_name, span_index, block_index]
+		for slot_index in range(slots):
+			var offset := block_start + float(slot_index) * spacing
+			_build_symmetric_column(zone_name, block_id, offset, slot_index, layout)
+
+
+func _build_symmetric_column(zone_name: String, block_id: String, offset: float, slot_index: int, layout: Dictionary) -> void:
+	var candidates: Array[Dictionary] = []
+	var rows: Array = layout.rows
+	var half_extents: Vector2 = layout.half_extents
+	var radius := float(layout.radius)
+	for side in [-1.0, 1.0]:
+		for row_index in range(rows.size()):
+			var setback := float(rows[row_index])
+			var candidate := _building_row_candidate(offset, float(side), setback, half_extents, radius)
+			if candidate.is_empty():
+				return
+			candidate["side"] = float(side)
+			candidate["row_index"] = row_index
+			candidate["setback"] = setback
+			candidates.append(candidate)
+	for left_index in range(candidates.size()):
+		for right_index in range(left_index + 1, candidates.size()):
+			var left: Vector3 = candidates[left_index].position
+			var right: Vector3 = candidates[right_index].position
+			if Vector2(left.x, left.z).distance_to(Vector2(right.x, right.z)) < radius * 2.0 + 2.5:
+				return
+	var archetypes: Array = layout.archetypes
+	for candidate: Dictionary in candidates:
+		var row_index := int(candidate.row_index)
+		var side := float(candidate.side)
+		var sequence_shift := row_index * 2 + (1 if side > 0.0 else 0)
+		var archetype_index := posmod(slot_index + sequence_shift, archetypes.size())
+		if row_index % 2 == 1:
+			archetype_index = posmod(archetypes.size() - 1 - slot_index + sequence_shift, archetypes.size())
+		var archetype := str(archetypes[archetype_index])
+		var side_label := "Right" if side > 0.0 else "Left"
+		var semantic_groups: Array[String] = [
+			"building_scenery", "building_layout", "district_infill",
+			"neighborhood_scenery", "%s_scenery" % zone_name,
+		]
+		if archetype in ["villa", "bungalow", "apartment"]:
+			semantic_groups.append("house_scenery")
+		elif archetype == "party_hotel":
+			semantic_groups.append("hotel_scenery")
+		elif archetype in ["bar", "nightclub", "shop_pair", "arcade"]:
+			semantic_groups.append("shop_scenery")
+		var root := _grounded_root(
+			"%s_%s_%s_R%02d_S%02d" % [zone_name.to_pascal_case(), archetype.to_pascal_case(), side_label, row_index + 1, slot_index + 1],
+			candidate.position,
+			semantic_groups
+		)
+		var road := _course.point_at(offset)
+		root.look_at(Vector3(road.x, root.position.y, road.z), Vector3.UP)
+		root.set_meta("course_offset", offset)
+		root.set_meta("scenery_radius", float(layout.radius))
+		root.set_meta("building_layout", true)
+		root.set_meta("layout_district", zone_name)
+		root.set_meta("layout_block_id", block_id)
+		root.set_meta("layout_row", row_index)
+		root.set_meta("layout_slot", slot_index)
+		root.set_meta("layout_side", side)
+		root.set_meta("layout_setback", float(candidate.setback))
+		root.set_meta("building_archetype", archetype)
+		root.set_meta("building_half_extents", half_extents)
+		_populate_row_building(root, archetype, slot_index + row_index * 7 + (3 if side > 0.0 else 0))
+
+
+func _building_row_candidate(offset: float, side: float, setback: float, half_extents: Vector2, radius: float) -> Dictionary:
+	var road := _course.point_at(offset)
+	var lateral := _course.lateral_at(offset)
+	var tangent := _course.tangent_at(offset)
+	var position := road + lateral * side * setback
+	position.y = terrain_rendered_height_at(Vector2(position.x, position.z))
+	if position.y <= SEA_LEVEL + 0.12:
+		return {}
+	if not _road_prism_is_clear(position, offset, radius, position.y, position.y + 62.0):
+		return {}
+	if not _scenery_footprint_is_clear(position, radius) or not _manual_scenery_footprint_is_clear(position, radius):
+		return {}
+	for along in [-1.0, 0.0, 1.0]:
+		for depth in [-1.0, 0.0, 1.0]:
+			var sample: Vector3 = position + tangent * along * half_extents.x + lateral * depth * half_extents.y
+			var xz := Vector2(sample.x, sample.z)
+			var terrain_y := terrain_rendered_height_at(xz)
+			var ocean_y := ocean_rendered_height_at(xz)
+			if terrain_y - ocean_y < 0.12 or absf(terrain_y - position.y) > 1.35:
+				return {}
+	return {"position": position}
+
+
+func _populate_row_building(root: Node3D, archetype: String, variant: int) -> void:
+	match archetype:
+		"villa": _add_row_villa(root, variant)
+		"bungalow": _add_infill_bungalow(root, variant)
+		"apartment": _add_infill_coastal_apartment(root, variant)
+		"bar": _add_infill_bar(root, variant)
+		"party_hotel": _add_infill_party_hotel(root, variant)
+		"nightclub": _add_row_nightclub(root, variant)
+		"midrise": _add_infill_midrise(root, variant)
+		"tower": _add_row_tower(root, variant)
+		"city_complex": _add_infill_city_complex(root, variant)
+		"shop_pair": _add_infill_shop_pair(root, variant)
+		"arcade": _add_infill_market_arcade(root, variant)
+		"sport_hall": _add_infill_sport_hall(root, variant)
+		"campus_building": _add_infill_midrise(root, variant)
+	_decorate_infill_root(root, variant)
+
+
+func _add_row_villa(root: Node3D, variant: int) -> void:
+	var body: Material = [_materials.cream, _materials.mint, _materials.coral, _materials.lavender][variant % 4]
+	var width := 13.0 + float(variant % 2) * 2.0
+	_box(root, Vector3(width, 7.0, 9.0), Vector3(0, 3.5, 0), body, 1200.0)
+	_box(root, Vector3(width * 0.58, 5.0, 6.0), Vector3(width * 0.32, 2.5, 5.2), _materials.cream, 1200.0)
+	_box(root, Vector3(width + 1.2, 0.55, 10.0), Vector3(0, 7.2, 0), _materials.white, 1200.0)
+	for window_x in [-0.28, 0.0, 0.28]:
+		_box(root, Vector3(width * 0.18, 2.0, 0.18), Vector3(window_x * width, 3.8, -4.58), _materials.glass, 1200.0)
+	_box(root, Vector3(2.0, 2.8, 0.24), Vector3(-width * 0.34, 1.4, -4.62), _materials.night, 1200.0)
+	_box(root, Vector3(width * 0.72, 0.3, 2.2), Vector3(0, 5.7, -5.5), _materials.coral if variant % 2 == 0 else _materials.cyan, 1200.0)
+
+
+func _add_row_nightclub(root: Node3D, variant: int) -> void:
+	var accent: Material = _materials.pink if variant % 2 == 0 else _materials.cyan
+	_box(root, Vector3(17.0, 9.0, 11.0), Vector3(0, 4.5, 0), _materials.night, 1400.0)
+	_box(root, Vector3(12.0, 5.0, 7.0), Vector3(0, 11.5, 1.5), _materials.lavender, 1400.0)
+	_box(root, Vector3(13.0, 1.0, 0.35), Vector3(0, 8.0, -5.7), accent, 1400.0)
+	_box(root, Vector3(5.5, 3.2, 0.2), Vector3(0, 4.0, -5.62), _materials.glass, 1400.0)
+	_cylinder(root, 3.4, 0.6, Vector3(0, 14.4, 1.5), accent, 3.4, 1400.0, 16)
+
+
+func _add_row_tower(root: Node3D, variant: int) -> void:
+	var body: Material = [_materials.cream, _materials.coral, _materials.mint, _materials.lavender][variant % 4]
+	var height := 25.0 + float(variant % 3) * 8.0
+	_box(root, Vector3(17.0, 6.0, 14.0), Vector3(0, 3.0, 0), _materials.night, 1900.0)
+	_box(root, Vector3(13.5, height, 11.0), Vector3(0, 6.0 + height * 0.5, 0.5), body, 1900.0)
+	_box(root, Vector3(9.0, height * 0.45, 8.0), Vector3(0, 6.0 + height + height * 0.225, 0.5), _materials.cream, 1900.0)
+	for x in [-4.2, 0.0, 4.2]:
+		_box(root, Vector3(1.3, height * 0.82, 0.2), Vector3(x, 7.0 + height * 0.5, -5.08), _materials.glass, 1900.0)
+	_box(root, Vector3(10.0, 0.8, 0.35), Vector3(0, 6.0 + height, -5.3), _materials.cyan if variant % 2 else _materials.pink, 1900.0)
 
 
 func _build_district_infill() -> void:
@@ -1527,7 +1664,7 @@ func _add_city_block(offset: float, side: float, variant: int) -> void:
 
 
 func _add_sport_facility(offset: float, side: float, variant: int) -> void:
-	var root := _roadside_root("SportDistrict_Facility", offset, side, 58.0, ["sport_complex_scenery", "neighborhood_scenery"])
+	var root := _roadside_root("SportDistrict_Facility", offset, side, 58.0, ["sport_complex_scenery", "neighborhood_scenery", "building_scenery"])
 	if variant == 0:
 		_box(root, Vector3(38.0, 0.35, 18.0), Vector3(0, 0.18, 0), _materials.cyan, 700.0)
 		_box(root, Vector3(41.0, 3.8, 4.0), Vector3(0, 1.9, 11.0), _materials.white, 700.0)
@@ -1854,7 +1991,7 @@ func _build_roadside_rhythm() -> void:
 				# Rhythm palms used to bypass all route-clearance logic, allowing a
 				# different loop branch to pass through trunks and fronds.
 				position.y = _ground_height_at(Vector2(position.x, position.z))
-				if position.y > SEA_LEVEL + 0.12 and _road_prism_is_clear(position, offset, 4.6, position.y, position.y + 11.0) and _manual_scenery_footprint_is_clear(position, 4.6):
+				if position.y > SEA_LEVEL + 0.12 and _road_prism_is_clear(position, offset, 4.6, position.y, position.y + 11.0) and _manual_scenery_footprint_is_clear(position, 4.6) and _scenery_footprint_is_clear(position, 4.6):
 					var palm := _grounded_root("Palm", position, ["palm_scenery"])
 					palm.set_meta("course_offset", offset)
 					_add_palm_at(palm, Vector3.ZERO, 0.72 + (index % 4) * 0.11)
