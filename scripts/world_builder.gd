@@ -20,6 +20,7 @@ const SHORE_BLEND := 26.0
 const ROUTE_BUCKET_SIZE := 192.0
 
 var _parent: Node3D
+var _reservation_scope: Node3D
 var _course: CourseLayout
 var _rng := RandomNumberGenerator.new()
 var _materials: Dictionary = {}
@@ -34,8 +35,9 @@ var _terrain_render_cache: Dictionary = {}
 var mesh_instance_count := 0
 
 
-func build(parent: Node3D, course: CourseLayout) -> void:
+func build(parent: Node3D, course: CourseLayout, reservation_scope: Node3D = null) -> void:
 	_parent = parent
+	_reservation_scope = reservation_scope if reservation_scope != null else parent
 	_course = course
 	_rng.seed = 0x5E12E6A
 	_build_materials()
@@ -1215,7 +1217,7 @@ func _try_infill_root(zone_name: String, offset: float, preferred_side: float, s
 
 func _scenery_footprint_is_clear(position: Vector3, radius: float) -> bool:
 	for value in _parent.get_tree().get_nodes_in_group("grounded_scenery"):
-		if not value is Node3D or not _parent.is_ancestor_of(value):
+		if not value is Node3D or not _reservation_scope.is_ancestor_of(value):
 			continue
 		var root := value as Node3D
 		var existing_radius := 0.0
@@ -1231,7 +1233,7 @@ func _scenery_footprint_is_clear(position: Vector3, radius: float) -> bool:
 
 func _manual_scenery_footprint_is_clear(position: Vector3, radius: float) -> bool:
 	for value in _parent.get_tree().get_nodes_in_group("manual_scenery"):
-		if not value is Node3D or not _parent.is_ancestor_of(value):
+		if not value is Node3D or not _reservation_scope.is_ancestor_of(value):
 			continue
 		var root := value as Node3D
 		var existing_radius := float(root.get_meta("scenery_radius", 3.0))
@@ -1645,7 +1647,7 @@ func _try_water_feature_root(name: String, offset: float, preferred_side: float,
 
 func _water_footprint_is_clear(position: Vector3, radius: float) -> bool:
 	for value in _parent.get_tree().get_nodes_in_group("water_scenery"):
-		if not value is Node3D or not _parent.is_ancestor_of(value):
+		if not value is Node3D or not _reservation_scope.is_ancestor_of(value):
 			continue
 		var root := value as Node3D
 		var existing_radius := float(root.get_meta("scenery_radius", 8.0))
