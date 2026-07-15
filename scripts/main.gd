@@ -391,6 +391,38 @@ func build_scenery() -> void:
 	editable_world.name = "EditableWorld"
 	editable_world.add_to_group("editable_world")
 	add_child(editable_world)
+	_apply_manual_scenery_reservations(editable_world)
+
+
+func _apply_manual_scenery_reservations(editable_world: Node) -> void:
+	# The decorative baseline is baked for editor visibility, so resolve authored
+	# additions after instancing it. A deliberately placed manual item wins over
+	# any baseline decoration occupying the same footprint.
+	var manual_items := get_tree().get_nodes_in_group("manual_scenery")
+	var removals: Array[Node] = []
+	for value in get_tree().get_nodes_in_group("editable_scenery"):
+		if not value is Node3D or not editable_world.is_ancestor_of(value):
+			continue
+		var generated := value as Node3D
+		var generated_radius := float(generated.get_meta("scenery_radius", 4.0))
+		for manual_value in manual_items:
+			if not manual_value is Node3D or manual_value == generated:
+				continue
+			var manual := manual_value as Node3D
+			var manual_radius := float(manual.get_meta("scenery_radius", 3.0))
+			var manual_scale := manual.global_transform.basis.get_scale()
+			manual_radius *= maxf(absf(manual_scale.x), absf(manual_scale.z))
+			var separation := Vector2(generated.global_position.x, generated.global_position.z).distance_to(
+				Vector2(manual.global_position.x, manual.global_position.z)
+			)
+			if separation < generated_radius + manual_radius + 1.0:
+				removals.append(generated)
+				break
+	for value in removals:
+		var parent := value.get_parent()
+		if parent != null:
+			parent.remove_child(value)
+		value.queue_free()
 
 
 func build_landmarks(steel: Material, yellow: Material, red: Material, blue: Material) -> void:
