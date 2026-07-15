@@ -56,11 +56,15 @@ course guide.
 ### Manual scenery editing
 
 Open `scenes/world/editable_world.tscn` to move the saved decorative objects
-by district, including the additive `NeighborhoodDetails` layer, or drag any of the 164 checked-in presets from
+by district, or drag any of the 164 checked-in presets from
 `scenes/manual_scenery/presets/` under `EditableWorld/ManualScenery`. The
 library includes 52 individual landscaping/street/beach pieces and every one
 of the 11 current images on all five media carriers. See
 [`docs/manual_scenery.md`](docs/manual_scenery.md) for the exact workflow.
+
+Generated neighborhood details and natural landscapes appear in a locked
+editor preview and are composed at identity at runtime, so the whole generated
+layer cannot be accidentally moved while editing.
 
 ## Verification
 

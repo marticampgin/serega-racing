@@ -77,6 +77,14 @@ Capture aerial and driver-height views of every building block for visual QA:
 .\godot\Godot_v4.7-stable_win64_console.exe --path . --rendering-method gl_compatibility --script res://qa/building_layout_visual_audit.gd
 ```
 
+Validate the generated hills, dunes, mountain and oasis footprints, then
+capture an aerial and road-level view of each site:
+
+```powershell
+.\godot\Godot_v4.7-stable_win64_console.exe --path . --headless --rendering-method gl_compatibility --script res://qa/natural_landscape_test.gd
+.\godot\Godot_v4.7-stable_win64_console.exe --path . --rendering-method gl_compatibility --script res://qa/natural_landscape_visual_audit.gd
+```
+
 Verify the neighborhood connective layer, including district coverage,
 balanced lamp spacing, terrain/water placement, compacted mesh budget and the
 preservation of all saved user catalog instances:

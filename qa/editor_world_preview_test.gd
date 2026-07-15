@@ -68,6 +68,20 @@ func _run() -> void:
 	if preview.owner != null or not bool(preview.get_meta("editor_preview_only", false)):
 		_fail("Editor preview must be ownerless and marked editor-only")
 		return
+	var overlay_root := preview.get_node_or_null("GeneratedSceneryOverlays") as Node3D
+	if overlay_root == null or not bool(overlay_root.get_meta("_edit_lock_", false)):
+		_fail("Generated scenery overlays must be present in a locked preview root")
+		return
+	for overlay_name in ["NeighborhoodDetails", "NaturalLandscapes"]:
+		var overlay := overlay_root.get_node_or_null(overlay_name) as Node3D
+		if overlay == null or not overlay.transform.is_equal_approx(Transform3D.IDENTITY):
+			_fail("Preview overlay %s must load once at identity" % overlay_name)
+			return
+		for value in overlay.find_children("*", "GeometryInstance3D", true, false):
+			var geometry := value as GeometryInstance3D
+			if geometry.visibility_range_end < 99999.0:
+				_fail("Preview overlay %s still has runtime distance culling" % overlay_name)
+				return
 	if not capture_path.is_empty():
 		await _capture_preview(race, capture_path)
 

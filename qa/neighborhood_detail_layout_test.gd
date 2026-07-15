@@ -1,13 +1,6 @@
 extends SceneTree
 
-const EXPECTED_BLOCKS := 13
-const EXPECTED_CATALOG_ITEMS := {
-	"art_deco_tower": 2,
-	"art_bralis__billboard": 1,
-	"art_milk_racer__wall_poster": 1,
-	"stepping_stone_path": 5,
-	"boardwalk_section": 10,
-}
+const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
 const MINIMUM_KIND_COUNTS := {
 	"sidewalk": 20,
 	"rear_walk": 20,
@@ -17,6 +10,9 @@ const MINIMUM_KIND_COUNTS := {
 	"driveway": 90,
 	"dock": 4,
 	"boat": 4,
+	"standalone_path": 10,
+	"standalone_bush": 24,
+	"standalone_fence": 10,
 }
 
 var failures: Array[String] = []
@@ -45,6 +41,7 @@ func _run() -> void:
 		_finish()
 		return
 	check(get_nodes_in_group("neighborhood_details_root").size() == 1, "neighborhood detail layer is instantiated exactly once")
+	check(details_root.transform.is_equal_approx(Transform3D.IDENTITY), "runtime neighborhood details always load at identity")
 	check(details_root.find_children("*", "CollisionObject3D", true, false).is_empty(), "neighborhood details remain visual-only")
 	var detail_meshes := details_root.find_children("*", "MeshInstance3D", true, false).size()
 	check(detail_meshes <= 1200, "compacted neighborhood layer stays below 1200 mesh nodes")
@@ -78,8 +75,17 @@ func _run() -> void:
 	check(detail_roots.size() <= 500, "detail roots remain editor-manageable after compaction")
 	for kind: String in MINIMUM_KIND_COUNTS:
 		check(int(kind_counts.get(kind, 0)) >= int(MINIMUM_KIND_COUNTS[kind]), "%s details meet the planned minimum" % kind)
+	var expected_blocks := _expected_layout_blocks()
 	for kind in ["sidewalk", "rear_walk", "fence", "bush", "lamp"]:
-		check((kind_blocks.get(kind, {}) as Dictionary).size() == EXPECTED_BLOCKS, "%s details represent every building block" % kind)
+		check((kind_blocks.get(kind, {}) as Dictionary).size() == expected_blocks.size(), "%s details represent every building block" % kind)
+	var standalone_blocks: Dictionary = {}
+	for detail in detail_roots:
+		var block_id := str(detail.get_meta("detail_block_id", ""))
+		if block_id.begins_with("standalone_"):
+			standalone_blocks[block_id] = true
+	var standalone_sites := _standalone_building_count()
+	print("INFO: standalone building sites=%d decorated_sites=%d" % [standalone_sites, standalone_blocks.size()])
+	check(standalone_blocks.size() == standalone_sites, "every standalone building receives its own contextual detail group")
 	for district in ["start_coast", "party_town", "city_centre", "shopping_alley", "sport_complex", "north_coast", "party_island_view"]:
 		check(int(district_counts.get(district, 0)) > 0, "%s receives connective neighborhood details" % district)
 
@@ -144,6 +150,10 @@ func _check_land_and_water_details(details_root: Node3D, terrain: Object) -> voi
 
 
 func _check_catalog_preservation(race: Node) -> void:
+	var editable := (load(EDITABLE_WORLD_PATH) as PackedScene).instantiate() as Node3D
+	check(editable.get_node_or_null("NeighborhoodDetails") == null, "editable world stores no movable neighborhood overlay instance")
+	check(editable.get_node_or_null("NaturalLandscapes") == null, "editable world stores no movable natural overlay instance")
+	var expected := _catalog_counts(editable)
 	var actual: Dictionary = {}
 	for value in get_nodes_in_group("manual_scenery"):
 		if not value is Node or not race.is_ancestor_of(value):
@@ -151,12 +161,52 @@ func _check_catalog_preservation(race: Node) -> void:
 		var catalog_id := str(value.get_meta("catalog_id", ""))
 		if not catalog_id.is_empty():
 			actual[catalog_id] = int(actual.get(catalog_id, 0)) + 1
-	for catalog_id: String in EXPECTED_CATALOG_ITEMS:
-		check(int(actual.get(catalog_id, 0)) == int(EXPECTED_CATALOG_ITEMS[catalog_id]), "user-authored %s instances are preserved" % catalog_id)
-	var total := 0
-	for count in actual.values():
-		total += int(count)
-	check(total == 19, "all 19 saved user catalog instances survive the additive detail layer")
+	check(actual == expected, "the complete current user-authored catalog multiset survives runtime composition")
+	editable.free()
+
+
+func _catalog_counts(scope: Node) -> Dictionary:
+	var result: Dictionary = {}
+	for value in scope.find_children("*", "Node", true, false):
+		var node := value as Node
+		if not node.is_in_group("manual_scenery"):
+			continue
+		var catalog_id := str(node.get_meta("catalog_id", ""))
+		if not catalog_id.is_empty():
+			result[catalog_id] = int(result.get(catalog_id, 0)) + 1
+	return result
+
+
+func _expected_layout_blocks() -> Dictionary:
+	var editable := (load(EDITABLE_WORLD_PATH) as PackedScene).instantiate() as Node3D
+	var blocks: Dictionary = {}
+	for value in editable.find_children("*", "Node3D", true, false):
+		var node := value as Node3D
+		if node.is_in_group("building_layout"):
+			blocks[str(node.get_meta("layout_block_id", ""))] = true
+	editable.free()
+	return blocks
+
+
+func _standalone_building_count() -> int:
+	var editable := (load(EDITABLE_WORLD_PATH) as PackedScene).instantiate() as Node3D
+	var sites: Array[Vector2] = []
+	for value in editable.find_children("*", "Node3D", true, false):
+		var node := value as Node3D
+		if node.is_in_group("building_scenery") and not node.is_in_group("building_layout") and node.has_meta("course_offset"):
+			# Editable district folders are identity transforms; local position avoids
+			# querying global transforms on this intentionally off-tree raw instance.
+			var position := node.position
+			var xz := Vector2(position.x, position.z)
+			var shared_site := false
+			for existing in sites:
+				if existing.distance_to(xz) <= 10.0:
+					shared_site = true
+					break
+			if not shared_site:
+				sites.append(xz)
+	editable.free()
+	return sites.size()
 
 
 func _finish() -> void:

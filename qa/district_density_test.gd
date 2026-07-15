@@ -218,6 +218,12 @@ func _check_personalized_posters(race: Node) -> void:
 
 		if poster.has_meta("scenery_radius"):
 			check(float(poster.get_meta("scenery_radius")) > 0.0, "%s has a positive scenery radius" % poster_label)
+	# User-authored catalog billboards keep the texture on their Sprite3D even
+	# when they are not one of the baked poster roots with placement metadata.
+	for value in race.find_children("*", "Sprite3D", true, false):
+		var sprite := value as Sprite3D
+		if sprite.texture != null and represented.has(sprite.texture.resource_path):
+			represented[sprite.texture.resource_path] = true
 
 	print("INFO: personalized poster roots = %d; required textures = %d" % [poster_count, REQUIRED_POSTER_TEXTURES.size()])
 	for texture_path in REQUIRED_POSTER_TEXTURES:
@@ -264,10 +270,18 @@ func _check_maritime_scenery(race: Node, course: Object) -> void:
 			boats.append(value)
 	check(boats.size() >= 6, "ships and boats populate several coasts")
 	for boat in boats:
-		check(boat.has_meta("water_y") and boat.has_meta("scenery_radius") and boat.has_meta("course_offset"), "%s carries collision-safe water placement metadata" % boat.name)
-		var offset := float(boat.get_meta("course_offset", 0.0))
-		var road_point: Vector3 = course.call("point_at", offset)
-		check(Vector2(boat.global_position.x, boat.global_position.z).distance_to(Vector2(road_point.x, road_point.z)) > 45.0, "%s remains safely offshore" % boat.name)
+		var is_manual := boat.is_in_group("manual_scenery")
+		if is_manual:
+			check(int(boat.get_meta("manual_surface", -1)) == 1 and boat.has_meta("scenery_radius"), "%s carries catalog water-placement metadata" % boat.name)
+		else:
+			check(boat.has_meta("water_y") and boat.has_meta("scenery_radius") and boat.has_meta("course_offset"), "%s carries collision-safe water placement metadata" % boat.name)
+		var minimum_road_distance := INF
+		var offset := 0.0
+		while offset < float(course.call("length")):
+			var road_point: Vector3 = course.call("point_at", offset)
+			minimum_road_distance = minf(minimum_road_distance, Vector2(boat.global_position.x, boat.global_position.z).distance_to(Vector2(road_point.x, road_point.z)))
+			offset += 12.0
+		check(minimum_road_distance > 45.0, "%s remains safely offshore" % boat.name)
 
 
 func _check_feature_anchor_overlaps(anchors: Array[Node3D]) -> void:

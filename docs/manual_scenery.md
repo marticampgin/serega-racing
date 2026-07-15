@@ -13,7 +13,14 @@ The course, terrain, ocean, bridge, flyovers and tunnel structure remain generat
 
 The saved objects are grouped into districts. Buildings are arranged in named, road-relative blocks: front and rear rows use consistent spacing and setbacks, while the rear row changes the building order for variety. Each building remains an independent compound object, so you can move one without selecting the entire district. Unique landmarks such as the lighthouse remain single objects.
 
-`NeighborhoodDetails` is an additive external scene containing the connective layer around those blocks: paired roadside lamps, sidewalks, rear walks, driveways, fences, bushes, docks and small boats. Expand it in the Scene tree to inspect the district folders. Lamps, driveways and boats remain separate objects; repeated sidewalk, fence, planting and dock pieces are compacted into block-level network roots to keep game performance reasonable. The instance has editable children enabled, so these roots can still be selected and adjusted from `editable_world.tscn`.
+`NeighborhoodDetails` is an additive generated scene containing the connective layer around every block and standalone building: paired roadside lamps, sidewalks, rear walks, driveways, fences, bushes, docks and small boats. `NaturalLandscapes` contains the first six hills, dunes, mountain and oasis compounds. Both appear inside the locked `GeneratedWorldPreview` while editing and are loaded at identity at runtime. They are intentionally not stored as selectable children of `editable_world.tscn`, preventing an accidental click from moving or burying an entire generated layer. Use catalog presets for hand-authored paths, plants or fences you want to adjust individually.
+
+Regenerate the additive layers after moving many buildings:
+
+```powershell
+.\godot\Godot_v4.7-stable_win64_console.exe --path . --headless --script res://tools/generate_neighborhood_details.gd
+.\godot\Godot_v4.7-stable_win64_console.exe --path . --headless --script res://tools/generate_natural_landscapes.gd
+```
 
 Do not run `tools/generate_editable_world.gd` after beginning manual edits: that developer tool recreates the baseline scene and would replace those edits.
 
