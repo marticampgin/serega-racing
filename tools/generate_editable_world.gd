@@ -33,7 +33,6 @@ func _generate() -> void:
 		var folder := Node3D.new()
 		folder.name = district_name
 		folder.add_to_group("editable_district", true)
-		folder.set_meta("_edit_group_", true)
 		editable.add_child(folder)
 		folders[district_name] = folder
 

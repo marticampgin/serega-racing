@@ -34,6 +34,7 @@ func _run() -> void:
 		check(district != null, "district is serialized: %s" % district_name)
 		if district == null:
 			continue
+		check(not bool(district.get_meta("_edit_group_", false)), "%s allows viewport selection of individual objects" % district_name)
 		if district_name not in ["BridgeApproach", "Other"]:
 			check(district.get_child_count() > 0, "district contains editable scenery: %s" % district_name)
 		for child in district.get_children():

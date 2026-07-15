@@ -17299,7 +17299,6 @@ size = Vector3(13.675137, 0.12, 0.12)
 [node name="EditableWorld" type="Node3D" unique_id=1356675174 groups=["editable_world"]]
 
 [node name="StartCoast" type="Node3D" parent="." unique_id=241623883 groups=["editable_district"]]
-metadata/_edit_group_ = true
 
 [node name="Villa" type="Node3D" parent="StartCoast" unique_id=790615044 groups=["editable_scenery", "grounded_scenery", "house_scenery"]]
 transform = Transform3D(-0.6830844, 0, 0.7303394, 0, 1, 0, -0.7303394, 0, -0.6830844, -1112.2701, 1.3679781, -906.7488)
@@ -21310,7 +21309,6 @@ visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_fptn7")
 
 [node name="LoopOne" type="Node3D" parent="." unique_id=1261809967 groups=["editable_district"]]
-metadata/_edit_group_ = true
 
 [node name="LoopOne_NeonDiner" type="Node3D" parent="LoopOne" unique_id=1203251337 groups=["district_landmark", "editable_scenery", "grounded_scenery", "loop_landmark"]]
 transform = Transform3D(0.8920938, 0, 0.45185035, 0, 1, 0, -0.45185035, 0, 0.8920938, -606.67944, 1.223566, -191.58646)
@@ -22027,7 +22025,6 @@ visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_by8jx")
 
 [node name="UnderwaterTunnel" type="Node3D" parent="." unique_id=1762600022 groups=["editable_district"]]
-metadata/_edit_group_ = true
 
 [node name="TunnelPoster_00" type="Node3D" parent="UnderwaterTunnel" unique_id=1765456739 groups=["editable_scenery", "tunnel", "tunnel_wall_poster"]]
 transform = Transform3D(-0.93200976, -0.003340185, 0.36241797, 0, 0.9999576, 0.009215997, -0.36243337, 0.008589399, -0.9319701, -645.3077, -9.666292, 279.85312)
@@ -22090,7 +22087,6 @@ pixel_size = 0.007880434
 texture = ExtResource("6_82tlm")
 
 [node name="LoopTwo" type="Node3D" parent="." unique_id=1121638601 groups=["editable_district"]]
-metadata/_edit_group_ = true
 
 [node name="LoopTwo_MarinaOffice" type="Node3D" parent="LoopTwo" unique_id=532478397 groups=["district_landmark", "editable_scenery", "grounded_scenery", "loop_landmark"]]
 transform = Transform3D(0.76189804, 0, -0.647697, 0, 1, 0, 0.647697, 0, 0.76189804, -1142.0205, -0.41399416, 935.88245)
@@ -22844,10 +22840,8 @@ visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_pg02v")
 
 [node name="BridgeApproach" type="Node3D" parent="." unique_id=448967972 groups=["editable_district"]]
-metadata/_edit_group_ = true
 
 [node name="PartyTown" type="Node3D" parent="." unique_id=1557062925 groups=["editable_district"]]
-metadata/_edit_group_ = true
 
 [node name="PartyTown_Nightclub" type="Node3D" parent="PartyTown" unique_id=1473556693 groups=["editable_scenery", "grounded_scenery", "neighborhood_scenery", "party_town_scenery"]]
 transform = Transform3D(-0.57973707, 0, -0.8148036, 0, 1, 0, 0.8148036, 0, -0.57973707, 204.5345, 1.2633765, 1204.9122)
@@ -26269,7 +26263,6 @@ visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_k02xn")
 
 [node name="CityCentre" type="Node3D" parent="." unique_id=303534010 groups=["editable_district"]]
-metadata/_edit_group_ = true
 
 [node name="ArtDecoTower" type="Node3D" parent="CityCentre" unique_id=1767460515 groups=["city_centre_scenery", "editable_scenery", "grounded_scenery", "skyline_scenery"]]
 transform = Transform3D(0.90363526, 0, -0.42830285, 0, 1, 0, 0.42830285, 0, 0.90363526, 369.92236, 1.2101094, 536.11444)
@@ -28418,7 +28411,6 @@ visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_0cy1u")
 
 [node name="LoopThree" type="Node3D" parent="." unique_id=1854467148 groups=["editable_district"]]
-metadata/_edit_group_ = true
 
 [node name="LoopThree_DriveIn" type="Node3D" parent="LoopThree" unique_id=2037167892 groups=["district_landmark", "editable_scenery", "grounded_scenery", "loop_landmark"]]
 transform = Transform3D(-0.77229065, 0, -0.63526934, 0, 1, 0, 0.63526934, 0, -0.77229065, -187.84161, -0.36011556, 166.97281)
@@ -29119,7 +29111,6 @@ visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_ps4ws")
 
 [node name="ShoppingAlley" type="Node3D" parent="." unique_id=1388261073 groups=["editable_district"]]
-metadata/_edit_group_ = true
 
 [node name="ShoppingAlley_Row" type="Node3D" parent="ShoppingAlley" unique_id=814451712 groups=["editable_scenery", "grounded_scenery", "neighborhood_scenery"]]
 transform = Transform3D(-0.695883, 0, -0.71815515, 0, 1, 0, 0.71815515, 0, -0.695883, 380.64688, 1.3011932, -33.40196)
@@ -32630,7 +32621,6 @@ visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_o5w2f")
 
 [node name="SportComplex" type="Node3D" parent="." unique_id=170521484 groups=["editable_district"]]
-metadata/_edit_group_ = true
 
 [node name="SportComplex" type="Node3D" parent="SportComplex" unique_id=1714914639 groups=["editable_scenery", "grounded_scenery", "sport_complex_scenery"]]
 transform = Transform3D(-0.93047994, 0, 0.36634278, 0, 1, 0, -0.36634278, 0, -0.93047994, -87.47901, 0.8891651, -596.6888)
@@ -35581,7 +35571,6 @@ visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_wjst5")
 
 [node name="NorthCoast" type="Node3D" parent="." unique_id=360893649 groups=["editable_district"]]
-metadata/_edit_group_ = true
 
 [node name="Hotel" type="Node3D" parent="NorthCoast" unique_id=524024516 groups=["editable_scenery", "grounded_scenery", "hotel_scenery"]]
 transform = Transform3D(-0.8652825, 0, -0.5012846, 0, 1, 0, 0.5012846, 0, -0.8652825, 117.70557, 1.3801146, -642.799)
@@ -44421,7 +44410,6 @@ visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_qkdca")
 
 [node name="PartyIsland" type="Node3D" parent="." unique_id=1090422149 groups=["editable_district"]]
-metadata/_edit_group_ = true
 
 [node name="PartyIsland_Club" type="Node3D" parent="PartyIsland" unique_id=21522659 groups=["editable_scenery", "grounded_scenery", "party_island_scenery"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33, 0, -1053)
@@ -45367,7 +45355,6 @@ visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_1dbuw")
 
 [node name="Waterfront" type="Node3D" parent="." unique_id=928070801 groups=["editable_district"]]
-metadata/_edit_group_ = true
 
 [node name="LoopOneSailboat" type="Node3D" parent="Waterfront" unique_id=1030536958 groups=["boat_scenery", "editable_scenery", "water_scenery"]]
 transform = Transform3D(0.9648513, 0, -0.2627963, 0, 1, 0, 0.2627963, 0, 0.9648513, -1007.9748, -1.12, -344.44623)
@@ -45785,7 +45772,6 @@ visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_jgt74")
 
 [node name="Sky" type="Node3D" parent="." unique_id=506655832 groups=["editable_district"]]
-metadata/_edit_group_ = true
 
 [node name="SkyTraffic" type="Node3D" parent="Sky" unique_id=1915696343 groups=["editable_scenery", "sky_traffic"]]
 script = ExtResource("12_5mdqf")
@@ -45986,7 +45972,6 @@ pixel_size = 0.01814882
 texture = ExtResource("4_1d6aq")
 
 [node name="Other" type="Node3D" parent="." unique_id=1660816276 groups=["editable_district"]]
-metadata/_edit_group_ = true
 
 [node name="ManualScenery" type="Node3D" parent="." unique_id=1481217600 groups=["manual_scenery_root"]]
 script = ExtResource("13_rwujd")
