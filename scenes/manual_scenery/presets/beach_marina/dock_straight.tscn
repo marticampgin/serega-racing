@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_8b52o"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nac1l"]
+albedo_color = Color(0.50980395, 0.31764707, 0.21568628, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_v670o"]
+material = SubResource("StandardMaterial3D_nac1l")
+size = Vector3(4, 0.3, 12)
+
+[node name="DockStraight" type="Node3D" unique_id=300195981 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_8b52o")
+catalog_id = "dock_straight"
+display_name = "Dock Straight"
+category = "Beach and Marina"
+surface = 1
+footprint_radius = 6.0
+object_height = 0.5
+allow_manual_overlap = true
+
+[node name="@MeshInstance3D@923" type="MeshInstance3D" parent="." unique_id=1726486631]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+cast_shadow = 0
+visibility_range_end = 2000.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_v670o")

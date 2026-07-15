@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_11u0y"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/61b5ddf7-ae71-4d13-b677-660bd070a785.jpg" id="2_ijq3t"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ag22"]
+albedo_color = Color(1, 0.24705882, 0.8117647, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.24705882, 0.8117647, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_37g4y"]
+material = SubResource("StandardMaterial3D_1ag22")
+size = Vector3(11.0625, 10.8, 0.25)
+
+[node name="RaceEngineerAirBanner" type="Node3D" unique_id=1313326254 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_11u0y")
+catalog_id = "art_race_engineer__air_banner"
+display_name = "Race Engineer Air Banner"
+category = "Friend Media"
+surface = 2
+footprint_radius = 12.0
+object_height = 11.0
+poster_texture = ExtResource("2_ijq3t")
+
+[node name="@MeshInstance3D@1073" type="MeshInstance3D" parent="." unique_id=1999457432]
+cast_shadow = 0
+visibility_range_end = 3000.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_37g4y")
+
+[node name="PosterFace_Front" type="Sprite3D" parent="." unique_id=505859393]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.38)
+visibility_range_end = 2800.0
+pixel_size = 0.0078125
+texture = ExtResource("2_ijq3t")
+
+[node name="PosterFace_Back" type="Sprite3D" parent="." unique_id=1935611528]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0.38)
+visibility_range_end = 2800.0
+pixel_size = 0.0078125
+texture = ExtResource("2_ijq3t")

@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_lqske"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/882a2791-af8b-4378-b3b7-a05b4cf0dd08.jpg" id="2_0pjx4"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ag734"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_od1ao"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(6.974864, 5.65, 0.24)
+
+[node name="MilkRacerWallPoster" type="Node3D" unique_id=890435698 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_lqske")
+catalog_id = "art_milk_racer__wall_poster"
+display_name = "Milk Racer Wall Poster"
+category = "Friend Media"
+surface = 3
+footprint_radius = 5.0
+object_height = 6.0
+poster_texture = ExtResource("2_0pjx4")
+
+[node name="@MeshInstance3D@1110" type="MeshInstance3D" parent="." unique_id=442888344]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_od1ao")
+
+[node name="PosterFaceFront" type="Sprite3D" parent="." unique_id=1640050007]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.00907441
+texture = ExtResource("2_0pjx4")
+
+[node name="PosterFaceBack" type="Sprite3D" parent="." unique_id=1234642981]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 2.5, 0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.00907441
+texture = ExtResource("2_0pjx4")

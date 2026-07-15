@@ -1,0 +1,64 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_3v5ky"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_63pls"]
+albedo_color = Color(0.14117648, 0.15686275, 0.19607843, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_qofy2"]
+material = SubResource("StandardMaterial3D_63pls")
+size = Vector3(12, 0.14, 7)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n5hhv"]
+albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_wrvhr"]
+material = SubResource("StandardMaterial3D_n5hhv")
+size = Vector3(0.12, 0.05, 6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_um15e"]
+material = SubResource("StandardMaterial3D_n5hhv")
+size = Vector3(0.12, 0.05, 6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_e4ktj"]
+material = SubResource("StandardMaterial3D_n5hhv")
+size = Vector3(0.12, 0.05, 6)
+
+[node name="MarkedParkingPad" type="Node3D" unique_id=366356795 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_3v5ky")
+catalog_id = "marked_parking_pad"
+display_name = "Marked Parking Pad"
+category = "Paths and Surfaces"
+footprint_radius = 7.0
+object_height = 0.14
+allow_manual_overlap = true
+
+[node name="@MeshInstance3D@893" type="MeshInstance3D" parent="." unique_id=2011304361]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.07, 0)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_qofy2")
+
+[node name="@MeshInstance3D@894" type="MeshInstance3D" parent="." unique_id=1857898921]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.15, 0)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_wrvhr")
+
+[node name="@MeshInstance3D@895" type="MeshInstance3D" parent="." unique_id=579323537]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_um15e")
+
+[node name="@MeshInstance3D@896" type="MeshInstance3D" parent="." unique_id=1544047597]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.15, 0)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_e4ktj")

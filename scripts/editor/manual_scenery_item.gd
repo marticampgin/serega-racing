@@ -14,6 +14,8 @@ enum Surface { LAND, WATER, AIR, WALL }
 @export_enum("Land", "Water", "Air", "Wall") var surface: int = Surface.LAND
 @export_range(0.25, 80.0, 0.25) var footprint_radius := 4.0
 @export_range(0.25, 100.0, 0.25) var object_height := 5.0
+@export var allow_on_course := false
+@export var allow_manual_overlap := false
 
 @export_category("Editable Artwork")
 @export var poster_texture: Texture2D:
@@ -97,9 +99,9 @@ func _get_configuration_warnings() -> PackedStringArray:
 		warnings.append("Water props should normally sit near Y = %.1f." % SEA_LEVEL)
 	if surface == Surface.AIR and global_position.y < 35.0:
 		warnings.append("Aircraft below Y = 35 may intersect buildings or the track.")
-	if surface in [Surface.LAND, Surface.WATER] and _intersects_course():
+	if not allow_on_course and surface in [Surface.LAND, Surface.WATER] and _intersects_course():
 		warnings.append("This footprint intersects the generated racing surface. Move it farther from the course.")
-	if _overlaps_manual_sibling():
+	if not allow_manual_overlap and _overlaps_manual_sibling():
 		warnings.append("This footprint overlaps another manual scenery preset.")
 	return warnings
 

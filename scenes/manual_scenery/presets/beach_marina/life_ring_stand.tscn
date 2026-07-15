@@ -1,0 +1,43 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_11afo"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1vf1l"]
+albedo_color = Color(0.15294118, 0.1882353, 0.26666668, 1)
+metallic = 0.55
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_vcphq"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(0.16, 2.2, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q4e3w"]
+albedo_color = Color(1, 0.5019608, 0.4, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_7q4vp"]
+material = SubResource("StandardMaterial3D_q4e3w")
+top_radius = 0.7
+bottom_radius = 0.7
+height = 0.22
+radial_segments = 12
+
+[node name="LifeRingStand" type="Node3D" unique_id=823670303 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_11afo")
+catalog_id = "life_ring_stand"
+display_name = "Life Ring Stand"
+category = "Beach and Marina"
+footprint_radius = 1.5
+object_height = 2.4
+
+[node name="@MeshInstance3D@931" type="MeshInstance3D" parent="." unique_id=446487856]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_vcphq")
+
+[node name="@MeshInstance3D@932" type="MeshInstance3D" parent="." unique_id=1211898068]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.7, 0)
+cast_shadow = 0
+visibility_range_end = 1600.0
+mesh = SubResource("CylinderMesh_7q4vp")

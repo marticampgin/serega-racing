@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_uivg6"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/friend-dark-hair-racing.png" id="2_jj7bd"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ag734"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_n03kx"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(4.1821713, 5.65, 0.24)
+
+[node name="FriendDarkHairWallPoster" type="Node3D" unique_id=1983634129 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_uivg6")
+catalog_id = "art_friend_dark_hair__wall_poster"
+display_name = "Friend Dark Hair Wall Poster"
+category = "Friend Media"
+surface = 3
+footprint_radius = 5.0
+object_height = 6.0
+poster_texture = ExtResource("2_jj7bd")
+
+[node name="@MeshInstance3D@966" type="MeshInstance3D" parent="." unique_id=486638624]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_n03kx")
+
+[node name="PosterFaceFront" type="Sprite3D" parent="." unique_id=492153381]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.0033512064
+texture = ExtResource("2_jj7bd")
+
+[node name="PosterFaceBack" type="Sprite3D" parent="." unique_id=1241948240]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 2.5, 0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.0033512064
+texture = ExtResource("2_jj7bd")

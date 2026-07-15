@@ -1,0 +1,65 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_8niss"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dbaql"]
+albedo_color = Color(1, 0.6117647, 0.25882354, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.6117647, 0.25882354, 1)
+emission_energy_multiplier = 1.25
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ombic"]
+material = SubResource("StandardMaterial3D_dbaql")
+top_radius = 0.08
+bottom_radius = 0.42
+height = 0.9
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ag734"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_vgcj8"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(1, 0.12, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n5hhv"]
+albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_nnu4g"]
+material = SubResource("StandardMaterial3D_n5hhv")
+top_radius = 0.22
+bottom_radius = 0.3
+height = 0.12
+radial_segments = 10
+
+[node name="TrafficCone" type="Node3D" unique_id=1682242408 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_8niss")
+catalog_id = "traffic_cone"
+display_name = "Traffic Cone"
+category = "Fences and Barriers"
+footprint_radius = 0.8
+object_height = 1.1
+allow_on_course = true
+allow_manual_overlap = true
+
+[node name="@MeshInstance3D@827" type="MeshInstance3D" parent="." unique_id=1746915611]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+visibility_range_end = 1400.0
+mesh = SubResource("CylinderMesh_ombic")
+
+[node name="@MeshInstance3D@828" type="MeshInstance3D" parent="." unique_id=818179887]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0)
+cast_shadow = 0
+visibility_range_end = 1400.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_vgcj8")
+
+[node name="@MeshInstance3D@829" type="MeshInstance3D" parent="." unique_id=454846168]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+cast_shadow = 0
+visibility_range_end = 1400.0
+mesh = SubResource("CylinderMesh_nnu4g")

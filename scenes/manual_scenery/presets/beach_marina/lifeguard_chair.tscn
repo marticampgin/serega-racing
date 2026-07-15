@@ -1,0 +1,68 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_dt742"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n5hhv"]
+albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_quibx"]
+material = SubResource("StandardMaterial3D_n5hhv")
+size = Vector3(0.2, 3.5, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tknij"]
+material = SubResource("StandardMaterial3D_n5hhv")
+size = Vector3(0.2, 3.5, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q4e3w"]
+albedo_color = Color(1, 0.5019608, 0.4, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_o4nci"]
+material = SubResource("StandardMaterial3D_q4e3w")
+size = Vector3(2.5, 0.35, 2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xosth"]
+albedo_color = Color(0.20784314, 0.8784314, 0.8666667, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(0.20784314, 0.8784314, 0.8666667, 1)
+emission_energy_multiplier = 1.35
+
+[sub_resource type="BoxMesh" id="BoxMesh_es116"]
+material = SubResource("StandardMaterial3D_xosth")
+size = Vector3(2.8, 0.4, 2.4)
+
+[node name="LifeguardChair" type="Node3D" unique_id=1631769103 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_dt742")
+catalog_id = "lifeguard_chair"
+display_name = "Lifeguard Chair"
+category = "Beach and Marina"
+footprint_radius = 2.2
+object_height = 4.2
+
+[node name="@MeshInstance3D@942" type="MeshInstance3D" parent="." unique_id=1457287079]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.75, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_quibx")
+
+[node name="@MeshInstance3D@943" type="MeshInstance3D" parent="." unique_id=447001147]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1.75, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_tknij")
+
+[node name="@MeshInstance3D@944" type="MeshInstance3D" parent="." unique_id=1695031723]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_o4nci")
+
+[node name="@MeshInstance3D@945" type="MeshInstance3D" parent="." unique_id=1172825233]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_es116")

@@ -1,0 +1,115 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_ywr86"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xosth"]
+albedo_color = Color(0.20784314, 0.8784314, 0.8666667, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(0.20784314, 0.8784314, 0.8666667, 1)
+emission_energy_multiplier = 1.35
+
+[sub_resource type="BoxMesh" id="BoxMesh_nrbye"]
+material = SubResource("StandardMaterial3D_xosth")
+size = Vector3(8, 0.25, 2.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1vf1l"]
+albedo_color = Color(0.15294118, 0.1882353, 0.26666668, 1)
+metallic = 0.55
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_horld"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(0.2, 3.2, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qrfqa"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(0.2, 3.2, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e4177"]
+albedo_color = Color(0.07058824, 0.22745098, 0.40784314, 1)
+metallic = 0.35
+roughness = 0.16
+
+[sub_resource type="BoxMesh" id="BoxMesh_xcf5l"]
+material = SubResource("StandardMaterial3D_e4177")
+size = Vector3(7.4, 2.8, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nac1l"]
+albedo_color = Color(0.50980395, 0.31764707, 0.21568628, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_1vi25"]
+material = SubResource("StandardMaterial3D_nac1l")
+size = Vector3(4, 0.35, 1.3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6la0c"]
+material = SubResource("StandardMaterial3D_nac1l")
+size = Vector3(4, 1.2, 0.3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_2v1li"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(0.25, 1.1, 0.25)
+
+[sub_resource type="BoxMesh" id="BoxMesh_08gyh"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(0.25, 1.1, 0.25)
+
+[node name="BusStop" type="Node3D" unique_id=887179723 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_ywr86")
+catalog_id = "bus_stop"
+display_name = "Bus Stop"
+category = "Street Furniture"
+footprint_radius = 4.5
+object_height = 3.6
+
+[node name="@MeshInstance3D@858" type="MeshInstance3D" parent="." unique_id=541365632]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3, 0)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_nrbye")
+
+[node name="@MeshInstance3D@859" type="MeshInstance3D" parent="." unique_id=1837972810]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.7, 1.6, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_horld")
+
+[node name="@MeshInstance3D@860" type="MeshInstance3D" parent="." unique_id=1635313410]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.7, 1.6, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_qrfqa")
+
+[node name="@MeshInstance3D@861" type="MeshInstance3D" parent="." unique_id=553627569]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.55, 1.25)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_xcf5l")
+
+[node name="@MeshInstance3D@862" type="MeshInstance3D" parent="." unique_id=1340386038]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0.4)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_1vi25")
+
+[node name="@MeshInstance3D@863" type="MeshInstance3D" parent="." unique_id=1019595028]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0.9)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_6la0c")
+
+[node name="@MeshInstance3D@864" type="MeshInstance3D" parent="." unique_id=435998380]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.55, 0.4)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_2v1li")
+
+[node name="@MeshInstance3D@865" type="MeshInstance3D" parent="." unique_id=2031820483]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0.55, 0.4)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_08gyh")

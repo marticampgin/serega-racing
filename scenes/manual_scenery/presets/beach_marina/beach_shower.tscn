@@ -1,0 +1,37 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_4onoj"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1vf1l"]
+albedo_color = Color(0.15294118, 0.1882353, 0.26666668, 1)
+metallic = 0.55
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_axdnt"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(0.18, 2.7, 0.18)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tp1jj"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(1.4, 0.18, 0.18)
+
+[node name="BeachShower" type="Node3D" unique_id=283157664 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_4onoj")
+catalog_id = "beach_shower"
+display_name = "Beach Shower"
+category = "Beach and Marina"
+footprint_radius = 1.5
+object_height = 2.8
+
+[node name="@MeshInstance3D@933" type="MeshInstance3D" parent="." unique_id=86238048]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_axdnt")
+
+[node name="@MeshInstance3D@934" type="MeshInstance3D" parent="." unique_id=1645626557]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 2.55, 0)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_tp1jj")

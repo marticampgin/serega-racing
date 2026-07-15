@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_eiltj"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/8608460d-bd44-4e25-b2dc-ccf8a5003e87.jpg" id="2_wtqpn"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ag734"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_umff5"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(6.927174, 5.65, 0.24)
+
+[node name="MotorcycleRiderWallPoster" type="Node3D" unique_id=1595372688 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_eiltj")
+catalog_id = "art_motorcycle_rider__wall_poster"
+display_name = "Motorcycle Rider Wall Poster"
+category = "Friend Media"
+surface = 3
+footprint_radius = 5.0
+object_height = 6.0
+poster_texture = ExtResource("2_wtqpn")
+
+[node name="@MeshInstance3D@1094" type="MeshInstance3D" parent="." unique_id=829587862]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_umff5")
+
+[node name="PosterFaceFront" type="Sprite3D" parent="." unique_id=1553538115]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.009057971
+texture = ExtResource("2_wtqpn")
+
+[node name="PosterFaceBack" type="Sprite3D" parent="." unique_id=546622301]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 2.5, 0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.009057971
+texture = ExtResource("2_wtqpn")

@@ -1,0 +1,49 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_pw0he"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ag734"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_6tvx4"]
+material = SubResource("StandardMaterial3D_ag734")
+top_radius = 0.32
+bottom_radius = 0.32
+height = 1.05
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ag22"]
+albedo_color = Color(1, 0.24705882, 0.8117647, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.24705882, 0.8117647, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_0520y"]
+material = SubResource("StandardMaterial3D_1ag22")
+top_radius = 0.38
+bottom_radius = 0.38
+height = 0.16
+radial_segments = 10
+
+[node name="ShortBollard" type="Node3D" unique_id=379437348 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_pw0he")
+catalog_id = "short_bollard"
+display_name = "Short Bollard"
+category = "Fences and Barriers"
+footprint_radius = 0.8
+object_height = 1.2
+allow_manual_overlap = true
+
+[node name="@MeshInstance3D@838" type="MeshInstance3D" parent="." unique_id=18748321]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.53, 0)
+visibility_range_end = 1400.0
+mesh = SubResource("CylinderMesh_6tvx4")
+
+[node name="@MeshInstance3D@839" type="MeshInstance3D" parent="." unique_id=139999798]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.02, 0)
+cast_shadow = 0
+visibility_range_end = 1400.0
+mesh = SubResource("CylinderMesh_0520y")

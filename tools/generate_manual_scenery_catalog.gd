@@ -28,6 +28,8 @@ func _generate() -> void:
 		root.set("surface", int(entry.surface))
 		root.set("footprint_radius", float(entry.radius))
 		root.set("object_height", float(entry.height))
+		root.set("allow_on_course", bool(entry.get("allow_on_course", false)))
+		root.set("allow_manual_overlap", bool(entry.get("allow_overlap", false)))
 		var texture: Texture2D = null
 		if entry.has("texture"):
 			texture = load(str(entry.texture)) as Texture2D

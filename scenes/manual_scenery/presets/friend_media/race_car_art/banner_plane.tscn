@@ -1,0 +1,100 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_e7jcv"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/1844112d-4cdc-4fd7-af55-4c29c7179983.jpg" id="2_11pgs"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n5hhv"]
+albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
+roughness = 0.78
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_0m5mx"]
+material = SubResource("StandardMaterial3D_n5hhv")
+radius = 1.35
+height = 13.0
+radial_segments = 16
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q4e3w"]
+albedo_color = Color(1, 0.5019608, 0.4, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_f6lv6"]
+material = SubResource("StandardMaterial3D_q4e3w")
+size = Vector3(4, 0.35, 17)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ag22"]
+albedo_color = Color(1, 0.24705882, 0.8117647, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.24705882, 0.8117647, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_6q2l0"]
+material = SubResource("StandardMaterial3D_1ag22")
+size = Vector3(3.2, 0.3, 7)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e4177"]
+albedo_color = Color(0.07058824, 0.22745098, 0.40784314, 1)
+metallic = 0.35
+roughness = 0.16
+
+[sub_resource type="BoxMesh" id="BoxMesh_2sxma"]
+material = SubResource("StandardMaterial3D_e4177")
+size = Vector3(3, 1.8, 2.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qwkje"]
+material = SubResource("StandardMaterial3D_1ag22")
+size = Vector3(11.5, 10.8, 0.25)
+
+[node name="RaceCarArtBannerPlane" type="Node3D" unique_id=1722828978 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_e7jcv")
+catalog_id = "art_race_car_art__banner_plane"
+display_name = "Race Car Art Banner Plane"
+category = "Friend Media"
+surface = 2
+footprint_radius = 28.0
+object_height = 13.0
+poster_texture = ExtResource("2_11pgs")
+
+[node name="@MeshInstance3D@1004" type="MeshInstance3D" parent="." unique_id=1647693189]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 0, 0, 0)
+visibility_range_end = 2900.0
+mesh = SubResource("CapsuleMesh_0m5mx")
+
+[node name="@MeshInstance3D@1005" type="MeshInstance3D" parent="." unique_id=2121360428]
+cast_shadow = 0
+visibility_range_end = 2900.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_f6lv6")
+
+[node name="@MeshInstance3D@1006" type="MeshInstance3D" parent="." unique_id=37569056]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2, 1.1, 0)
+cast_shadow = 0
+visibility_range_end = 2900.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_6q2l0")
+
+[node name="@MeshInstance3D@1007" type="MeshInstance3D" parent="." unique_id=526240605]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 1.2, 0)
+visibility_range_end = 2900.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_2sxma")
+
+[node name="@MeshInstance3D@1008" type="MeshInstance3D" parent="." unique_id=2093638453]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, -3, 0)
+cast_shadow = 0
+visibility_range_end = 3000.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_qwkje")
+
+[node name="PosterFace_Front" type="Sprite3D" parent="." unique_id=1646119169]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, -3, -0.38)
+visibility_range_end = 2800.0
+pixel_size = 0.0078125
+texture = ExtResource("2_11pgs")
+
+[node name="PosterFace_Back" type="Sprite3D" parent="." unique_id=1862961017]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -27, -3, 0.38)
+visibility_range_end = 2800.0
+pixel_size = 0.0078125
+texture = ExtResource("2_11pgs")

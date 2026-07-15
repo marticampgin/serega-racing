@@ -1,0 +1,43 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_3d13y"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4wkli"]
+albedo_color = Color(0.03137255, 0.49803922, 0.39607844, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_bn0cu"]
+material = SubResource("StandardMaterial3D_4wkli")
+top_radius = 1.1
+bottom_radius = 1.5
+height = 1.5
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7efpd"]
+albedo_color = Color(0.09803922, 0.827451, 0.60784316, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_kq1jt"]
+material = SubResource("StandardMaterial3D_7efpd")
+top_radius = 0.7
+bottom_radius = 1.0
+height = 1.2
+radial_segments = 10
+
+[node name="RoundTropicalBush" type="Node3D" unique_id=918849845 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_3d13y")
+catalog_id = "round_bush"
+display_name = "Round Tropical Bush"
+category = "Vegetation"
+footprint_radius = 1.8
+object_height = 1.7
+
+[node name="@MeshInstance3D@692" type="MeshInstance3D" parent="." unique_id=286032598]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+visibility_range_end = 1400.0
+mesh = SubResource("CylinderMesh_bn0cu")
+
+[node name="@MeshInstance3D@693" type="MeshInstance3D" parent="." unique_id=1756825767]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1, 0.6, 0.2)
+visibility_range_end = 1400.0
+mesh = SubResource("CylinderMesh_kq1jt")

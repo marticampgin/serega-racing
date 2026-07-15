@@ -1,0 +1,158 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_t8kpw"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7efpd"]
+albedo_color = Color(0.09803922, 0.827451, 0.60784316, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_vtr6p"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 1.55, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6kdku"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 1.55, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_rvs1g"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 1.55, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_smskm"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 1.55, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jpmmw"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 1.55, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_t8x4q"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 1.55, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_s4n2d"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 1.55, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5va6y"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 1.55, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_bqcbx"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 1.55, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_l5pv4"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 1.55, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_agsue"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 1.55, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mcemb"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 1.55, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4t0na"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 1.55, 0.38)
+
+[node name="OrnamentalGrass" type="Node3D" unique_id=1427249530 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_t8kpw")
+catalog_id = "ornamental_grass"
+display_name = "Ornamental Grass"
+category = "Vegetation"
+footprint_radius = 1.7
+object_height = 1.9
+
+[node name="@MeshInstance3D@754" type="MeshInstance3D" parent="." unique_id=381601817]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55, 0.42625, 0)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_vtr6p")
+
+[node name="@MeshInstance3D@755" type="MeshInstance3D" parent="." unique_id=1381367126]
+transform = Transform3D(0.99650335, -0.08355265, 0, 0.08355265, 0.99650335, 0, 0, 0, 1, 0.6198192, 0.54249996, 0.3253062)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_6kdku")
+
+[node name="@MeshInstance3D@756" type="MeshInstance3D" parent="." unique_id=1775021923]
+transform = Transform3D(0.98904777, -0.14759588, 0, 0.14759588, 0.98904777, 0, 0, 0, 1, 0.48285505, 0.65875, 0.6995363)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_rvs1g")
+
+[node name="@MeshInstance3D@757" type="MeshInstance3D" parent="." unique_id=853993144]
+transform = Transform3D(0.9840778, -0.17773822, 0, 0.17773822, 0.9840778, 0, 0, 0, 1, 0.06629518, 0.42625, 0.5459899)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_smskm")
+
+[node name="@MeshInstance3D@758" type="MeshInstance3D" parent="." unique_id=485621035]
+transform = Transform3D(0.9858705, -0.1675095, 0, 0.1675095, 0.9858705, 0, 0, 0, 1, -0.24822342, 0.54249996, 0.65451133)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_jpmmw")
+
+[node name="@MeshInstance3D@759" type="MeshInstance3D" parent="." unique_id=315428405]
+transform = Transform3D(0.9928848, -0.11907885, 0, 0.11907885, 0.9928848, 0, 0, 0, 1, -0.63623416, 0.65875, 0.56365424)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_t8x4q")
+
+[node name="@MeshInstance3D@760" type="MeshInstance3D" parent="." unique_id=2113029574]
+transform = Transform3D(0.9990723, -0.0430635, 0, 0.0430635, 0.9990723, 0, 0, 0, 1, -0.53401804, 0.42625, 0.13162361)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_s4n2d")
+
+[node name="@MeshInstance3D@761" type="MeshInstance3D" parent="." unique_id=2144455875]
+transform = Transform3D(0.9990723, 0.0430635, 0, -0.0430635, 0.9990723, 0, 0, 0, 1, -0.6796593, 0.54249996, -0.16752096)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_5va6y")
+
+[node name="@MeshInstance3D@762" type="MeshInstance3D" parent="." unique_id=2112187338]
+transform = Transform3D(0.9928848, 0.11907885, 0, -0.11907885, 0.9928848, 0, 0, 0, 1, -0.63623416, 0.65875, -0.56365424)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_bqcbx")
+
+[node name="@MeshInstance3D@763" type="MeshInstance3D" parent="." unique_id=1953549051]
+transform = Transform3D(0.9858705, 0.1675095, 0, -0.1675095, 0.9858705, 0, 0, 0, 1, -0.1950327, 0.42625, -0.5142589)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_l5pv4")
+
+[node name="@MeshInstance3D@764" type="MeshInstance3D" parent="." unique_id=643198878]
+transform = Transform3D(0.9840778, 0.17773822, 0, -0.17773822, 0.9840778, 0, 0, 0, 1, 0.08437567, 0.54249996, -0.6948962)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_agsue")
+
+[node name="@MeshInstance3D@765" type="MeshInstance3D" parent="." unique_id=927242993]
+transform = Transform3D(0.98904777, 0.14759588, 0, -0.14759588, 0.98904777, 0, 0, 0, 1, 0.48285505, 0.65875, -0.6995363)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_mcemb")
+
+[node name="@MeshInstance3D@766" type="MeshInstance3D" parent="." unique_id=650315108]
+transform = Transform3D(0.99650335, 0.08355265, 0, -0.08355265, 0.99650335, 0, 0, 0, 1, 0.48700082, 0.42625, -0.25559774)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_4t0na")

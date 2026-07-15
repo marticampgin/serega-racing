@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_468r8"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tohcb"]
+albedo_color = Color(0.60784316, 0.47058824, 0.8117647, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_ghip3"]
+material = SubResource("StandardMaterial3D_tohcb")
+size = Vector3(9, 0.12, 9)
+
+[node name="PlazaTile" type="Node3D" unique_id=1859219025 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_468r8")
+catalog_id = "plaza_tile"
+display_name = "Plaza Tile"
+category = "Paths and Surfaces"
+footprint_radius = 5.0
+object_height = 0.12
+allow_manual_overlap = true
+
+[node name="@MeshInstance3D@915" type="MeshInstance3D" parent="." unique_id=258209700]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_ghip3")

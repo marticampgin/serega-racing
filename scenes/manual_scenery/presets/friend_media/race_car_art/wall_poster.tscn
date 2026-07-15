@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_x3s2b"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/1844112d-4cdc-4fd7-af55-4c29c7179983.jpg" id="2_e0goi"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ag734"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_5qsh5"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(4.4, 5.65, 0.24)
+
+[node name="RaceCarArtWallPoster" type="Node3D" unique_id=1467924295 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_x3s2b")
+catalog_id = "art_race_car_art__wall_poster"
+display_name = "Race Car Art Wall Poster"
+category = "Friend Media"
+surface = 3
+footprint_radius = 5.0
+object_height = 6.0
+poster_texture = ExtResource("2_e0goi")
+
+[node name="@MeshInstance3D@998" type="MeshInstance3D" parent="." unique_id=138109295]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_5qsh5")
+
+[node name="PosterFaceFront" type="Sprite3D" parent="." unique_id=1953134458]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.00390625
+texture = ExtResource("2_e0goi")
+
+[node name="PosterFaceBack" type="Sprite3D" parent="." unique_id=1968644262]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 2.5, 0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.00390625
+texture = ExtResource("2_e0goi")

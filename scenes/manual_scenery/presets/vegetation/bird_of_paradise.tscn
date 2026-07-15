@@ -1,0 +1,158 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_v0bfd"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7efpd"]
+albedo_color = Color(0.09803922, 0.827451, 0.60784316, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_cniba"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 2.8, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6rify"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 2.8, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_nj783"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 2.8, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8yic5"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 2.8, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_rguah"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 2.8, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_owmiv"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 2.8, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qf1qc"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 2.8, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_orkuy"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 2.8, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3l1nu"]
+material = SubResource("StandardMaterial3D_7efpd")
+size = Vector3(0.16, 2.8, 0.38)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dbaql"]
+albedo_color = Color(1, 0.6117647, 0.25882354, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.6117647, 0.25882354, 1)
+emission_energy_multiplier = 1.25
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_q45m4"]
+material = SubResource("StandardMaterial3D_dbaql")
+top_radius = 0.08
+bottom_radius = 0.22
+height = 0.65
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_kluka"]
+material = SubResource("StandardMaterial3D_dbaql")
+top_radius = 0.08
+bottom_radius = 0.22
+height = 0.65
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_7n7il"]
+material = SubResource("StandardMaterial3D_dbaql")
+top_radius = 0.08
+bottom_radius = 0.22
+height = 0.65
+radial_segments = 8
+
+[node name="BirdOfParadiseCluster" type="Node3D" unique_id=1443898047 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_v0bfd")
+catalog_id = "bird_of_paradise"
+display_name = "Bird of Paradise Cluster"
+category = "Vegetation"
+footprint_radius = 2.3
+object_height = 3.2
+
+[node name="@MeshInstance3D@742" type="MeshInstance3D" parent="." unique_id=1633458567]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55, 0.77, 0)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_cniba")
+
+[node name="@MeshInstance3D@743" type="MeshInstance3D" parent="." unique_id=1913945174]
+transform = Transform3D(0.993314, -0.115443796, 0, 0.115443796, 0.993314, 0, 0, 0, 1, 0.5362311, 0.97999996, 0.44995135)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_6rify")
+
+[node name="@MeshInstance3D@744" type="MeshInstance3D" parent="." unique_id=1036296359]
+transform = Transform3D(0.9843296, -0.17633848, 0, 0.17633848, 0.9843296, 0, 0, 0, 1, 0.14760095, 1.19, 0.8370866)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_nj783")
+
+[node name="@MeshInstance3D@745" type="MeshInstance3D" parent="." unique_id=1944172904]
+transform = Transform3D(0.98787457, -0.155254, 0, 0.155254, 0.98787457, 0, 0, 0, 1, -0.275, 0.77, 0.47631398)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_8yic5")
+
+[node name="@MeshInstance3D@746" type="MeshInstance3D" parent="." unique_id=969311851]
+transform = Transform3D(0.9981056, -0.061524745, 0, 0.061524745, 0.9981056, 0, 0, 0, 1, -0.6577848, 0.97999996, 0.23941411)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_rguah")
+
+[node name="@MeshInstance3D@747" type="MeshInstance3D" parent="." unique_id=1693788514]
+transform = Transform3D(0.9981056, 0.061524745, 0, -0.061524745, 0.9981056, 0, 0, 0, 1, -0.7987387, 1.19, -0.29071712)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_owmiv")
+
+[node name="@MeshInstance3D@748" type="MeshInstance3D" parent="." unique_id=1918210694]
+transform = Transform3D(0.98787457, 0.155254, 0, -0.155254, 0.98787457, 0, 0, 0, 1, -0.275, 0.77, -0.47631398)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_qf1qc")
+
+[node name="@MeshInstance3D@749" type="MeshInstance3D" parent="." unique_id=240859516]
+transform = Transform3D(0.9843296, 0.17633848, 0, -0.17633848, 0.9843296, 0, 0, 0, 1, 0.12155373, 0.97999996, -0.6893654)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_orkuy")
+
+[node name="@MeshInstance3D@750" type="MeshInstance3D" parent="." unique_id=1936189899]
+transform = Transform3D(0.993314, 0.115443796, 0, -0.115443796, 0.993314, 0, 0, 0, 1, 0.65113777, 1.19, -0.5463695)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_3l1nu")
+
+[node name="@MeshInstance3D@751" type="MeshInstance3D" parent="." unique_id=1761982344]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.65, 2.75, 0)
+visibility_range_end = 1500.0
+mesh = SubResource("CylinderMesh_q45m4")
+
+[node name="@MeshInstance3D@752" type="MeshInstance3D" parent="." unique_id=291574346]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.32814997, 2.75, 0.56108606)
+visibility_range_end = 1500.0
+mesh = SubResource("CylinderMesh_kluka")
+
+[node name="@MeshInstance3D@753" type="MeshInstance3D" parent="." unique_id=1527385253]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.31866953, 2.75, -0.56652427)
+visibility_range_end = 1500.0
+mesh = SubResource("CylinderMesh_7n7il")

@@ -1,0 +1,83 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_tvb7d"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/1daf0fdc-2536-4e54-b476-fc61c770b23d.jpg" id="2_0mxmo"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ag734"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_qhcsu"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(9.099999, 7, 0.35)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ag22"]
+albedo_color = Color(1, 0.24705882, 0.8117647, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.24705882, 0.8117647, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_in0rr"]
+material = SubResource("StandardMaterial3D_1ag22")
+size = Vector3(9.5, 0.32, 0.58)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1vf1l"]
+albedo_color = Color(0.15294118, 0.1882353, 0.26666668, 1)
+metallic = 0.55
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_wm1s6"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(0.24, 1.4, 0.24)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xa0gq"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(0.24, 1.4, 0.24)
+
+[node name="CrewCollageBillboard" type="Node3D" unique_id=155118684 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_tvb7d")
+catalog_id = "art_crew_collage__billboard"
+display_name = "Crew Collage Billboard"
+category = "Friend Media"
+footprint_radius = 7.0
+object_height = 9.0
+poster_texture = ExtResource("2_0mxmo")
+
+[node name="@MeshInstance3D@1010" type="MeshInstance3D" parent="." unique_id=1503200928]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.35, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_qhcsu")
+
+[node name="@MeshInstance3D@1011" type="MeshInstance3D" parent="." unique_id=1154276870]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.92, 0)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_in0rr")
+
+[node name="@MeshInstance3D@1012" type="MeshInstance3D" parent="." unique_id=1158629529]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.192, 0.7, 0.08)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_wm1s6")
+
+[node name="@MeshInstance3D@1013" type="MeshInstance3D" parent="." unique_id=1445975084]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.192, 0.7, 0.08)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_xa0gq")
+
+[node name="PosterFaceFront" type="Sprite3D" parent="." unique_id=1479458485]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.35, -0.34)
+visibility_range_end = 2800.0
+pixel_size = 0.0065625003
+texture = ExtResource("2_0mxmo")
+
+[node name="PosterFaceBack" type="Sprite3D" parent="." unique_id=244065339]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 4.35, 0.34)
+visibility_range_end = 2800.0
+pixel_size = 0.0065625003
+texture = ExtResource("2_0mxmo")

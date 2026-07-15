@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_soduo"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/882a2791-af8b-4378-b3b7-a05b4cf0dd08.jpg" id="2_ndo52"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ag22"]
+albedo_color = Color(1, 0.24705882, 0.8117647, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.24705882, 0.8117647, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_dc5ga"]
+material = SubResource("StandardMaterial3D_1ag22")
+size = Vector3(16.649727, 10.8, 0.25)
+
+[node name="MilkRacerAirBanner" type="Node3D" unique_id=165700660 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_soduo")
+catalog_id = "art_milk_racer__air_banner"
+display_name = "Milk Racer Air Banner"
+category = "Friend Media"
+surface = 2
+footprint_radius = 12.0
+object_height = 11.0
+poster_texture = ExtResource("2_ndo52")
+
+[node name="@MeshInstance3D@1121" type="MeshInstance3D" parent="." unique_id=708175612]
+cast_shadow = 0
+visibility_range_end = 3000.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_dc5ga")
+
+[node name="PosterFace_Front" type="Sprite3D" parent="." unique_id=1549993717]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.38)
+visibility_range_end = 2800.0
+pixel_size = 0.01814882
+texture = ExtResource("2_ndo52")
+
+[node name="PosterFace_Back" type="Sprite3D" parent="." unique_id=1268573152]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0.38)
+visibility_range_end = 2800.0
+pixel_size = 0.01814882
+texture = ExtResource("2_ndo52")

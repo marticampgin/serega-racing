@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_sns8v"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_63pls"]
+albedo_color = Color(0.14117648, 0.15686275, 0.19607843, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_horjs"]
+material = SubResource("StandardMaterial3D_63pls")
+size = Vector3(8, 0.12, 12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xpwxq"]
+material = SubResource("StandardMaterial3D_63pls")
+size = Vector3(12, 0.12, 8)
+
+[node name="SideRoadCorner" type="Node3D" unique_id=593452237 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_sns8v")
+catalog_id = "side_road_corner"
+display_name = "Side Road Corner"
+category = "Paths and Surfaces"
+footprint_radius = 8.0
+object_height = 0.12
+allow_manual_overlap = true
+
+[node name="@MeshInstance3D@887" type="MeshInstance3D" parent="." unique_id=466301353]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 2)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_horjs")
+
+[node name="@MeshInstance3D@888" type="MeshInstance3D" parent="." unique_id=1612620989]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0.06, -2)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_xpwxq")

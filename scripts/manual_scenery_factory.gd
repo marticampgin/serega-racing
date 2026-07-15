@@ -46,6 +46,13 @@ func populate(root: Node3D, archetype: String, variant: int, texture: Texture2D 
 		"marina_docks": _marina_docks(root)
 		"palm": _palm(root, [0.78, 1.25, 1.05][variant])
 		"bush": _bush(root)
+		"flowering_bush": _flowering_bush(root, variant)
+		"hedge": _hedge(root, variant)
+		"planter": _planter(root, variant)
+		"agave": _agave(root)
+		"tropical_plant": _tropical_plant(root, variant)
+		"flower_bed": _flower_bed(root)
+		"trellis": _trellis(root)
 		"lamp": _lamp(root)
 		"floodlight": _floodlight(root)
 		"fence": _fence(root)
@@ -53,6 +60,23 @@ func populate(root: Node3D, archetype: String, variant: int, texture: Texture2D 
 		"bench": _bench(root)
 		"umbrella": _umbrella(root)
 		"cabana": _cabana(root)
+		"fence_variant": _fence_variant(root, variant)
+		"traffic_cone": _traffic_cone(root)
+		"barricade": _barricade(root)
+		"bollard": _bollard(root)
+		"lamp_variant": _lamp_variant(root, variant)
+		"bin": _bin(root, variant)
+		"hydrant": _hydrant(root)
+		"bike_rack": _bike_rack(root)
+		"bus_stop": _bus_stop(root)
+		"phone_booth": _phone_booth(root)
+		"vending": _vending(root)
+		"newspaper": _newspaper(root)
+		"picnic": _picnic(root)
+		"fountain": _drinking_fountain(root)
+		"wayfinding": _wayfinding(root)
+		"surface_piece": _surface_piece(root, variant)
+		"waterfront_prop": _waterfront_prop(root, variant)
 		"billboard": _billboard(root, texture)
 		"wall_poster": _wall_poster(root, texture)
 		"motorboat": _motorboat(root)
@@ -340,6 +364,72 @@ func _bush(root: Node3D) -> void:
 	_cylinder(root, 1.0, 1.2, Vector3(1.1, 0.6, 0.2), _m.leaf, 0.7, 1400, 10)
 
 
+func _flowering_bush(root: Node3D, variant: int) -> void:
+	_bush(root)
+	var flower: Material = _m.pink if variant == 0 else _m.cyan
+	for point in [Vector3(-1.0, 1.35, 0.2), Vector3(0.0, 1.55, -0.5), Vector3(1.0, 1.2, 0.4), Vector3(0.5, 1.45, 0.8)]:
+		_cylinder(root, 0.18, 0.22, point, flower, 0.18, 1600, 8)
+
+
+func _hedge(root: Node3D, variant: int) -> void:
+	var length := 12.0 if variant > 0 else 6.0
+	_box(root, Vector3(length, 1.55, 1.5), Vector3.UP * 0.78, _m.green)
+	for x in range(-int(length * 0.5) + 1, int(length * 0.5), 2):
+		_cylinder(root, 0.65, 1.7, Vector3(x, 0.85, 0), _m.leaf, 0.65, 1600, 8)
+
+
+func _planter(root: Node3D, variant: int) -> void:
+	if variant == 0:
+		_box(root, Vector3(5.0, 0.7, 1.8), Vector3.UP * 0.35, _m.cream)
+		_box(root, Vector3(4.5, 0.35, 1.4), Vector3.UP * 0.72, _m.rock)
+		for x in [-1.5, 0.0, 1.5]:
+			_cylinder(root, 0.45, 1.2, Vector3(x, 1.25, 0), _m.leaf, 0.25, 1500, 8)
+	else:
+		_cylinder(root, 1.6, 0.8, Vector3.UP * 0.4, _m.coral, 1.8)
+		_cylinder(root, 1.25, 0.35, Vector3.UP * 0.85, _m.rock, 1.25)
+		_agave_at(root, Vector3.UP * 0.9, 0.75)
+
+
+func _agave(root: Node3D) -> void:
+	_agave_at(root, Vector3.ZERO, 1.0)
+
+
+func _agave_at(root: Node3D, at: Vector3, scale_factor: float) -> void:
+	for index in range(9):
+		var angle := TAU * index / 9.0
+		var leaf := _box(root, Vector3(0.25, 0.16, 2.5) * scale_factor, at + Vector3(cos(angle), 0.65, sin(angle)) * 0.65 * scale_factor, _m.leaf, 1600, false)
+		leaf.rotation.y = -angle
+		leaf.rotation.x = -0.38
+
+
+func _tropical_plant(root: Node3D, variant: int) -> void:
+	var count := 9 if variant == 0 else 13
+	var height := 2.8 if variant == 0 else 1.55
+	for index in range(count):
+		var angle := TAU * index / count
+		var blade := _box(root, Vector3(0.16, height, 0.38), Vector3(cos(angle), height * 0.5, sin(angle)) * (0.55 + (index % 3) * 0.15), _m.leaf, 1500, false)
+		blade.rotation.z = 0.18 * sin(angle)
+	if variant == 0:
+		for angle in [0.0, 2.1, 4.2]:
+			_cylinder(root, 0.22, 0.65, Vector3(cos(angle) * 0.65, 2.75, sin(angle) * 0.65), _m.orange, 0.08, 1500, 8)
+
+
+func _flower_bed(root: Node3D) -> void:
+	_box(root, Vector3(7.0, 0.25, 3.0), Vector3.UP * 0.13, _m.rock, 1500, false)
+	for x in [-2.5, -1.25, 0.0, 1.25, 2.5]:
+		for z in [-0.75, 0.75]:
+			_cylinder(root, 0.22, 0.55, Vector3(x, 0.55, z), _m.pink if int(x * 4 + z * 2) % 2 == 0 else _m.cyan, 0.12, 1500, 8)
+
+
+func _trellis(root: Node3D) -> void:
+	for x in [-4.0, 0.0, 4.0]:
+		_box(root, Vector3(0.2, 4.0, 0.2), Vector3(x, 2.0, 0), _m.white)
+	for y in [0.7, 1.8, 2.9, 3.9]:
+		_box(root, Vector3(8.2, 0.14, 0.14), Vector3(0, y, 0), _m.white, 1600, false)
+	for x in [-3.2, -1.6, 0.0, 1.6, 3.2]:
+		_cylinder(root, 0.45, 0.5, Vector3(x, 1.2 + fmod(abs(x), 1.5), 0), _m.pink, 0.45, 1600, 8)
+
+
 func _lamp(root: Node3D) -> void:
 	_box(root, Vector3(0.2, 6, 0.2), Vector3(0, 3, 0), _m.steel)
 	_box(root, Vector3(2.2, 0.2, 0.2), Vector3(-1, 5.8, 0), _m.steel)
@@ -360,6 +450,170 @@ func _fence(root: Node3D) -> void:
 		_box(root, Vector3(0.18, 2, 0.18), Vector3(x, 1, 0), _m.steel)
 	for y in [0.55, 1.45]:
 		_box(root, Vector3(12.2, 0.14, 0.14), Vector3(0, y, 0), _m.cyan, 1500, false)
+
+
+func _fence_variant(root: Node3D, variant: int) -> void:
+	if variant == 3:
+		_box(root, Vector3(10.0, 1.2, 0.6), Vector3.UP * 0.6, _m.coral)
+		_box(root, Vector3(10.3, 0.18, 0.8), Vector3.UP * 1.25, _m.white, 1500, false)
+		return
+	var post_material: Material = _m.white if variant == 0 else _m.steel
+	for x in [-5.0, -2.5, 0.0, 2.5, 5.0]:
+		_box(root, Vector3(0.18, 1.8 if variant != 2 else 2.5, 0.18), Vector3(x, 0.9 if variant != 2 else 1.25, 0), post_material)
+	if variant == 0:
+		for x in range(-5, 6):
+			_box(root, Vector3(0.12, 1.35, 0.12), Vector3(x, 0.7, 0), _m.white, 1500, false)
+		for y in [0.45, 1.15]: _box(root, Vector3(10.2, 0.12, 0.12), Vector3(0, y, 0), _m.white, 1500, false)
+	elif variant == 1:
+		for y in [0.45, 1.25]: _box(root, Vector3(10.2, 0.16, 0.16), Vector3(0, y, 0), _m.cyan, 1500, false)
+	else:
+		for y in [0.45, 0.9, 1.35, 1.8, 2.25]: _box(root, Vector3(10.0, 0.06, 0.06), Vector3(0, y, 0), _m.steel, 1500, false)
+
+
+func _traffic_cone(root: Node3D) -> void:
+	_cylinder(root, 0.42, 0.9, Vector3.UP * 0.45, _m.orange, 0.08, 1400, 10)
+	_box(root, Vector3(1.0, 0.12, 1.0), Vector3.UP * 0.06, _m.night, 1400, false)
+	_cylinder(root, 0.3, 0.12, Vector3.UP * 0.55, _m.white, 0.22, 1400, 10)
+
+
+func _barricade(root: Node3D) -> void:
+	for x in [-2.1, 2.1]:
+		_box(root, Vector3(0.25, 1.4, 0.25), Vector3(x, 0.7, 0), _m.steel)
+		_box(root, Vector3(1.1, 0.18, 0.7), Vector3(x, 0.1, 0), _m.night, 1400, false)
+	_box(root, Vector3(4.8, 0.75, 0.24), Vector3(0, 1.15, 0), _m.coral)
+	for x in [-1.4, 0.0, 1.4]: _box(root, Vector3(0.45, 0.82, 0.28), Vector3(x, 1.15, -0.02), _m.white, 1400, false)
+
+
+func _bollard(root: Node3D) -> void:
+	_cylinder(root, 0.32, 1.05, Vector3.UP * 0.53, _m.night, 0.32, 1400, 10)
+	_cylinder(root, 0.38, 0.16, Vector3.UP * 1.02, _m.pink, 0.38, 1400, 10)
+
+
+func _lamp_variant(root: Node3D, variant: int) -> void:
+	var height := 6.5 if variant == 0 else 4.0
+	_box(root, Vector3(0.18, height, 0.18), Vector3.UP * height * 0.5, _m.steel)
+	if variant == 0:
+		_box(root, Vector3(4.2, 0.18, 0.18), Vector3(0, height - 0.25, 0), _m.steel)
+		for x in [-2.0, 2.0]: _box(root, Vector3(0.65, 0.4, 0.5), Vector3(x, height - 0.45, 0), _m.cyan)
+	else:
+		_cylinder(root, 0.55, 0.8, Vector3.UP * (height - 0.2), _m.pink, 0.3, 1600, 10)
+
+
+func _bin(root: Node3D, variant: int) -> void:
+	var color: Material = _m.cyan if variant > 0 else _m.night
+	_box(root, Vector3(0.9, 1.15, 0.9), Vector3.UP * 0.58, color)
+	_box(root, Vector3(1.0, 0.15, 1.0), Vector3.UP * 1.18, _m.pink if variant > 0 else _m.steel, 1400, false)
+
+
+func _hydrant(root: Node3D) -> void:
+	_cylinder(root, 0.34, 0.9, Vector3.UP * 0.45, _m.coral, 0.34, 1400, 10)
+	_cylinder(root, 0.48, 0.22, Vector3.UP * 0.9, _m.coral, 0.3, 1400, 10)
+	_box(root, Vector3(1.1, 0.28, 0.28), Vector3(0, 0.55, 0), _m.coral)
+
+
+func _bike_rack(root: Node3D) -> void:
+	for x in [-1.5, -0.5, 0.5, 1.5]:
+		_cylinder(root, 0.07, 2.2, Vector3(x, 0.6, 0), _m.steel, 0.07, 1400, 8).rotation_degrees.z = 90
+	_box(root, Vector3(4.0, 0.12, 0.12), Vector3(0, 0.15, 0), _m.steel, 1400, false)
+
+
+func _bus_stop(root: Node3D) -> void:
+	_box(root, Vector3(8.0, 0.25, 2.8), Vector3(0, 3.3, 0), _m.cyan)
+	for x in [-3.7, 3.7]: _box(root, Vector3(0.2, 3.2, 0.2), Vector3(x, 1.6, 0), _m.steel)
+	_box(root, Vector3(7.4, 2.8, 0.16), Vector3(0, 1.55, 1.25), _m.glass)
+	_bench_at(root, Vector3(0, 0, 0.4))
+
+
+func _phone_booth(root: Node3D) -> void:
+	_box(root, Vector3(2.2, 2.9, 2.0), Vector3.UP * 1.45, _m.pink)
+	_box(root, Vector3(1.6, 2.2, 0.12), Vector3(0, 1.35, -1.02), _m.glass)
+	_box(root, Vector3(1.6, 0.4, 0.16), Vector3(0, 2.55, -1.05), _m.cyan)
+
+
+func _vending(root: Node3D) -> void:
+	_box(root, Vector3(1.7, 2.25, 1.0), Vector3.UP * 1.13, _m.coral)
+	_box(root, Vector3(1.2, 1.15, 0.12), Vector3(0, 1.35, -0.52), _m.glass)
+	_box(root, Vector3(0.45, 0.45, 0.14), Vector3(0.45, 0.45, -0.54), _m.cyan)
+
+
+func _newspaper(root: Node3D) -> void:
+	_box(root, Vector3(0.9, 0.9, 0.7), Vector3.UP * 0.65, _m.cyan)
+	_box(root, Vector3(0.75, 0.45, 0.08), Vector3(0, 0.75, -0.37), _m.white)
+	_box(root, Vector3(0.3, 0.4, 0.3), Vector3.UP * 0.2, _m.steel)
+
+
+func _picnic(root: Node3D) -> void:
+	_box(root, Vector3(4.5, 0.25, 2.0), Vector3.UP * 1.1, _m.wood)
+	for z in [-1.7, 1.7]: _box(root, Vector3(4.8, 0.22, 0.7), Vector3(0, 0.65, z), _m.wood)
+	for x in [-1.7, 1.7]: _box(root, Vector3(0.25, 1.1, 0.25), Vector3(x, 0.55, 0), _m.steel)
+
+
+func _drinking_fountain(root: Node3D) -> void:
+	_box(root, Vector3(0.8, 1.0, 0.7), Vector3.UP * 0.5, _m.steel)
+	_cylinder(root, 0.45, 0.18, Vector3.UP * 1.05, _m.cyan, 0.45, 1400, 10)
+	_cylinder(root, 0.08, 0.25, Vector3(0.2, 1.28, 0), _m.white, 0.08, 1400, 8)
+
+
+func _wayfinding(root: Node3D) -> void:
+	_box(root, Vector3(0.18, 3.2, 0.18), Vector3.UP * 1.6, _m.steel)
+	for data in [[2.2, 2.7, 0.35], [-2.0, 2.1, -0.35]]:
+		var sign := _box(root, Vector3(2.5, 0.55, 0.18), Vector3(float(data[0]) * 0.45, float(data[1]), 0), _m.pink if float(data[0]) > 0 else _m.cyan)
+		sign.rotation.z = float(data[2])
+
+
+func _surface_piece(root: Node3D, variant: int) -> void:
+	var y := 0.06
+	match variant:
+		0: _box(root, Vector3(8.0, 0.12, 16.0), Vector3.UP * y, _m.asphalt, 1800, false)
+		1:
+			_box(root, Vector3(8.0, 0.12, 12.0), Vector3(0, y, 2.0), _m.asphalt, 1800, false)
+			_box(root, Vector3(12.0, 0.12, 8.0), Vector3(2.0, y, -2.0), _m.asphalt, 1800, false)
+		2: _box(root, Vector3(3.0, 0.16, 12.0), Vector3.UP * 0.08, _m.white, 1800, false)
+		3:
+			_box(root, Vector3(3.0, 0.16, 9.0), Vector3(0, 0.08, 1.5), _m.white, 1800, false)
+			_box(root, Vector3(9.0, 0.16, 3.0), Vector3(1.5, 0.08, -1.5), _m.white, 1800, false)
+		4: _box(root, Vector3(6.0, 0.14, 9.0), Vector3.UP * 0.07, _m.asphalt, 1800, false)
+		5:
+			_box(root, Vector3(12.0, 0.14, 7.0), Vector3.UP * 0.07, _m.asphalt, 1800, false)
+			for x in [-4.0, 0.0, 4.0]: _box(root, Vector3(0.12, 0.05, 6.0), Vector3(x, 0.15, 0), _m.white, 1800, false)
+		6:
+			for z in [-3.5, -2.3, -1.1, 0.1, 1.3, 2.5, 3.7]: _box(root, Vector3(7.0, 0.08, 0.65), Vector3(0, 0.04, z), _m.white, 1800, false)
+		7:
+			for z in range(-5, 6): _box(root, Vector3(5.0, 0.18, 0.82), Vector3(0, 0.09, z), _m.wood, 1800, false)
+		8: _box(root, Vector3(9.0, 0.12, 9.0), Vector3.UP * 0.06, _m.lavender, 1800, false)
+		9:
+			for index in range(7): _cylinder(root, 0.85, 0.16, Vector3(sin(index * 1.7) * 0.9, 0.08, (index - 3) * 1.5), _m.rock, 0.85, 1800, 10)
+
+
+func _waterfront_prop(root: Node3D, variant: int) -> void:
+	match variant:
+		0: _box(root, Vector3(4.0, 0.3, 12.0), Vector3.UP * 0.15, _m.wood, 2000, false)
+		1:
+			_box(root, Vector3(4.0, 0.3, 10.0), Vector3(0, 0.15, 2.0), _m.wood, 2000, false)
+			_box(root, Vector3(10.0, 0.3, 4.0), Vector3(2.0, 0.15, -2.0), _m.wood, 2000, false)
+		2: _cylinder(root, 0.42, 0.9, Vector3.UP * 0.45, _m.night, 0.34, 1600, 10)
+		3, 4:
+			_cylinder(root, 0.65, 1.2, Vector3.UP * 0.6, _m.coral if variant == 3 else _m.cyan, 0.42, 2000, 10)
+			_box(root, Vector3(0.15, 1.1, 0.15), Vector3.UP * 1.65, _m.steel)
+		5:
+			_box(root, Vector3(0.16, 2.2, 0.16), Vector3.UP * 1.1, _m.steel)
+			_cylinder(root, 0.7, 0.22, Vector3(0, 1.7, 0), _m.coral, 0.7, 1600, 12).rotation_degrees.x = 90
+		6:
+			_box(root, Vector3(0.18, 2.7, 0.18), Vector3.UP * 1.35, _m.steel)
+			_box(root, Vector3(1.4, 0.18, 0.18), Vector3(0.6, 2.55, 0), _m.steel)
+		7:
+			for x in [-1.5, -0.5, 0.5, 1.5]:
+				var board := _box(root, Vector3(0.35, 2.0, 0.75), Vector3(x, 1.0, 0), _m.coral if int(x * 2) % 2 == 0 else _m.cyan)
+				board.rotation.z = 0.08 * x
+			_box(root, Vector3(4.5, 0.18, 0.18), Vector3(0, 0.5, 0), _m.wood)
+		8:
+			var seat := _box(root, Vector3(1.8, 0.18, 3.2), Vector3(0, 0.55, 0), _m.coral)
+			seat.rotation.x = -0.22
+			_box(root, Vector3(2.0, 0.18, 1.4), Vector3(0, 0.2, 1.9), _m.white)
+		9:
+			for x in [-1.0, 1.0]: _box(root, Vector3(0.2, 3.5, 0.2), Vector3(x, 1.75, 0), _m.white)
+			_box(root, Vector3(2.5, 0.35, 2.0), Vector3(0, 3.0, 0), _m.coral)
+			_box(root, Vector3(2.8, 0.4, 2.4), Vector3(0, 4.0, 0), _m.cyan)
 
 
 func _bench(root: Node3D) -> void:

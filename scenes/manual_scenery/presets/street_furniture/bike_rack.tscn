@@ -1,0 +1,75 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_5b2kr"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1vf1l"]
+albedo_color = Color(0.15294118, 0.1882353, 0.26666668, 1)
+metallic = 0.55
+roughness = 0.3
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_lj3af"]
+material = SubResource("StandardMaterial3D_1vf1l")
+top_radius = 0.07
+bottom_radius = 0.07
+height = 2.2
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_hxdw7"]
+material = SubResource("StandardMaterial3D_1vf1l")
+top_radius = 0.07
+bottom_radius = 0.07
+height = 2.2
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_s4pxi"]
+material = SubResource("StandardMaterial3D_1vf1l")
+top_radius = 0.07
+bottom_radius = 0.07
+height = 2.2
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_t6yqu"]
+material = SubResource("StandardMaterial3D_1vf1l")
+top_radius = 0.07
+bottom_radius = 0.07
+height = 2.2
+radial_segments = 8
+
+[sub_resource type="BoxMesh" id="BoxMesh_hvt7t"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(4, 0.12, 0.12)
+
+[node name="BikeRack" type="Node3D" unique_id=1706155644 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_5b2kr")
+catalog_id = "bike_rack"
+display_name = "Bike Rack"
+category = "Street Furniture"
+footprint_radius = 2.2
+object_height = 1.3
+
+[node name="@MeshInstance3D@853" type="MeshInstance3D" parent="." unique_id=1281879827]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, -1.5, 0.6, 0)
+visibility_range_end = 1400.0
+mesh = SubResource("CylinderMesh_lj3af")
+
+[node name="@MeshInstance3D@854" type="MeshInstance3D" parent="." unique_id=411669300]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, -0.5, 0.6, 0)
+visibility_range_end = 1400.0
+mesh = SubResource("CylinderMesh_hxdw7")
+
+[node name="@MeshInstance3D@855" type="MeshInstance3D" parent="." unique_id=866560321]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 0.5, 0.6, 0)
+visibility_range_end = 1400.0
+mesh = SubResource("CylinderMesh_s4pxi")
+
+[node name="@MeshInstance3D@856" type="MeshInstance3D" parent="." unique_id=1853411876]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 1.5, 0.6, 0)
+visibility_range_end = 1400.0
+mesh = SubResource("CylinderMesh_t6yqu")
+
+[node name="@MeshInstance3D@857" type="MeshInstance3D" parent="." unique_id=740140182]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+cast_shadow = 0
+visibility_range_end = 1400.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_hvt7t")

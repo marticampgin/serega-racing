@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_iudjt"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/1daf0fdc-2536-4e54-b476-fc61c770b23d.jpg" id="2_m0jrk"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ag734"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_mqjox"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(7.3166666, 5.65, 0.24)
+
+[node name="CrewCollageWallPoster" type="Node3D" unique_id=619310249 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_iudjt")
+catalog_id = "art_crew_collage__wall_poster"
+display_name = "Crew Collage Wall Poster"
+category = "Friend Media"
+surface = 3
+footprint_radius = 5.0
+object_height = 6.0
+poster_texture = ExtResource("2_m0jrk")
+
+[node name="@MeshInstance3D@1014" type="MeshInstance3D" parent="." unique_id=1180999647]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_mqjox")
+
+[node name="PosterFaceFront" type="Sprite3D" parent="." unique_id=2054602621]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.0052083335
+texture = ExtResource("2_m0jrk")
+
+[node name="PosterFaceBack" type="Sprite3D" parent="." unique_id=734023651]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 2.5, 0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.0052083335
+texture = ExtResource("2_m0jrk")

@@ -1,0 +1,115 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_3q1uh"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1vf1l"]
+albedo_color = Color(0.15294118, 0.1882353, 0.26666668, 1)
+metallic = 0.55
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_r0cim"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(0.25, 1.4, 0.25)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ag734"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_sjs4x"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(1.1, 0.18, 0.7)
+
+[sub_resource type="BoxMesh" id="BoxMesh_iot73"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(0.25, 1.4, 0.25)
+
+[sub_resource type="BoxMesh" id="BoxMesh_uri0p"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(1.1, 0.18, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q4e3w"]
+albedo_color = Color(1, 0.5019608, 0.4, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_5mo4w"]
+material = SubResource("StandardMaterial3D_q4e3w")
+size = Vector3(4.8, 0.75, 0.24)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n5hhv"]
+albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_pi56m"]
+material = SubResource("StandardMaterial3D_n5hhv")
+size = Vector3(0.45, 0.82, 0.28)
+
+[sub_resource type="BoxMesh" id="BoxMesh_bkmai"]
+material = SubResource("StandardMaterial3D_n5hhv")
+size = Vector3(0.45, 0.82, 0.28)
+
+[sub_resource type="BoxMesh" id="BoxMesh_aawb4"]
+material = SubResource("StandardMaterial3D_n5hhv")
+size = Vector3(0.45, 0.82, 0.28)
+
+[node name="RoadBarricade" type="Node3D" unique_id=1991960326 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_3q1uh")
+catalog_id = "road_barricade"
+display_name = "Road Barricade"
+category = "Fences and Barriers"
+footprint_radius = 2.8
+object_height = 1.7
+allow_on_course = true
+allow_manual_overlap = true
+
+[node name="@MeshInstance3D@830" type="MeshInstance3D" parent="." unique_id=163877049]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.1, 0.7, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_r0cim")
+
+[node name="@MeshInstance3D@831" type="MeshInstance3D" parent="." unique_id=1320215265]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.1, 0.1, 0)
+cast_shadow = 0
+visibility_range_end = 1400.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_sjs4x")
+
+[node name="@MeshInstance3D@832" type="MeshInstance3D" parent="." unique_id=1266324217]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1, 0.7, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_iot73")
+
+[node name="@MeshInstance3D@833" type="MeshInstance3D" parent="." unique_id=474427130]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1, 0.1, 0)
+cast_shadow = 0
+visibility_range_end = 1400.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_uri0p")
+
+[node name="@MeshInstance3D@834" type="MeshInstance3D" parent="." unique_id=959129751]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_5mo4w")
+
+[node name="@MeshInstance3D@835" type="MeshInstance3D" parent="." unique_id=801928347]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4, 1.15, -0.02)
+cast_shadow = 0
+visibility_range_end = 1400.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_pi56m")
+
+[node name="@MeshInstance3D@836" type="MeshInstance3D" parent="." unique_id=352835950]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15, -0.02)
+cast_shadow = 0
+visibility_range_end = 1400.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_bkmai")
+
+[node name="@MeshInstance3D@837" type="MeshInstance3D" parent="." unique_id=1771182352]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, 1.15, -0.02)
+cast_shadow = 0
+visibility_range_end = 1400.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_aawb4")

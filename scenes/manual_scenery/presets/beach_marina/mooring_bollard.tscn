@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_ohs2s"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ag734"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_0het2"]
+material = SubResource("StandardMaterial3D_ag734")
+top_radius = 0.34
+bottom_radius = 0.42
+height = 0.9
+radial_segments = 10
+
+[node name="MooringBollard" type="Node3D" unique_id=25198770 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_ohs2s")
+catalog_id = "mooring_bollard"
+display_name = "Mooring Bollard"
+category = "Beach and Marina"
+footprint_radius = 1.0
+object_height = 1.0
+
+[node name="@MeshInstance3D@926" type="MeshInstance3D" parent="." unique_id=313397941]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+visibility_range_end = 1600.0
+mesh = SubResource("CylinderMesh_0het2")

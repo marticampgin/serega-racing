@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_ol6yx"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n5hhv"]
+albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_ls5wp"]
+material = SubResource("StandardMaterial3D_n5hhv")
+size = Vector3(3, 0.16, 9)
+
+[sub_resource type="BoxMesh" id="BoxMesh_urfve"]
+material = SubResource("StandardMaterial3D_n5hhv")
+size = Vector3(9, 0.16, 3)
+
+[node name="SidewalkCorner" type="Node3D" unique_id=910741276 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_ol6yx")
+catalog_id = "sidewalk_corner"
+display_name = "Sidewalk Corner"
+category = "Paths and Surfaces"
+footprint_radius = 5.0
+object_height = 0.16
+allow_manual_overlap = true
+
+[node name="@MeshInstance3D@890" type="MeshInstance3D" parent="." unique_id=224281526]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, 1.5)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_ls5wp")
+
+[node name="@MeshInstance3D@891" type="MeshInstance3D" parent="." unique_id=987866657]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0.08, -1.5)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_urfve")

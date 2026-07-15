@@ -1,0 +1,103 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_de3ev"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4wkli"]
+albedo_color = Color(0.03137255, 0.49803922, 0.39607844, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_5slor"]
+material = SubResource("StandardMaterial3D_4wkli")
+top_radius = 1.1
+bottom_radius = 1.5
+height = 1.5
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7efpd"]
+albedo_color = Color(0.09803922, 0.827451, 0.60784316, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_hvhiq"]
+material = SubResource("StandardMaterial3D_7efpd")
+top_radius = 0.7
+bottom_radius = 1.0
+height = 1.2
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xosth"]
+albedo_color = Color(0.20784314, 0.8784314, 0.8666667, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(0.20784314, 0.8784314, 0.8666667, 1)
+emission_energy_multiplier = 1.35
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_rhi26"]
+material = SubResource("StandardMaterial3D_xosth")
+top_radius = 0.18
+bottom_radius = 0.18
+height = 0.22
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_k0kwf"]
+material = SubResource("StandardMaterial3D_xosth")
+top_radius = 0.18
+bottom_radius = 0.18
+height = 0.22
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_g51gp"]
+material = SubResource("StandardMaterial3D_xosth")
+top_radius = 0.18
+bottom_radius = 0.18
+height = 0.22
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_o8aab"]
+material = SubResource("StandardMaterial3D_xosth")
+top_radius = 0.18
+bottom_radius = 0.18
+height = 0.22
+radial_segments = 8
+
+[node name="CyanFloweringBush" type="Node3D" unique_id=1729195037 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_de3ev")
+catalog_id = "flowering_bush_cyan"
+display_name = "Cyan Flowering Bush"
+category = "Vegetation"
+footprint_radius = 2.2
+object_height = 2.0
+
+[node name="@MeshInstance3D@700" type="MeshInstance3D" parent="." unique_id=1292024869]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+visibility_range_end = 1400.0
+mesh = SubResource("CylinderMesh_5slor")
+
+[node name="@MeshInstance3D@701" type="MeshInstance3D" parent="." unique_id=143966334]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1, 0.6, 0.2)
+visibility_range_end = 1400.0
+mesh = SubResource("CylinderMesh_hvhiq")
+
+[node name="@MeshInstance3D@702" type="MeshInstance3D" parent="." unique_id=354059408]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.35, 0.2)
+cast_shadow = 0
+visibility_range_end = 1600.0
+mesh = SubResource("CylinderMesh_rhi26")
+
+[node name="@MeshInstance3D@703" type="MeshInstance3D" parent="." unique_id=1201691089]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.55, -0.5)
+cast_shadow = 0
+visibility_range_end = 1600.0
+mesh = SubResource("CylinderMesh_k0kwf")
+
+[node name="@MeshInstance3D@704" type="MeshInstance3D" parent="." unique_id=250789518]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1.2, 0.4)
+cast_shadow = 0
+visibility_range_end = 1600.0
+mesh = SubResource("CylinderMesh_g51gp")
+
+[node name="@MeshInstance3D@705" type="MeshInstance3D" parent="." unique_id=457990140]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1.45, 0.8)
+cast_shadow = 0
+visibility_range_end = 1600.0
+mesh = SubResource("CylinderMesh_o8aab")

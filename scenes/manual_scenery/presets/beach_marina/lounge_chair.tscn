@@ -1,0 +1,41 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_fwox6"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q4e3w"]
+albedo_color = Color(1, 0.5019608, 0.4, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_g14w8"]
+material = SubResource("StandardMaterial3D_q4e3w")
+size = Vector3(1.8, 0.18, 3.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n5hhv"]
+albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_t84f0"]
+material = SubResource("StandardMaterial3D_n5hhv")
+size = Vector3(2, 0.18, 1.4)
+
+[node name="LoungeChair" type="Node3D" unique_id=963781154 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_fwox6")
+catalog_id = "lounge_chair"
+display_name = "Lounge Chair"
+category = "Beach and Marina"
+footprint_radius = 2.0
+object_height = 1.0
+
+[node name="@MeshInstance3D@940" type="MeshInstance3D" parent="." unique_id=1851712178]
+transform = Transform3D(1, 0, 0, 0, 0.97589743, 0.21822962, 0, -0.21822962, 0.97589743, 0, 0.55, 0)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_g14w8")
+
+[node name="@MeshInstance3D@941" type="MeshInstance3D" parent="." unique_id=1416321416]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 1.9)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_t84f0")

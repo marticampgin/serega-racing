@@ -80,18 +80,125 @@ const ENTRIES: Array[Dictionary] = [
 	{"id": "air_banner", "name": "Air Banner", "category": "Sky", "archetype": "air_banner", "variant": 0, "surface": AIR, "radius": 12.0, "height": 11.0, "texture": "res://assets/generated/friends/8608460d-bd44-4e25-b2dc-ccf8a5003e87.jpg"},
 ]
 
+const SMALL_PROP_ENTRIES: Array[Dictionary] = [
+	# Fine-grained vegetation
+	{"id":"round_bush","name":"Round Tropical Bush","category":"Vegetation","archetype":"bush","variant":1,"surface":LAND,"radius":1.8,"height":1.7},
+	{"id":"flowering_bush_pink","name":"Pink Flowering Bush","category":"Vegetation","archetype":"flowering_bush","variant":0,"surface":LAND,"radius":2.2,"height":2.0},
+	{"id":"flowering_bush_cyan","name":"Cyan Flowering Bush","category":"Vegetation","archetype":"flowering_bush","variant":1,"surface":LAND,"radius":2.2,"height":2.0},
+	{"id":"hedge_short","name":"Short Hedge","category":"Vegetation","archetype":"hedge","variant":0,"surface":LAND,"radius":3.5,"height":1.7,"allow_overlap":true},
+	{"id":"hedge_long","name":"Long Hedge","category":"Vegetation","archetype":"hedge","variant":1,"surface":LAND,"radius":6.5,"height":1.9,"allow_overlap":true},
+	{"id":"rectangular_planter","name":"Rectangular Planter","category":"Vegetation","archetype":"planter","variant":0,"surface":LAND,"radius":2.8,"height":1.8},
+	{"id":"round_planter","name":"Round Planter","category":"Vegetation","archetype":"planter","variant":1,"surface":LAND,"radius":2.2,"height":2.0},
+	{"id":"agave","name":"Agave Plant","category":"Vegetation","archetype":"agave","variant":0,"surface":LAND,"radius":1.8,"height":2.2},
+	{"id":"bird_of_paradise","name":"Bird of Paradise Cluster","category":"Vegetation","archetype":"tropical_plant","variant":0,"surface":LAND,"radius":2.3,"height":3.2},
+	{"id":"ornamental_grass","name":"Ornamental Grass","category":"Vegetation","archetype":"tropical_plant","variant":1,"surface":LAND,"radius":1.7,"height":1.9},
+	{"id":"flower_bed","name":"Tropical Flower Bed","category":"Vegetation","archetype":"flower_bed","variant":0,"surface":LAND,"radius":3.8,"height":0.9,"allow_overlap":true},
+	{"id":"bougainvillea_trellis","name":"Bougainvillea Trellis","category":"Vegetation","archetype":"trellis","variant":0,"surface":LAND,"radius":4.5,"height":4.0,"allow_overlap":true},
+
+	# Fences and traffic-control pieces
+	{"id":"white_picket_fence","name":"White Picket Fence","category":"Fences and Barriers","archetype":"fence_variant","variant":0,"surface":LAND,"radius":5.5,"height":1.8,"allow_overlap":true},
+	{"id":"neon_rail_fence","name":"Neon Rail Fence","category":"Fences and Barriers","archetype":"fence_variant","variant":1,"surface":LAND,"radius":5.5,"height":1.6,"allow_overlap":true},
+	{"id":"chain_link_fence","name":"Chain Link Fence","category":"Fences and Barriers","archetype":"fence_variant","variant":2,"surface":LAND,"radius":5.5,"height":2.5,"allow_overlap":true},
+	{"id":"low_pastel_wall","name":"Low Pastel Wall","category":"Fences and Barriers","archetype":"fence_variant","variant":3,"surface":LAND,"radius":5.5,"height":1.3,"allow_overlap":true},
+	{"id":"traffic_cone","name":"Traffic Cone","category":"Fences and Barriers","archetype":"traffic_cone","variant":0,"surface":LAND,"radius":0.8,"height":1.1,"allow_on_course":true,"allow_overlap":true},
+	{"id":"road_barricade","name":"Road Barricade","category":"Fences and Barriers","archetype":"barricade","variant":0,"surface":LAND,"radius":2.8,"height":1.7,"allow_on_course":true,"allow_overlap":true},
+	{"id":"short_bollard","name":"Short Bollard","category":"Fences and Barriers","archetype":"bollard","variant":0,"surface":LAND,"radius":0.8,"height":1.2,"allow_overlap":true},
+
+	# Individual street furniture
+	{"id":"double_streetlamp","name":"Double Streetlamp","category":"Street Furniture","archetype":"lamp_variant","variant":0,"surface":LAND,"radius":2.6,"height":7.0},
+	{"id":"park_lamp","name":"Park Lamp","category":"Street Furniture","archetype":"lamp_variant","variant":1,"surface":LAND,"radius":1.6,"height":4.2},
+	{"id":"trash_bin","name":"Trash Bin","category":"Street Furniture","archetype":"bin","variant":0,"surface":LAND,"radius":1.0,"height":1.3},
+	{"id":"recycling_bin","name":"Recycling Bin","category":"Street Furniture","archetype":"bin","variant":1,"surface":LAND,"radius":1.0,"height":1.3},
+	{"id":"fire_hydrant","name":"Fire Hydrant","category":"Street Furniture","archetype":"hydrant","variant":0,"surface":LAND,"radius":0.8,"height":1.2},
+	{"id":"bike_rack","name":"Bike Rack","category":"Street Furniture","archetype":"bike_rack","variant":0,"surface":LAND,"radius":2.2,"height":1.3},
+	{"id":"bus_stop","name":"Bus Stop","category":"Street Furniture","archetype":"bus_stop","variant":0,"surface":LAND,"radius":4.5,"height":3.6},
+	{"id":"neon_phone_booth","name":"Neon Phone Booth","category":"Street Furniture","archetype":"phone_booth","variant":0,"surface":LAND,"radius":1.6,"height":3.0},
+	{"id":"vending_machine","name":"Vending Machine","category":"Street Furniture","archetype":"vending","variant":0,"surface":LAND,"radius":1.3,"height":2.3},
+	{"id":"newspaper_box","name":"Newspaper Box","category":"Street Furniture","archetype":"newspaper","variant":0,"surface":LAND,"radius":0.9,"height":1.3},
+	{"id":"picnic_table","name":"Picnic Table","category":"Street Furniture","archetype":"picnic","variant":0,"surface":LAND,"radius":2.7,"height":1.4},
+	{"id":"drinking_fountain","name":"Drinking Fountain","category":"Street Furniture","archetype":"fountain","variant":0,"surface":LAND,"radius":1.0,"height":1.3},
+	{"id":"wayfinding_sign","name":"Wayfinding Sign","category":"Street Furniture","archetype":"wayfinding","variant":0,"surface":LAND,"radius":1.5,"height":3.4},
+
+	# Thin connectable ground pieces
+	{"id":"side_road_straight","name":"Side Road Straight","category":"Paths and Surfaces","archetype":"surface_piece","variant":0,"surface":LAND,"radius":8.0,"height":0.12,"allow_overlap":true},
+	{"id":"side_road_corner","name":"Side Road Corner","category":"Paths and Surfaces","archetype":"surface_piece","variant":1,"surface":LAND,"radius":8.0,"height":0.12,"allow_overlap":true},
+	{"id":"sidewalk_straight","name":"Sidewalk Straight","category":"Paths and Surfaces","archetype":"surface_piece","variant":2,"surface":LAND,"radius":6.0,"height":0.16,"allow_overlap":true},
+	{"id":"sidewalk_corner","name":"Sidewalk Corner","category":"Paths and Surfaces","archetype":"surface_piece","variant":3,"surface":LAND,"radius":5.0,"height":0.16,"allow_overlap":true},
+	{"id":"driveway","name":"Driveway","category":"Paths and Surfaces","archetype":"surface_piece","variant":4,"surface":LAND,"radius":5.0,"height":0.14,"allow_overlap":true},
+	{"id":"marked_parking_pad","name":"Marked Parking Pad","category":"Paths and Surfaces","archetype":"surface_piece","variant":5,"surface":LAND,"radius":7.0,"height":0.14,"allow_overlap":true},
+	{"id":"crosswalk","name":"Crosswalk","category":"Paths and Surfaces","archetype":"surface_piece","variant":6,"surface":LAND,"radius":5.0,"height":0.08,"allow_on_course":true,"allow_overlap":true},
+	{"id":"boardwalk_section","name":"Boardwalk Section","category":"Paths and Surfaces","archetype":"surface_piece","variant":7,"surface":LAND,"radius":6.0,"height":0.18,"allow_overlap":true},
+	{"id":"plaza_tile","name":"Plaza Tile","category":"Paths and Surfaces","archetype":"surface_piece","variant":8,"surface":LAND,"radius":5.0,"height":0.12,"allow_overlap":true},
+	{"id":"stepping_stone_path","name":"Stepping Stone Path","category":"Paths and Surfaces","archetype":"surface_piece","variant":9,"surface":LAND,"radius":5.5,"height":0.16,"allow_overlap":true},
+
+	# Beach and marina details
+	{"id":"dock_straight","name":"Dock Straight","category":"Beach and Marina","archetype":"waterfront_prop","variant":0,"surface":WATER,"radius":6.0,"height":0.5,"allow_overlap":true},
+	{"id":"dock_corner","name":"Dock Corner","category":"Beach and Marina","archetype":"waterfront_prop","variant":1,"surface":WATER,"radius":6.0,"height":0.5,"allow_overlap":true},
+	{"id":"mooring_bollard","name":"Mooring Bollard","category":"Beach and Marina","archetype":"waterfront_prop","variant":2,"surface":LAND,"radius":1.0,"height":1.0},
+	{"id":"red_buoy","name":"Red Buoy","category":"Beach and Marina","archetype":"waterfront_prop","variant":3,"surface":WATER,"radius":1.5,"height":2.0,"allow_overlap":true},
+	{"id":"cyan_buoy","name":"Cyan Buoy","category":"Beach and Marina","archetype":"waterfront_prop","variant":4,"surface":WATER,"radius":1.5,"height":2.0,"allow_overlap":true},
+	{"id":"life_ring_stand","name":"Life Ring Stand","category":"Beach and Marina","archetype":"waterfront_prop","variant":5,"surface":LAND,"radius":1.5,"height":2.4},
+	{"id":"beach_shower","name":"Beach Shower","category":"Beach and Marina","archetype":"waterfront_prop","variant":6,"surface":LAND,"radius":1.5,"height":2.8},
+	{"id":"surfboard_rack","name":"Surfboard Rack","category":"Beach and Marina","archetype":"waterfront_prop","variant":7,"surface":LAND,"radius":2.6,"height":2.2},
+	{"id":"lounge_chair","name":"Lounge Chair","category":"Beach and Marina","archetype":"waterfront_prop","variant":8,"surface":LAND,"radius":2.0,"height":1.0},
+	{"id":"lifeguard_chair","name":"Lifeguard Chair","category":"Beach and Marina","archetype":"waterfront_prop","variant":9,"surface":LAND,"radius":2.2,"height":4.2},
+]
+
+const FRIEND_ART: Array[Dictionary] = [
+	{"id":"friend_glasses","name":"Friend Glasses","texture":"res://assets/generated/friends/friend-glasses-racing.png"},
+	{"id":"friend_dark_hair","name":"Friend Dark Hair","texture":"res://assets/generated/friends/friend-dark-hair-racing.png"},
+	{"id":"friend_beard","name":"Friend Beard","texture":"res://assets/generated/friends/friend-beard-racing.png"},
+	{"id":"race_car_art","name":"Race Car Art","texture":"res://assets/generated/friends/1844112d-4cdc-4fd7-af55-4c29c7179983.jpg"},
+	{"id":"crew_collage","name":"Crew Collage","texture":"res://assets/generated/friends/1daf0fdc-2536-4e54-b476-fc61c770b23d.jpg"},
+	{"id":"bralis","name":"Bralis","texture":"res://assets/generated/friends/481d5ab6-7c3f-47be-a2bd-e02bdfb2c1d5.jpg"},
+	{"id":"punk_hedgehog","name":"Punk Hedgehog","texture":"res://assets/generated/friends/5213d1b1-6e99-448d-ad81-26f61e859010.jpg"},
+	{"id":"race_engineer","name":"Race Engineer","texture":"res://assets/generated/friends/61b5ddf7-ae71-4d13-b677-660bd070a785.jpg"},
+	{"id":"danik","name":"Danik","texture":"res://assets/generated/friends/71b38443-851b-401f-a174-0b72d699a284.jpg"},
+	{"id":"motorcycle_rider","name":"Motorcycle Rider","texture":"res://assets/generated/friends/8608460d-bd44-4e25-b2dc-ccf8a5003e87.jpg"},
+	{"id":"milk_racer","name":"Milk Racer","texture":"res://assets/generated/friends/882a2791-af8b-4378-b3b7-a05b4cf0dd08.jpg"},
+]
+
+const ART_CARRIERS: Array[Dictionary] = [
+	{"id":"billboard","name":"Billboard","archetype":"billboard","surface":LAND,"radius":7.0,"height":9.0},
+	{"id":"wall_poster","name":"Wall Poster","archetype":"wall_poster","surface":WALL,"radius":5.0,"height":6.0},
+	{"id":"zeppelin","name":"Zeppelin","archetype":"zeppelin","surface":AIR,"radius":26.0,"height":18.0},
+	{"id":"banner_plane","name":"Banner Plane","archetype":"banner_plane","surface":AIR,"radius":28.0,"height":13.0},
+	{"id":"air_banner","name":"Air Banner","archetype":"air_banner","surface":AIR,"radius":12.0,"height":11.0},
+]
+
 
 static func entries() -> Array[Dictionary]:
-	return ENTRIES.duplicate(true)
+	var result := ENTRIES.duplicate(true)
+	result.append_array(SMALL_PROP_ENTRIES.duplicate(true))
+	for artwork: Dictionary in FRIEND_ART:
+		for carrier: Dictionary in ART_CARRIERS:
+			result.append({
+				"id": "art_%s__%s" % [artwork.id, carrier.id],
+				"name": "%s %s" % [artwork.name, carrier.name],
+				"category": "Friend Media",
+				"folder": "friend_media/%s" % artwork.id,
+				"filename": "%s.tscn" % carrier.id,
+				"archetype": carrier.archetype,
+				"variant": 0,
+				"surface": carrier.surface,
+				"radius": carrier.radius,
+				"height": carrier.height,
+				"texture": artwork.texture,
+				"artwork_id": artwork.id,
+				"carrier_id": carrier.id,
+			})
+	return result
 
 
 static func entry(id: String) -> Dictionary:
-	for value: Dictionary in ENTRIES:
+	for value: Dictionary in entries():
 		if str(value.id) == id:
 			return value.duplicate(true)
 	return {}
 
 
 static func scene_path(value: Dictionary) -> String:
+	if value.has("folder"):
+		return "res://scenes/manual_scenery/presets/%s/%s" % [str(value.folder), str(value.filename)]
 	var folder := str(value.category).to_snake_case().replace("_and_", "_")
 	return "res://scenes/manual_scenery/presets/%s/%s.tscn" % [folder, str(value.id)]

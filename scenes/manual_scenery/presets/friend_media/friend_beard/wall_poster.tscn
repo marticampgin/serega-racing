@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_6wt00"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/friend-beard-racing.png" id="2_cwc8o"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ag734"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_smeth"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(3.6723187, 5.65, 0.24)
+
+[node name="FriendBeardWallPoster" type="Node3D" unique_id=178626625 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_6wt00")
+catalog_id = "art_friend_beard__wall_poster"
+display_name = "Friend Beard Wall Poster"
+category = "Friend Media"
+surface = 3
+footprint_radius = 5.0
+object_height = 6.0
+poster_texture = ExtResource("2_cwc8o")
+
+[node name="@MeshInstance3D@982" type="MeshInstance3D" parent="." unique_id=902692150]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_smeth")
+
+[node name="PosterFaceFront" type="Sprite3D" parent="." unique_id=725492668]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.003099814
+texture = ExtResource("2_cwc8o")
+
+[node name="PosterFaceBack" type="Sprite3D" parent="." unique_id=1204842908]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 2.5, 0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.003099814
+texture = ExtResource("2_cwc8o")

@@ -1,0 +1,83 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_ud1g5"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/8608460d-bd44-4e25-b2dc-ccf8a5003e87.jpg" id="2_472xt"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ag734"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_3wac6"]
+material = SubResource("StandardMaterial3D_ag734")
+size = Vector3(8.60924, 7, 0.35)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ag22"]
+albedo_color = Color(1, 0.24705882, 0.8117647, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.24705882, 0.8117647, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_d3vqj"]
+material = SubResource("StandardMaterial3D_1ag22")
+size = Vector3(9.009239, 0.32, 0.58)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1vf1l"]
+albedo_color = Color(0.15294118, 0.1882353, 0.26666668, 1)
+metallic = 0.55
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_7byr1"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(0.24, 1.4, 0.24)
+
+[sub_resource type="BoxMesh" id="BoxMesh_rjna5"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(0.24, 1.4, 0.24)
+
+[node name="MotorcycleRiderBillboard" type="Node3D" unique_id=2011355905 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_ud1g5")
+catalog_id = "art_motorcycle_rider__billboard"
+display_name = "Motorcycle Rider Billboard"
+category = "Friend Media"
+footprint_radius = 7.0
+object_height = 9.0
+poster_texture = ExtResource("2_472xt")
+
+[node name="@MeshInstance3D@1090" type="MeshInstance3D" parent="." unique_id=1962160826]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.35, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_3wac6")
+
+[node name="@MeshInstance3D@1091" type="MeshInstance3D" parent="." unique_id=2056303781]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.92, 0)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_d3vqj")
+
+[node name="@MeshInstance3D@1092" type="MeshInstance3D" parent="." unique_id=1309291551]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.005511, 0.7, 0.08)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_7byr1")
+
+[node name="@MeshInstance3D@1093" type="MeshInstance3D" parent="." unique_id=2135066815]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.005511, 0.7, 0.08)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_rjna5")
+
+[node name="PosterFaceFront" type="Sprite3D" parent="." unique_id=1632099013]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.35, -0.34)
+visibility_range_end = 2800.0
+pixel_size = 0.011413043
+texture = ExtResource("2_472xt")
+
+[node name="PosterFaceBack" type="Sprite3D" parent="." unique_id=1531833527]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 4.35, 0.34)
+visibility_range_end = 2800.0
+pixel_size = 0.011413043
+texture = ExtResource("2_472xt")

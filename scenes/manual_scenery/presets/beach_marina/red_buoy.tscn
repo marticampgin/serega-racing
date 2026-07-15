@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_kdyhk"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q4e3w"]
+albedo_color = Color(1, 0.5019608, 0.4, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_bqp71"]
+material = SubResource("StandardMaterial3D_q4e3w")
+top_radius = 0.42
+bottom_radius = 0.65
+height = 1.2
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1vf1l"]
+albedo_color = Color(0.15294118, 0.1882353, 0.26666668, 1)
+metallic = 0.55
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_p2spv"]
+material = SubResource("StandardMaterial3D_1vf1l")
+size = Vector3(0.15, 1.1, 0.15)
+
+[node name="RedBuoy" type="Node3D" unique_id=342314892 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_kdyhk")
+catalog_id = "red_buoy"
+display_name = "Red Buoy"
+category = "Beach and Marina"
+surface = 1
+footprint_radius = 1.5
+object_height = 2.0
+allow_manual_overlap = true
+
+[node name="@MeshInstance3D@927" type="MeshInstance3D" parent="." unique_id=1600345986]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+visibility_range_end = 2000.0
+mesh = SubResource("CylinderMesh_bqp71")
+
+[node name="@MeshInstance3D@928" type="MeshInstance3D" parent="." unique_id=1826019944]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_p2spv")

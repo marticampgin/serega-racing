@@ -1,0 +1,51 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_saw78"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q4e3w"]
+albedo_color = Color(1, 0.5019608, 0.4, 1)
+roughness = 0.78
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ayasy"]
+material = SubResource("StandardMaterial3D_q4e3w")
+top_radius = 0.34
+bottom_radius = 0.34
+height = 0.9
+radial_segments = 10
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_5pwou"]
+material = SubResource("StandardMaterial3D_q4e3w")
+top_radius = 0.3
+bottom_radius = 0.48
+height = 0.22
+radial_segments = 10
+
+[sub_resource type="BoxMesh" id="BoxMesh_jhetc"]
+material = SubResource("StandardMaterial3D_q4e3w")
+size = Vector3(1.1, 0.28, 0.28)
+
+[node name="FireHydrant" type="Node3D" unique_id=1343594392 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_saw78")
+catalog_id = "fire_hydrant"
+display_name = "Fire Hydrant"
+category = "Street Furniture"
+footprint_radius = 0.8
+object_height = 1.2
+
+[node name="@MeshInstance3D@850" type="MeshInstance3D" parent="." unique_id=1294610277]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+visibility_range_end = 1400.0
+mesh = SubResource("CylinderMesh_ayasy")
+
+[node name="@MeshInstance3D@851" type="MeshInstance3D" parent="." unique_id=1135825822]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+cast_shadow = 0
+visibility_range_end = 1400.0
+mesh = SubResource("CylinderMesh_5pwou")
+
+[node name="@MeshInstance3D@852" type="MeshInstance3D" parent="." unique_id=1606868854]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_jhetc")

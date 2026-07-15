@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_qlr3a"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_63pls"]
+albedo_color = Color(0.14117648, 0.15686275, 0.19607843, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_jmk1e"]
+material = SubResource("StandardMaterial3D_63pls")
+size = Vector3(8, 0.12, 16)
+
+[node name="SideRoadStraight" type="Node3D" unique_id=1350666024 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_qlr3a")
+catalog_id = "side_road_straight"
+display_name = "Side Road Straight"
+category = "Paths and Surfaces"
+footprint_radius = 8.0
+object_height = 0.12
+allow_manual_overlap = true
+
+[node name="@MeshInstance3D@886" type="MeshInstance3D" parent="." unique_id=992128816]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0)
+cast_shadow = 0
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_jmk1e")

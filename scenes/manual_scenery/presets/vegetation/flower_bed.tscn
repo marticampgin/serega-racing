@@ -1,0 +1,163 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_rmsfo"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0avfs"]
+albedo_color = Color(0.34901962, 0.2784314, 0.43529412, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_eqir5"]
+material = SubResource("StandardMaterial3D_0avfs")
+size = Vector3(7, 0.25, 3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xosth"]
+albedo_color = Color(0.20784314, 0.8784314, 0.8666667, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(0.20784314, 0.8784314, 0.8666667, 1)
+emission_energy_multiplier = 1.35
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_oac6a"]
+material = SubResource("StandardMaterial3D_xosth")
+top_radius = 0.12
+bottom_radius = 0.22
+height = 0.55
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ag22"]
+albedo_color = Color(1, 0.24705882, 0.8117647, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.24705882, 0.8117647, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_44x24"]
+material = SubResource("StandardMaterial3D_1ag22")
+top_radius = 0.12
+bottom_radius = 0.22
+height = 0.55
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_th580"]
+material = SubResource("StandardMaterial3D_1ag22")
+top_radius = 0.12
+bottom_radius = 0.22
+height = 0.55
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_b1u41"]
+material = SubResource("StandardMaterial3D_xosth")
+top_radius = 0.12
+bottom_radius = 0.22
+height = 0.55
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_g5eru"]
+material = SubResource("StandardMaterial3D_xosth")
+top_radius = 0.12
+bottom_radius = 0.22
+height = 0.55
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_hk6vb"]
+material = SubResource("StandardMaterial3D_xosth")
+top_radius = 0.12
+bottom_radius = 0.22
+height = 0.55
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_aeink"]
+material = SubResource("StandardMaterial3D_xosth")
+top_radius = 0.12
+bottom_radius = 0.22
+height = 0.55
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_5ch68"]
+material = SubResource("StandardMaterial3D_1ag22")
+top_radius = 0.12
+bottom_radius = 0.22
+height = 0.55
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_c2g2c"]
+material = SubResource("StandardMaterial3D_1ag22")
+top_radius = 0.12
+bottom_radius = 0.22
+height = 0.55
+radial_segments = 8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_hp1rf"]
+material = SubResource("StandardMaterial3D_xosth")
+top_radius = 0.12
+bottom_radius = 0.22
+height = 0.55
+radial_segments = 8
+
+[node name="TropicalFlowerBed" type="Node3D" unique_id=171831572 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_rmsfo")
+catalog_id = "flower_bed"
+display_name = "Tropical Flower Bed"
+category = "Vegetation"
+footprint_radius = 3.8
+object_height = 0.9
+allow_manual_overlap = true
+
+[node name="@MeshInstance3D@767" type="MeshInstance3D" parent="." unique_id=862651243]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.13, 0)
+cast_shadow = 0
+visibility_range_end = 1500.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_eqir5")
+
+[node name="@MeshInstance3D@768" type="MeshInstance3D" parent="." unique_id=1366754075]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0.55, -0.75)
+visibility_range_end = 1500.0
+mesh = SubResource("CylinderMesh_oac6a")
+
+[node name="@MeshInstance3D@769" type="MeshInstance3D" parent="." unique_id=1041092188]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0.55, 0.75)
+visibility_range_end = 1500.0
+mesh = SubResource("CylinderMesh_44x24")
+
+[node name="@MeshInstance3D@770" type="MeshInstance3D" parent="." unique_id=2082449079]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.25, 0.55, -0.75)
+visibility_range_end = 1500.0
+mesh = SubResource("CylinderMesh_th580")
+
+[node name="@MeshInstance3D@771" type="MeshInstance3D" parent="." unique_id=2062049125]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.25, 0.55, 0.75)
+visibility_range_end = 1500.0
+mesh = SubResource("CylinderMesh_b1u41")
+
+[node name="@MeshInstance3D@772" type="MeshInstance3D" parent="." unique_id=2097218694]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, -0.75)
+visibility_range_end = 1500.0
+mesh = SubResource("CylinderMesh_g5eru")
+
+[node name="@MeshInstance3D@773" type="MeshInstance3D" parent="." unique_id=1617556588]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0.75)
+visibility_range_end = 1500.0
+mesh = SubResource("CylinderMesh_hk6vb")
+
+[node name="@MeshInstance3D@774" type="MeshInstance3D" parent="." unique_id=2099452872]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.25, 0.55, -0.75)
+visibility_range_end = 1500.0
+mesh = SubResource("CylinderMesh_aeink")
+
+[node name="@MeshInstance3D@775" type="MeshInstance3D" parent="." unique_id=1018706120]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.25, 0.55, 0.75)
+visibility_range_end = 1500.0
+mesh = SubResource("CylinderMesh_5ch68")
+
+[node name="@MeshInstance3D@776" type="MeshInstance3D" parent="." unique_id=671253771]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0.55, -0.75)
+visibility_range_end = 1500.0
+mesh = SubResource("CylinderMesh_c2g2c")
+
+[node name="@MeshInstance3D@777" type="MeshInstance3D" parent="." unique_id=2074312592]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0.55, 0.75)
+visibility_range_end = 1500.0
+mesh = SubResource("CylinderMesh_hp1rf")
