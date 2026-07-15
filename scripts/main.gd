@@ -400,7 +400,15 @@ func _apply_manual_scenery_reservations(editable_world: Node) -> void:
 	# any baseline decoration occupying the same footprint.
 	var manual_items := get_tree().get_nodes_in_group("manual_scenery")
 	var removals: Array[Node] = []
-	for value in get_tree().get_nodes_in_group("editable_scenery"):
+	var generated_candidates := get_tree().get_nodes_in_group("editable_scenery")
+	for detail in get_tree().get_nodes_in_group("neighborhood_detail_scenery"):
+		# Compacted path/fence/plant networks intentionally allow authored paths to
+		# cross them; removing a whole district network for one overlap is worse
+		# than the harmless surface intersection. Standalone lamps, driveways,
+		# docks and boats still yield to manual scenery.
+		if not detail.has_meta("detail_count"):
+			generated_candidates.append(detail)
+	for value in generated_candidates:
 		if not value is Node3D or not editable_world.is_ancestor_of(value):
 			continue
 		var generated := value as Node3D

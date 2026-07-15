@@ -18,6 +18,7 @@
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/friend_media/milk_racer/wall_poster.tscn" id="16_h4vj1"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/paths_surfaces/stepping_stone_path.tscn" id="17_iiro7"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/paths_surfaces/boardwalk_section.tscn" id="18_2mfsd"]
+[ext_resource type="PackedScene" path="res://scenes/world/neighborhood_details.tscn" id="99_neighborhood_details"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xn3dr"]
 albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
@@ -48873,3 +48874,6 @@ transform = Transform3D(0.9261087, 0, 0.37725693, 0, 1, 0, -0.37725693, 0, 0.926
 metadata/catalog_id = "boardwalk_section"
 metadata/scenery_radius = 6.0
 metadata/manual_surface = 0
+
+[node name="NeighborhoodDetails" parent="." instance=ExtResource("99_neighborhood_details")]
+editable_children = true
