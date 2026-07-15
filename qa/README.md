@@ -55,3 +55,16 @@ Verify that generated buildings, palms and lamps reserve around a manually place
 ```powershell
 .\godot\Godot_v4.7-stable_win64_console.exe --path . --headless --rendering-method gl_compatibility --script res://qa/manual_scenery_reservation_test.gd
 ```
+
+Verify the editable district bake, unchanged runtime mesh count and absence of
+duplicate decorative generation:
+
+```powershell
+.\godot\Godot_v4.7-stable_win64_console.exe --path . --headless --rendering-method gl_compatibility --script res://qa/editable_world_bake_test.gd
+```
+
+Verify all 52 small props and the complete 11-artwork x 5-carrier media matrix:
+
+```powershell
+.\godot\Godot_v4.7-stable_win64_console.exe --path . --headless --rendering-method gl_compatibility --script res://qa/manual_scenery_expansion_test.gd
+```

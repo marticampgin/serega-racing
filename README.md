@@ -55,12 +55,12 @@ course guide.
 
 ### Manual scenery editing
 
-`main.tscn` includes an empty `ManualScenery` layer and an editor-only map
-guide. Drag any of the 57 checked-in presets from
-`scenes/manual_scenery/presets/` into that layer to decorate the course without
-changing the procedural road, terrain, bridge, or tunnel. See
-[`docs/manual_scenery.md`](docs/manual_scenery.md) for placement, artwork, water,
-aircraft-motion, and validation instructions.
+Open `scenes/world/editable_world.tscn` to move the 420 existing decorative
+objects by district, or drag any of the 164 checked-in presets from
+`scenes/manual_scenery/presets/` under `EditableWorld/ManualScenery`. The
+library includes 52 individual landscaping/street/beach pieces and every one
+of the 11 current images on all five media carriers. See
+[`docs/manual_scenery.md`](docs/manual_scenery.md) for the exact workflow.
 
 ## Verification
 

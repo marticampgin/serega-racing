@@ -39,6 +39,8 @@ func _run() -> void:
 	var by_category := {}
 	for entry: Dictionary in CatalogScript.entries():
 		var category := str(entry.category)
+		if category == "Friend Media":
+			category = "Friend Media %s" % str(entry.artwork_id)
 		if not by_category.has(category):
 			by_category[category] = []
 		(by_category[category] as Array).append(entry)
@@ -57,6 +59,8 @@ func _run() -> void:
 			columns = mini(4, entries.size())
 		elif category == "Boats and Waterfront":
 			columns = mini(3, entries.size())
+		elif category.begins_with("Friend Media"):
+			columns = mini(3, entries.size())
 		var rows := ceili(float(entries.size()) / columns)
 		var spacing := 42.0
 		match category:
@@ -65,6 +69,8 @@ func _run() -> void:
 			"Signs and Posters": spacing = 24.0
 			"Boats and Waterfront": spacing = 36.0
 			"Sky": spacing = 55.0
+		if category.begins_with("Friend Media"):
+			spacing = 55.0
 		var width := maxf(spacing, (columns - 1) * spacing)
 		var depth := maxf(spacing, (rows - 1) * spacing)
 		_add_ground(showcase, Vector2(width + spacing, depth + spacing), category == "Boats and Waterfront")
