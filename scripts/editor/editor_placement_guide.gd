@@ -4,6 +4,10 @@ extends Node3D
 const CourseLayoutScript := preload("res://scripts/course_layout.gd")
 const WorldBuilderScript := preload("res://scripts/world_builder.gd")
 const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
+const GENERATED_SCENERY_PATHS := [
+	"res://scenes/world/neighborhood_details.tscn",
+	"res://scenes/world/natural_landscapes.tscn",
+]
 
 const ROAD_WIDTH := 17.0
 const ROAD_SAMPLE_STEP := 2.0
@@ -84,11 +88,17 @@ func _build_detailed_preview(course: CourseLayout) -> void:
 	# The Race parent is the reservation scope, so procedural preview scenery
 	# respects real ManualScenery siblings while remaining under this internal root.
 	builder.build_infrastructure(preview, course, get_parent() as Node3D)
+	_load_generated_overlays(preview)
 	var saved_meshes := 0
 	if show_saved_scenery and ResourceLoader.exists(EDITABLE_WORLD_PATH):
 		var packed := load(EDITABLE_WORLD_PATH) as PackedScene
 		if packed != null:
 			var saved_world := packed.instantiate() as Node3D
+			for legacy_name in ["NeighborhoodDetails", "NaturalLandscapes"]:
+				var legacy := saved_world.get_node_or_null(legacy_name)
+				if legacy != null:
+					saved_world.remove_child(legacy)
+					legacy.free()
 			var nested_guide := saved_world.get_node_or_null("EditorPlacementGuide")
 			if nested_guide != null:
 				saved_world.remove_child(nested_guide)
@@ -98,6 +108,31 @@ func _build_detailed_preview(course: CourseLayout) -> void:
 			preview.add_child(saved_world)
 			saved_meshes = saved_world.find_children("*", "MeshInstance3D", true, false).size()
 	print("Editor world preview: complete road, %d infrastructure meshes and %d saved scenery meshes" % [builder.mesh_instance_count, saved_meshes])
+
+
+func _load_generated_overlays(preview: Node3D) -> void:
+	var overlays := Node3D.new()
+	overlays.name = "GeneratedSceneryOverlays"
+	overlays.process_mode = Node.PROCESS_MODE_DISABLED
+	overlays.set_meta("editor_preview_only", true)
+	overlays.set_meta("_edit_lock_", true)
+	preview.add_child(overlays, false, Node.INTERNAL_MODE_BACK)
+	for path in GENERATED_SCENERY_PATHS:
+		if not ResourceLoader.exists(path):
+			continue
+		var packed := load(path) as PackedScene
+		if packed == null:
+			continue
+		var overlay := packed.instantiate() as Node3D
+		overlay.transform = Transform3D.IDENTITY
+		overlay.process_mode = Node.PROCESS_MODE_DISABLED
+		overlay.set_meta("editor_preview_only", true)
+		overlay.set_meta("_edit_lock_", true)
+		overlays.add_child(overlay)
+		for value in overlay.find_children("*", "GeometryInstance3D", true, false):
+			var geometry := value as GeometryInstance3D
+			geometry.visibility_range_end = 100000.0
+			geometry.visibility_range_begin = 0.0
 
 
 func _add_exact_track_preview(course: CourseLayout, parent: Node3D) -> void:

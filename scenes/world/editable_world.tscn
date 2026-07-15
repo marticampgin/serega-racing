@@ -29,7 +29,6 @@
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/friend_media/punk_hedgehog/billboard.tscn" id="28_wiuhp"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/vegetation/palm_wide.tscn" id="29_x202x"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/vegetation/palm_tall.tscn" id="30_wuukr"]
-[ext_resource type="PackedScene" path="res://scenes/world/neighborhood_details.tscn" id="99_neighborhood_details"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xn3dr"]
 albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
@@ -20055,7 +20054,7 @@ visibility_range_fade_mode = 1
 mesh = SubResource("CylinderMesh_pcjgj")
 
 [node name="Villa8" type="Node3D" parent="StartCoast" unique_id=1909975351 groups=["building_layout", "building_scenery", "district_infill", "editable_scenery", "grounded_scenery", "house_scenery", "neighborhood_scenery", "start_coast_scenery"]]
-transform = Transform3D(0.69884175, 0, -0.7152763, 0, 1, 0, 0.7152763, 0, 0.69884175, -876.02325, 0.63326323, -513.639)
+transform = Transform3D(0.69884175, 0, -0.7152763, 0, 1, 0, 0.7152763, 0, 0.69884175, -876.02325, 1.277188, -513.639)
 metadata/ground_y = 1.277188
 metadata/course_offset = 492.3978678385416
 metadata/scenery_radius = 11.0
@@ -20425,7 +20424,7 @@ visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_ok0u1")
 
 [node name="Villa12" type="Node3D" parent="StartCoast" unique_id=1327885345 groups=["building_layout", "building_scenery", "district_infill", "editable_scenery", "grounded_scenery", "house_scenery", "neighborhood_scenery", "start_coast_scenery"]]
-transform = Transform3D(0.71939564, 0, -0.6946006, 0, 1, 0, 0.6946006, 0, 0.71939564, -823.60266, 0.55180824, -461.43695)
+transform = Transform3D(0.71939564, 0, -0.6946006, 0, 1, 0, 0.6946006, 0, 0.71939564, -823.60266, 1.195733, -461.43695)
 metadata/ground_y = 1.195733
 metadata/course_offset = 564.3978678385416
 metadata/scenery_radius = 11.0
@@ -20809,7 +20808,7 @@ visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_ny34m")
 
 [node name="Villa16" type="Node3D" parent="StartCoast" unique_id=1535619834 groups=["building_layout", "building_scenery", "district_infill", "editable_scenery", "grounded_scenery", "house_scenery", "neighborhood_scenery", "start_coast_scenery"]]
-transform = Transform3D(0.733623, 0, -0.6795566, 0, 1, 0, 0.6795566, 0, 0.733623, -796.4384, -1.5282063, -435.72058)
+transform = Transform3D(0.733623, 0, -0.6795566, 0, 1, 0, 0.6795566, 0, 0.733623, -796.4384, 0.99821424, -435.72058)
 metadata/ground_y = 0.99821424
 metadata/course_offset = 600.3978678385416
 metadata/scenery_radius = 11.0
@@ -21111,7 +21110,7 @@ visibility_range_fade_mode = 1
 mesh = SubResource("CylinderMesh_qo2jq")
 
 [node name="StartCoast_Apartment_Right_R02_S07" type="Node3D" parent="StartCoast" unique_id=303980811 groups=["building_layout", "building_scenery", "district_infill", "editable_scenery", "grounded_scenery", "house_scenery", "neighborhood_scenery", "start_coast_scenery"]]
-transform = Transform3D(0.7818662, 0, -0.6234463, 0, 1, 0, 0.6234463, 0, 0.7818662, -765.458, 0.017992258, -408.84436)
+transform = Transform3D(0.7818662, 0, -0.6234463, 0, 1, 0, 0.6234463, 0, 0.7818662, -765.458, 0.661917, -408.84436)
 metadata/ground_y = 0.661917
 metadata/course_offset = 636.3978678385416
 metadata/scenery_radius = 11.0
@@ -21471,7 +21470,7 @@ visibility_range_fade_mode = 1
 mesh = SubResource("CylinderMesh_4fxy7")
 
 [node name="StartCoast_Villa_Right_R02_S08" type="Node3D" parent="StartCoast" unique_id=1409602847 groups=["building_layout", "building_scenery", "district_infill", "editable_scenery", "grounded_scenery", "house_scenery", "neighborhood_scenery", "start_coast_scenery"]]
-transform = Transform3D(0.8090017, 0, -0.5878063, 0, 1, 0, 0.5878063, 0, 0.8090017, -734.31287, -1.1390337, -385.331)
+transform = Transform3D(0.8090017, 0, -0.5878063, 0, 1, 0, 0.5878063, 0, 0.8090017, -734.31287, 1.3873869, -385.331)
 metadata/ground_y = 1.3873869
 metadata/course_offset = 672.3978678385416
 metadata/scenery_radius = 11.0
@@ -23544,12 +23543,12 @@ visibility_range_fade_mode = 1
 mesh = SubResource("CylinderMesh_m36ex")
 
 [node name="LoopOne_BeachMotel" type="Node3D" parent="LoopOne" unique_id=1985775716 groups=["building_scenery", "district_landmark", "editable_scenery", "grounded_scenery", "loop_landmark", "unique_landmark"]]
-transform = Transform3D(0.73461705, 0, -0.67848194, 0, 1, 0, 0.67848194, 0, 0.73461705, -828.5328, 1.7882943, -199.547)
-metadata/ground_y = -0.43419412
+transform = Transform3D(-0.73461705, 0, 0.67848194, 0, 1, 0, -0.67848194, 0, -0.73461705, -743.7518, 1.381828, -291.2883)
+metadata/ground_y = 1.381828
 metadata/course_offset = 1134.4
 metadata/scenery_radius = 17.0
-metadata/unique_landmark_id = "loop_one_beach_motel"
-metadata/bake_id = "LoopOne/LoopOne_BeachMotel/000"
+metadata/unique_landmark_id = "loop_one_beach_motel_annex"
+metadata/bake_id = "LoopOne/LoopOne_BeachMotelAnnex/000"
 metadata/_edit_group_ = true
 
 [node name="@MeshInstance3D@318" type="MeshInstance3D" parent="LoopOne/LoopOne_BeachMotel" unique_id=825853139]
@@ -23646,8 +23645,8 @@ visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_6y8ky")
 
 [node name="LoopOne_BeachMotel3" type="Node3D" parent="LoopOne" unique_id=351888465 groups=["building_scenery", "district_landmark", "editable_scenery", "grounded_scenery", "loop_landmark", "unique_landmark"]]
-transform = Transform3D(0.73461705, 0, -0.67848194, 0, 1, 0, 0.67848194, 0, 0.73461705, -828.5328, 1.7882943, -199.547)
-metadata/ground_y = -0.43419412
+transform = Transform3D(0.73461705, 0, -0.67848194, 0, 1, 0, 0.67848194, 0, 0.73461705, -828.5328, 0.737393, -199.547)
+metadata/ground_y = 0.737393
 metadata/course_offset = 1134.4
 metadata/scenery_radius = 17.0
 metadata/unique_landmark_id = "loop_one_beach_motel"
@@ -50524,9 +50523,6 @@ transform = Transform3D(0.9747107, 0, 0.22347094, 0, 1, 0, -0.22347094, 0, 0.974
 metadata/catalog_id = "boardwalk_section"
 metadata/scenery_radius = 6.0
 metadata/manual_surface = 0
-
-[node name="NeighborhoodDetails" parent="." unique_id=1349637960 instance=ExtResource("99_neighborhood_details")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.5264206, 0)
 
 [node name="PartyYacht" parent="." unique_id=1255351475 groups=["manual_water_scenery", "water_scenery"] instance=ExtResource("24_hi4r8")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1222.7711, -2.943634, -727.7691)

@@ -13,6 +13,8 @@ var _parent: Node3D
 var _materials: Dictionary = {}
 var _folders: Dictionary = {}
 var _buildings: Array[Node3D] = []
+var _layout_buildings: Array[Node3D] = []
+var _landmark_reservations: Array[Node3D] = []
 var _manual_items: Array[Node3D] = []
 var _existing_lamps: Array[Node3D] = []
 var _road_grid: Dictionary = {}
@@ -33,13 +35,18 @@ func build(parent: Node3D, course: CourseLayout, terrain: WorldBuilder, source: 
 		print("NEIGHBORHOOD DETAILS: building %s" % block_id)
 		_build_block(block_id, blocks[block_id] as Array[Node3D])
 		print("NEIGHBORHOOD DETAILS: %s complete (%d roots)" % [block_id, detail_count])
+	_build_standalone_building_details()
 
 
 func _collect_reservations() -> void:
 	for value in _source.find_children("*", "Node3D", true, false):
 		var node := value as Node3D
-		if node.is_in_group("building_layout"):
+		if node.is_in_group("building_scenery"):
 			_buildings.append(node)
+		if node.is_in_group("building_layout"):
+			_layout_buildings.append(node)
+		if node.is_in_group("unique_landmark") and not node.is_in_group("building_scenery"):
+			_landmark_reservations.append(node)
 		if node.is_in_group("manual_scenery"):
 			_manual_items.append(node)
 		if node.is_in_group("lamp_scenery"):
@@ -49,7 +56,7 @@ func _collect_reservations() -> void:
 func _collect_blocks() -> Dictionary:
 	var blocks: Dictionary = {}
 	var seen: Dictionary = {}
-	for building in _buildings:
+	for building in _layout_buildings:
 		if not building.has_meta("layout_block_id"):
 			continue
 		var block_id := str(building.get_meta("layout_block_id"))
@@ -68,6 +75,94 @@ func _collect_blocks() -> Dictionary:
 			blocks[block_id] = [] as Array[Node3D]
 		(blocks[block_id] as Array[Node3D]).append(building)
 	return blocks
+
+
+func _build_standalone_building_details() -> void:
+	var standalone_index := 0
+	for building in _buildings:
+		if building.is_in_group("building_layout") or not building.has_meta("course_offset"):
+			continue
+		# Standalone buildings are frequently moved by hand. Their baked metadata
+		# may still describe the old location, so derive context from the authored
+		# transform instead of sending paths back to the former site.
+		var offset := _nearest_course_offset(building.global_position)
+		var road := _course.point_at(offset)
+		var lateral := _course.lateral_at(offset)
+		var tangent := _course.tangent_at(offset)
+		var delta := building.global_position - road
+		var side := int(signf(delta.dot(lateral)))
+		if side == 0:
+			side = 1
+		var setback := absf(delta.dot(lateral))
+		var scale := building.global_transform.basis.get_scale()
+		var radius := float(building.get_meta("scenery_radius", 9.0)) * maxf(absf(scale.x), absf(scale.z))
+		var district := _course.zone_at(offset)
+		var block_id := "standalone_%s_%03d" % [district, standalone_index]
+		var front_clearance := clampf(radius * 0.62, 5.0, 15.0)
+		var path_start := _course.road_half_width + 4.8
+		var path_finish := setback - front_clearance
+		if path_finish > path_start + 3.0:
+			_add_standalone_path(block_id, district, building, offset, side, path_start, path_finish, standalone_index)
+
+		# A small, deliberate garden frame makes isolated landmarks feel connected
+		# without pretending every one belongs to a repeated residential block.
+		var front := building.global_position - lateral * float(side) * front_clearance
+		for corner in [-1, 1]:
+			var bush_position := front + tangent * float(corner) * clampf(radius * 0.42, 4.0, 10.0)
+			_add_standalone_bush(block_id, district, building, offset, side, bush_position, standalone_index * 2 + (1 if corner > 0 else 0))
+		_add_standalone_fence(block_id, district, building, offset, side, front, radius, standalone_index)
+		standalone_index += 1
+
+
+func _nearest_course_offset(position: Vector3) -> float:
+	var best_offset := 0.0
+	var best_distance := INF
+	var offset := 0.0
+	while offset < _course.length():
+		var point := _course.point_at(offset)
+		var distance := Vector2(position.x, position.z).distance_squared_to(Vector2(point.x, point.z))
+		if distance < best_distance:
+			best_distance = distance
+			best_offset = offset
+		offset += 8.0
+	return best_offset
+
+
+func _add_standalone_path(block_id: String, district: String, building: Node3D, offset: float, side: int, start_setback: float, finish_setback: float, station: int) -> void:
+	var length := finish_setback - start_setback
+	var centre_setback := (start_setback + finish_setback) * 0.5
+	var position := _course.point_at(offset) + _course.lateral_at(offset) * float(side) * centre_setback
+	if not _valid_land_detail_except(position, offset, maxf(2.1, length * 0.45), building):
+		return
+	position.y = _terrain.terrain_height_at(Vector2(position.x, position.z)) + 0.11
+	var root := _detail_root(block_id, district, "standalone_path", offset, side, station, position, Vector2(2.0, length * 0.5))
+	root.look_at(_course.point_at(offset), Vector3.UP)
+	_add_box(root, Vector3(4.0, 0.2, length), Vector3.ZERO, _path_material(district), 1500.0)
+
+
+func _add_standalone_bush(block_id: String, district: String, building: Node3D, offset: float, side: int, position: Vector3, station: int) -> void:
+	if not _valid_land_detail_except(position, offset, 1.55, building):
+		return
+	position.y = _terrain.terrain_height_at(Vector2(position.x, position.z))
+	var root := _detail_root(block_id, district, "standalone_bush", offset, side, station, position, Vector2(1.45, 1.45))
+	_add_sphere(root, 1.25 + float(station % 2) * 0.2, Vector3(0, 0.95, 0), _materials.leaves, 1250.0)
+	_add_sphere(root, 0.72, Vector3(0.75, 0.68, 0.18), _materials.flower if station % 3 == 0 else _materials.leaves_dark, 1250.0)
+
+
+func _add_standalone_fence(block_id: String, district: String, building: Node3D, offset: float, side: int, front: Vector3, radius: float, station: int) -> void:
+	var tangent := _course.tangent_at(offset)
+	var length := clampf(radius * 0.75, 6.0, 14.0)
+	var position := front + _course.lateral_at(offset) * float(side) * 2.8
+	if not _valid_land_detail_except(position, offset, length * 0.45, building):
+		return
+	position.y = _terrain.terrain_height_at(Vector2(position.x, position.z))
+	var root := _detail_root(block_id, district, "standalone_fence", offset, side, station, position, Vector2(length * 0.5, 0.3))
+	root.look_at(position + tangent, Vector3.UP)
+	var material := _fence_material(district)
+	for y in [0.62, 1.22]:
+		_add_box(root, Vector3(length, 0.14, 0.16), Vector3(0, y, 0), material, 1250.0)
+	for x in [-length * 0.5, 0.0, length * 0.5]:
+		_add_box(root, Vector3(0.2, 1.5, 0.2), Vector3(x, 0.75, 0), material, 1250.0)
 
 
 func _build_block(block_id: String, buildings: Array[Node3D]) -> void:
@@ -388,6 +483,23 @@ func _valid_land_detail(position: Vector3, offset: float, radius: float, check_b
 	return true
 
 
+func _valid_land_detail_except(position: Vector3, offset: float, radius: float, excluded_building: Node3D) -> bool:
+	var xz := Vector2(position.x, position.z)
+	if not _is_land(xz) or not _manual_clear(position, radius):
+		return false
+	var centre_y := _terrain.terrain_height_at(xz)
+	for dx in [-radius, radius]:
+		for dz in [-radius, radius]:
+			var sample := Vector2(position.x + dx, position.z + dz)
+			if not _is_land(sample) or absf(_terrain.terrain_height_at(sample) - centre_y) > 0.85:
+				return false
+	if not _building_clear(position, radius, excluded_building):
+		return false
+	if not _other_road_clear(position, offset, radius):
+		return false
+	return true
+
+
 func _is_land(xz: Vector2) -> bool:
 	return _terrain.terrain_height_at(xz) - _terrain.ocean_rendered_height_at(xz) >= 0.12
 
@@ -402,11 +514,22 @@ func _manual_clear(position: Vector3, radius: float) -> bool:
 	return true
 
 
-func _building_clear(position: Vector3, radius: float) -> bool:
+func _building_clear(position: Vector3, radius: float, excluded: Node3D = null) -> bool:
 	for building in _buildings:
+		if building == excluded:
+			continue
 		var local := building.global_transform.affine_inverse() * position
-		var half_extents := building.get_meta("building_half_extents", Vector2(8.0, 6.0)) as Vector2
+		var half_extents := building.get_meta("building_half_extents", Vector2.ZERO) as Vector2
+		if half_extents == Vector2.ZERO:
+			var scale := building.global_transform.basis.get_scale()
+			var reserve := float(building.get_meta("scenery_radius", 8.0)) * maxf(absf(scale.x), absf(scale.z))
+			half_extents = Vector2(reserve, reserve)
 		if absf(local.x) < half_extents.x + radius + 0.7 and absf(local.z) < half_extents.y + radius + 0.7:
+			return false
+	for landmark in _landmark_reservations:
+		var scale := landmark.global_transform.basis.get_scale()
+		var reserve := float(landmark.get_meta("scenery_radius", 6.0)) * maxf(absf(scale.x), absf(scale.z))
+		if Vector2(position.x, position.z).distance_to(Vector2(landmark.global_position.x, landmark.global_position.z)) < radius + reserve + 0.7:
 			return false
 	return true
 

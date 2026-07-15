@@ -3,6 +3,10 @@ extends Node3D
 const CourseLayoutScript := preload("res://scripts/course_layout.gd")
 const WorldBuilderScript := preload("res://scripts/world_builder.gd")
 const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
+const GENERATED_SCENERY_PATHS := [
+	"res://scenes/world/neighborhood_details.tscn",
+	"res://scenes/world/natural_landscapes.tscn",
+]
 const ROAD_WIDTH := 17.0
 const ROAD_SAMPLE_STEP := 2.0
 
@@ -391,7 +395,31 @@ func build_scenery() -> void:
 	editable_world.name = "EditableWorld"
 	editable_world.add_to_group("editable_world")
 	add_child(editable_world)
+	_load_generated_scenery_overlays(editable_world)
 	_apply_manual_scenery_reservations(editable_world)
+
+
+func _load_generated_scenery_overlays(editable_world: Node3D) -> void:
+	# Older editable scenes may contain a moved or overridden external instance.
+	# Always replace it with the canonical generated scene at identity so authored
+	# edits and generated connective scenery cannot accidentally move each other.
+	for legacy_name in ["NeighborhoodDetails", "NaturalLandscapes"]:
+		var legacy := editable_world.get_node_or_null(legacy_name)
+		if legacy != null:
+			editable_world.remove_child(legacy)
+			legacy.free()
+	for path in GENERATED_SCENERY_PATHS:
+		if not ResourceLoader.exists(path):
+			push_warning("Generated scenery overlay is missing: %s" % path)
+			continue
+		var packed := load(path) as PackedScene
+		if packed == null:
+			push_warning("Generated scenery overlay could not load: %s" % path)
+			continue
+		var overlay := packed.instantiate() as Node3D
+		overlay.transform = Transform3D.IDENTITY
+		overlay.set_meta("generated_overlay", true)
+		editable_world.add_child(overlay)
 
 
 func _apply_manual_scenery_reservations(editable_world: Node) -> void:
@@ -412,11 +440,18 @@ func _apply_manual_scenery_reservations(editable_world: Node) -> void:
 		if not value is Node3D or not editable_world.is_ancestor_of(value):
 			continue
 		var generated := value as Node3D
+		if generated.is_in_group("natural_landscape_scenery"):
+			continue
 		var generated_radius := float(generated.get_meta("scenery_radius", 4.0))
 		for manual_value in manual_items:
 			if not manual_value is Node3D or manual_value == generated:
 				continue
 			var manual := manual_value as Node3D
+			# Paths, palms and furniture are meant to decorate buildings, not replace
+			# them. Only a deliberately authored building may displace a baked one.
+			var manual_is_building := manual.is_in_group("building_scenery") or str(manual.get("category")) == "Buildings"
+			if generated.is_in_group("building_scenery") and not manual_is_building:
+				continue
 			var manual_radius := float(manual.get_meta("scenery_radius", 3.0))
 			var manual_scale := manual.global_transform.basis.get_scale()
 			manual_radius *= maxf(absf(manual_scale.x), absf(manual_scale.z))
