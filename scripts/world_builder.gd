@@ -30,23 +30,55 @@ var _submerged_buckets: Dictionary = {}
 var _tunnel_buckets: Dictionary = {}
 var _ocean_grid_origin := Vector2.ZERO
 var _terrain_grid_origin := Vector2.ZERO
+var _ocean_min := Vector2.ZERO
+var _ocean_max := Vector2.ZERO
 var _ocean_render_cache: Dictionary = {}
 var _terrain_render_cache: Dictionary = {}
 var mesh_instance_count := 0
 
 
 func build(parent: Node3D, course: CourseLayout, reservation_scope: Node3D = null) -> void:
+	_prepare_build(parent, course, reservation_scope)
+	_build_infrastructure_pass()
+	_build_decoration_pass()
+	print("WorldBuilder: %d scenery meshes" % mesh_instance_count)
+
+
+func build_infrastructure(parent: Node3D, course: CourseLayout, reservation_scope: Node3D = null) -> void:
+	_prepare_build(parent, course, reservation_scope)
+	_build_infrastructure_pass()
+	print("WorldBuilder infrastructure: %d meshes" % mesh_instance_count)
+
+
+func build_decorations(parent: Node3D, course: CourseLayout, reservation_scope: Node3D = null) -> void:
+	_prepare_build(parent, course, reservation_scope)
+	_build_decoration_pass()
+	print("WorldBuilder decorations: %d meshes" % mesh_instance_count)
+
+
+func _prepare_build(parent: Node3D, course: CourseLayout, reservation_scope: Node3D) -> void:
 	_parent = parent
 	_reservation_scope = reservation_scope if reservation_scope != null else parent
 	_course = course
+	mesh_instance_count = 0
+	_ocean_render_cache.clear()
+	_terrain_render_cache.clear()
 	_rng.seed = 0x5E12E6A
 	_build_materials()
 	_cache_route_samples()
+	_prepare_world_bounds()
+
+
+func _build_infrastructure_pass() -> void:
 	_build_ocean_and_islands()
 	_build_bridge()
 	_build_underwater_tunnel()
-	_build_tunnel_posters()
 	_build_elevated_flyovers()
+	_build_party_island_foundation()
+
+
+func _build_decoration_pass() -> void:
+	_build_tunnel_posters()
 	_build_start_coast()
 	_build_party_town()
 	_build_city_centre()
@@ -56,12 +88,11 @@ func build(parent: Node3D, course: CourseLayout, reservation_scope: Node3D = nul
 	_build_district_landmarks()
 	_build_loop_landmarks()
 	_build_district_infill()
-	_build_party_island()
+	_build_party_island_decorations()
 	_build_maritime_scenery()
 	_build_personalized_billboards()
 	_build_sky_traffic()
 	_build_roadside_rhythm()
-	print("WorldBuilder: %d scenery meshes" % mesh_instance_count)
 
 
 func terrain_height_at(world_xz: Vector2) -> float:
@@ -499,7 +530,7 @@ func _zone_midpoint(zone_name: String, occurrence := 0) -> float:
 	return (float(span["start_distance"]) + float(span["end_distance"])) * 0.5
 
 
-func _build_ocean_and_islands() -> void:
+func _prepare_world_bounds() -> void:
 	var minimum := Vector2(INF, INF)
 	var maximum := Vector2(-INF, -INF)
 	for sample: Dictionary in _route_samples:
@@ -510,20 +541,23 @@ func _build_ocean_and_islands() -> void:
 		maximum.y = maxf(maximum.y, point.z)
 	var center := (minimum + maximum) * 0.5
 	var ocean_size := maximum - minimum + Vector2(650.0, 650.0)
-	var ocean_min := center - ocean_size * 0.5
-	var ocean_max := center + ocean_size * 0.5
-	_ocean_grid_origin = Vector2(floorf(ocean_min.x / OCEAN_GRID) * OCEAN_GRID, floorf(ocean_min.y / OCEAN_GRID) * OCEAN_GRID)
-	_terrain_grid_origin = Vector2(floorf(ocean_min.x / TERRAIN_GRID) * TERRAIN_GRID, floorf(ocean_min.y / TERRAIN_GRID) * TERRAIN_GRID)
+	_ocean_min = center - ocean_size * 0.5
+	_ocean_max = center + ocean_size * 0.5
+	_ocean_grid_origin = Vector2(floorf(_ocean_min.x / OCEAN_GRID) * OCEAN_GRID, floorf(_ocean_min.y / OCEAN_GRID) * OCEAN_GRID)
+	_terrain_grid_origin = Vector2(floorf(_ocean_min.x / TERRAIN_GRID) * TERRAIN_GRID, floorf(_ocean_min.y / TERRAIN_GRID) * TERRAIN_GRID)
+
+
+func _build_ocean_and_islands() -> void:
 	# Both layers are connected indexed heightfields. Sand slopes continuously to
 	# the seabed; the opaque sea overlays it and depresses smoothly beneath the
 	# enclosed tunnel. No cells are deleted, so there are no horizon holes.
-	var ocean_mesh := _build_heightfield_mesh(ocean_min, ocean_max, OCEAN_GRID, Callable(self, "_ocean_height_at"))
+	var ocean_mesh := _build_heightfield_mesh(_ocean_min, _ocean_max, OCEAN_GRID, Callable(self, "_ocean_height_at"))
 	var ocean := _mesh_instance(ocean_mesh, _materials.ocean, 5200.0)
 	ocean.name = "OceanSurface"
 	_parent.add_child(ocean)
 	ocean.add_to_group("ocean_scenery")
-	_build_shoreline_contour(ocean_min, ocean_max)
-	var terrain_mesh := _build_heightfield_mesh(ocean_min, ocean_max, TERRAIN_GRID, Callable(self, "_ground_height_at"))
+	_build_shoreline_contour(_ocean_min, _ocean_max)
+	var terrain_mesh := _build_heightfield_mesh(_ocean_min, _ocean_max, TERRAIN_GRID, Callable(self, "_ground_height_at"))
 	var terrain := MeshInstance3D.new()
 	terrain.name = "IslandTerrain"
 	terrain.mesh = terrain_mesh
@@ -1552,21 +1586,31 @@ func _add_boat(parent: Node, position: Vector3, rotation_y: float, variant: int)
 	root.position = position
 	root.rotation.y = rotation_y
 	root.add_to_group("boat_scenery")
+	root.add_to_group("party_island_scenery")
 	parent.add_child(root)
 	_box(root, Vector3(3.5, 0.8, 8.5), Vector3(0, 0, 0), _materials.coral if variant % 2 == 0 else _materials.cyan, 1000.0)
 	_box(root, Vector3(2.4, 1.5, 3.2), Vector3(0, 0.9, 0.7), _materials.white, 1000.0)
 	_box(root, Vector3(1.8, 0.9, 0.2), Vector3(0, 1.1, -0.92), _materials.glass, 1000.0)
 
 
-func _build_party_island() -> void:
+func _build_party_island_foundation() -> void:
 	var position := _course.landmark_position(&"party_island")
-	var island := _grounded_root("PartyIsland", position, ["offshore_islet_scenery", "party_island_scenery"])
+	var island := _grounded_root("PartyIslandFoundation", position, ["offshore_islet_scenery", "party_island_foundation"])
 	var land := _cylinder(island, 72.0, 1.4, Vector3.DOWN * 0.7, _materials.sand, 62.0, 1100.0, 20)
 	land.add_to_group("offshore_islet_scenery")
 	_cylinder(island, 42.0, 2.2, Vector3.DOWN * 1.3, _materials.rock, 48.0, 1100.0, 18)
+
+
+func _build_party_island_decorations() -> void:
+	var position := _course.landmark_position(&"party_island")
 	var club := Node3D.new()
-	club.position = Vector3(0, 0, 3)
-	island.add_child(club)
+	club.name = "PartyIsland_Club"
+	club.position = position + Vector3(0, 0, 3)
+	club.add_to_group("grounded_scenery")
+	club.add_to_group("party_island_scenery")
+	club.set_meta("ground_y", position.y)
+	club.set_meta("scenery_radius", 22.0)
+	_parent.add_child(club)
 	_box(club, Vector3(30.0, 10.0, 19.0), Vector3(0, 5.0, 0), _materials.night, 1000.0)
 	_box(club, Vector3(25.0, 1.2, 0.4), Vector3(0, 8.0, -9.7), _materials.pink, 1000.0)
 	_box(club, Vector3(13.0, 5.0, 0.25), Vector3(0, 4.2, -9.65), _materials.glass, 1000.0)
@@ -1577,17 +1621,25 @@ func _build_party_island() -> void:
 	_cylinder(club, 5.8, 1.4, Vector3(0, 38.2, 2.0), _materials.pink, 5.8, 1400.0, 16)
 	_cylinder(club, 3.4, 3.8, Vector3(0, 40.5, 2.0), _materials.glass, 3.4, 1400.0, 16)
 	_cylinder(club, 4.8, 0.8, Vector3(0, 42.8, 2.0), _materials.cyan, 1.4, 1400.0, 16)
-	_box(island, Vector3(5.0, 0.4, 52.0), Vector3(0, 0.1, 49.0), _materials.wood, 900.0)
+	var dock := Node3D.new()
+	dock.name = "PartyIsland_Dock"
+	dock.position = position + Vector3(0, 0.1, 49.0)
+	dock.add_to_group("party_island_scenery")
+	dock.set_meta("scenery_radius", 27.0)
+	_parent.add_child(dock)
+	_box(dock, Vector3(5.0, 0.4, 52.0), Vector3.ZERO, _materials.wood, 900.0)
 	for index in range(12):
 		var angle := TAU * float(index) / 12.0
-		_add_palm_at(island, Vector3(cos(angle) * 52.0, 0, sin(angle) * 52.0), 0.85 + (index % 3) * 0.12)
+		var palm := _grounded_root("PartyIsland_Palm_%02d" % index, position + Vector3(cos(angle) * 52.0, 0, sin(angle) * 52.0), ["palm_scenery", "party_island_scenery"])
+		palm.set_meta("scenery_radius", 4.5)
+		_add_palm_at(palm, Vector3.ZERO, 0.85 + (index % 3) * 0.12)
 	for index in range(3):
 		var angle := -1.8 + index * 1.8
-		_add_island_cabana(island, Vector3(cos(angle) * 38.0, 0.0, sin(angle) * 38.0), angle + PI * 0.5, index)
+		_add_island_cabana(_parent, position + Vector3(cos(angle) * 38.0, 0.0, sin(angle) * 38.0), angle + PI * 0.5, index)
 	for index in range(4):
 		var angle := -0.9 + index * 0.55
-		var boat_position := Vector3(cos(angle) * (82.0 + index * 4.0), -0.2, sin(angle) * (82.0 + index * 4.0))
-		_add_boat(island, boat_position, angle + PI * 0.5, index)
+		var boat_position := position + Vector3(cos(angle) * (82.0 + index * 4.0), -0.2, sin(angle) * (82.0 + index * 4.0))
+		_add_boat(_parent, boat_position, angle + PI * 0.5, index)
 
 
 func _build_maritime_scenery() -> void:

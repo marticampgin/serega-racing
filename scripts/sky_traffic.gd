@@ -8,6 +8,29 @@ var _elapsed := 0.0
 var _flights: Array[Dictionary] = []
 
 
+func _ready() -> void:
+	# Baked editable scenes persist the flight metadata, not the transient array.
+	# Rehydrate it so serialized planes and zeppelins retain their motion.
+	if not _flights.is_empty():
+		return
+	for value in find_children("*", "Node3D", true, false):
+		var vehicle := value as Node3D
+		if not vehicle.is_in_group("sky_traffic_vehicle") or not vehicle.has_meta("flight_centre"):
+			continue
+		var speed := float(vehicle.get_meta("flight_speed", 10.0))
+		var half_span := float(vehicle.get_meta("flight_half_span", 300.0))
+		var period := maxf(float(vehicle.get_meta("flight_period", half_span * 2.0 / speed)), 0.1)
+		_flights.append({
+			"vehicle": vehicle,
+			"centre": vehicle.get_meta("flight_centre"),
+			"axis": vehicle.get_meta("flight_axis"),
+			"half_span": half_span,
+			"period": period,
+			"phase": float(vehicle.get_meta("flight_progress", 0.0)),
+			"bob_height": float(vehicle.get_meta("flight_bob_height", 0.8)),
+		})
+
+
 func register_flight(vehicle: Node3D, centre: Vector3, direction: Vector3, half_span: float, speed: float, phase: float, bob_height: float) -> void:
 	var axis := direction.normalized()
 	var period := (half_span * 2.0) / maxf(speed, 0.1)
@@ -26,6 +49,7 @@ func register_flight(vehicle: Node3D, centre: Vector3, direction: Vector3, half_
 	vehicle.set_meta("flight_half_span", half_span)
 	vehicle.set_meta("flight_speed", speed)
 	vehicle.set_meta("flight_period", period)
+	vehicle.set_meta("flight_bob_height", bob_height)
 	_update_flight(flight)
 
 

@@ -3,6 +3,7 @@ extends Node3D
 
 const CourseLayoutScript := preload("res://scripts/course_layout.gd")
 const WorldBuilderScript := preload("res://scripts/world_builder.gd")
+const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
 
 const ROAD_WIDTH := 17.0
 const ROAD_SAMPLE_STEP := 2.0
@@ -10,6 +11,10 @@ const ROAD_SAMPLE_STEP := 2.0
 @export var show_world_preview := true:
 	set(value):
 		show_world_preview = value
+		_request_rebuild()
+@export var show_saved_scenery := true:
+	set(value):
+		show_saved_scenery = value
 		_request_rebuild()
 @export var show_land_corridor := false:
 	set(value):
@@ -78,8 +83,21 @@ func _build_detailed_preview(course: CourseLayout) -> void:
 	var builder: WorldBuilder = WorldBuilderScript.new()
 	# The Race parent is the reservation scope, so procedural preview scenery
 	# respects real ManualScenery siblings while remaining under this internal root.
-	builder.build(preview, course, get_parent() as Node3D)
-	print("Editor world preview: complete road and %d procedural meshes" % builder.mesh_instance_count)
+	builder.build_infrastructure(preview, course, get_parent() as Node3D)
+	var saved_meshes := 0
+	if show_saved_scenery and ResourceLoader.exists(EDITABLE_WORLD_PATH):
+		var packed := load(EDITABLE_WORLD_PATH) as PackedScene
+		if packed != null:
+			var saved_world := packed.instantiate() as Node3D
+			var nested_guide := saved_world.get_node_or_null("EditorPlacementGuide")
+			if nested_guide != null:
+				saved_world.remove_child(nested_guide)
+				nested_guide.free()
+			saved_world.name = "SavedEditableSceneryPreview"
+			saved_world.set_meta("_edit_lock_", true)
+			preview.add_child(saved_world)
+			saved_meshes = saved_world.find_children("*", "MeshInstance3D", true, false).size()
+	print("Editor world preview: complete road, %d infrastructure meshes and %d saved scenery meshes" % [builder.mesh_instance_count, saved_meshes])
 
 
 func _add_exact_track_preview(course: CourseLayout, parent: Node3D) -> void:

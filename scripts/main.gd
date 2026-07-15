@@ -2,6 +2,7 @@ extends Node3D
 
 const CourseLayoutScript := preload("res://scripts/course_layout.gd")
 const WorldBuilderScript := preload("res://scripts/world_builder.gd")
+const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
 const ROAD_WIDTH := 17.0
 const ROAD_SAMPLE_STEP := 2.0
 
@@ -381,7 +382,15 @@ func orient_track_piece(piece: Node3D, target: Vector3, bank: float) -> void:
 
 func build_scenery() -> void:
 	world_builder = WorldBuilderScript.new()
-	world_builder.build(self, course)
+	world_builder.build_infrastructure(self, course)
+	var packed := load(EDITABLE_WORLD_PATH) as PackedScene
+	if packed == null:
+		push_error("Editable scenery is missing: %s" % EDITABLE_WORLD_PATH)
+		return
+	var editable_world := packed.instantiate()
+	editable_world.name = "EditableWorld"
+	editable_world.add_to_group("editable_world")
+	add_child(editable_world)
 
 
 func build_landmarks(steel: Material, yellow: Material, red: Material, blue: Material) -> void:
