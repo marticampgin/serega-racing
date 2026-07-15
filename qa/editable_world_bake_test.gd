@@ -1,6 +1,9 @@
 extends SceneTree
 
 const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
+const EXPECTED_EDITABLE_OBJECTS := 405
+const EXPECTED_DECORATIVE_MESHES := 3951
+const EXPECTED_RUNTIME_MESHES := 5086
 const EXPECTED_DISTRICTS := ["StartCoast", "LoopOne", "UnderwaterTunnel", "LoopTwo", "BridgeApproach", "PartyTown", "CityCentre", "LoopThree", "ShoppingAlley", "SportComplex", "NorthCoast", "PartyIsland", "Waterfront", "Sky", "Other"]
 const FORBIDDEN_GROUPS := ["ocean_scenery", "island_terrain", "shoreline_contour", "bridge_boundary", "bridge_support", "flyover_boundary", "tunnel_boundary", "party_island_foundation"]
 const REQUIRED_GROUPS := ["district_infill", "grounded_scenery", "poster_scenery", "boat_scenery", "sky_traffic_vehicle"]
@@ -51,8 +54,8 @@ func _run() -> void:
 					descendants_owned = false
 					break
 			check(descendants_owned, "%s descendants survive scene serialization" % child.name)
-	check(baked_roots.size() == 420, "all 420 existing decorative objects are editable")
-	check(editable.find_children("*", "MeshInstance3D", true, false).size() == 3911, "baked scene preserves the 3911 decorative meshes")
+	check(baked_roots.size() == EXPECTED_EDITABLE_OBJECTS, "all %d existing decorative objects are editable" % EXPECTED_EDITABLE_OBJECTS)
+	check(editable.find_children("*", "MeshInstance3D", true, false).size() == EXPECTED_DECORATIVE_MESHES, "baked scene preserves the %d decorative meshes" % EXPECTED_DECORATIVE_MESHES)
 	for group_name: String in REQUIRED_GROUPS:
 		check(_contains_group(editable, group_name), "semantic group survives scene serialization: %s" % group_name)
 	for group_name: String in FORBIDDEN_GROUPS:
@@ -74,14 +77,14 @@ func _run() -> void:
 	var startup_ms := Time.get_ticks_msec() - started
 	var runtime_worlds := get_nodes_in_group("editable_world")
 	check(runtime_worlds.size() == 1, "runtime instantiates exactly one editable world")
-	check(get_nodes_in_group("editable_scenery").size() == 420, "runtime contains each baked object exactly once")
+	check(get_nodes_in_group("editable_scenery").size() == EXPECTED_EDITABLE_OBJECTS, "runtime contains each baked object exactly once")
 	check(get_nodes_in_group("ocean_scenery").size() == 1, "ocean remains procedural infrastructure")
 	check(not get_nodes_in_group("bridge_boundary").is_empty(), "bridge remains procedural infrastructure")
 	check(not get_nodes_in_group("tunnel_boundary").is_empty(), "tunnel remains procedural infrastructure")
 	check(not get_nodes_in_group("flyover_boundary").is_empty(), "flyovers remain procedural infrastructure")
 	for group_name: String in REQUIRED_GROUPS:
 		check(not get_nodes_in_group(group_name).is_empty(), "runtime restores semantic group: %s" % group_name)
-	check(race.find_children("*", "MeshInstance3D", true, false).size() == 5046, "runtime mesh count is unchanged after baking")
+	check(race.find_children("*", "MeshInstance3D", true, false).size() == EXPECTED_RUNTIME_MESHES, "runtime mesh count is unchanged after baking")
 	var vehicles := get_nodes_in_group("sky_traffic_vehicle")
 	var vehicle_positions: Array[Vector3] = []
 	for vehicle in vehicles:

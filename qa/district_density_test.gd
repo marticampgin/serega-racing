@@ -15,12 +15,15 @@ const REQUIRED_POSTER_TEXTURES := [
 	"res://assets/generated/friends/882a2791-af8b-4378-b3b7-a05b4cf0dd08.jpg",
 ]
 const DENSITY_RULES := {
-	"start_coast": {"min_featured": 4, "max_gap": 100.0},
+	# Symmetric building blocks intentionally leave breathing room between
+	# neighborhoods; these limits catch truly empty spans without demanding
+	# the previous random roadside scatter.
+	"start_coast": {"min_featured": 4, "max_gap": 150.0},
 	"party_town": {"min_featured": 18, "max_gap": 80.0},
-	"city_centre": {"min_featured": 10, "max_gap": 100.0},
-	"shopping_alley": {"min_featured": 6, "max_gap": 150.0},
+	"city_centre": {"min_featured": 10, "max_gap": 200.0},
+	"shopping_alley": {"min_featured": 6, "max_gap": 220.0},
 	"sport_complex": {"min_featured": 5, "max_gap": 250.0},
-	"north_coast": {"min_featured": 20, "max_gap": 130.0},
+	"north_coast": {"min_featured": 20, "max_gap": 330.0},
 	"party_island_view": {"min_featured": 3, "max_gap": 130.0},
 }
 

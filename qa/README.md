@@ -63,6 +63,20 @@ duplicate decorative generation:
 .\godot\Godot_v4.7-stable_win64_console.exe --path . --headless --rendering-method gl_compatibility --script res://qa/editable_world_bake_test.gd
 ```
 
+Verify the planned building blocks: exact road-relative rows and setbacks,
+grounding, land clearance, road-facing facades, copied/reordered rear rows,
+zero building overlaps, and single-instance landmarks:
+
+```powershell
+.\godot\Godot_v4.7-stable_win64_console.exe --path . --headless --rendering-method gl_compatibility --script res://qa/building_layout_test.gd
+```
+
+Capture aerial and driver-height views of every building block for visual QA:
+
+```powershell
+.\godot\Godot_v4.7-stable_win64_console.exe --path . --rendering-method gl_compatibility --script res://qa/building_layout_visual_audit.gd
+```
+
 Verify all 52 small props and the complete 11-artwork x 5-carrier media matrix:
 
 ```powershell

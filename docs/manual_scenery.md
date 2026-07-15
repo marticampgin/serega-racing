@@ -11,7 +11,9 @@ The course, terrain, ocean, bridge, flyovers and tunnel structure remain generat
 5. Use `W` to move, `E` to rotate and `Ctrl+D` to duplicate. Moving a root moves its complete compound model together.
 6. Press `Ctrl+S`. The game loads this saved scene directly, so edits appear at runtime without procedural duplicates.
 
-There are 420 editable existing objects grouped into districts. Do not run `tools/generate_editable_world.gd` after beginning manual edits: that developer tool recreates the baseline scene and would replace those edits.
+There are 405 editable existing objects grouped into districts. Buildings are arranged in named, road-relative blocks: front and rear rows use consistent spacing and setbacks, while the rear row changes the building order for variety. Each building remains an independent compound object, so you can move one without selecting the entire district. Unique landmarks such as the lighthouse remain single objects.
+
+Do not run `tools/generate_editable_world.gd` after beginning manual edits: that developer tool recreates the baseline scene and would replace those edits.
 
 ## Drag and drop
 

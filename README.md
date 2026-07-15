@@ -55,7 +55,7 @@ course guide.
 
 ### Manual scenery editing
 
-Open `scenes/world/editable_world.tscn` to move the 420 existing decorative
+Open `scenes/world/editable_world.tscn` to move the 405 existing decorative
 objects by district, or drag any of the 164 checked-in presets from
 `scenes/manual_scenery/presets/` under `EditableWorld/ManualScenery`. The
 library includes 52 individual landscaping/street/beach pieces and every one
