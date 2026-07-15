@@ -11,7 +11,9 @@ The course, terrain, ocean, bridge, flyovers and tunnel structure remain generat
 5. Use `W` to move, `E` to rotate and `Ctrl+D` to duplicate. Moving a root moves its complete compound model together.
 6. Press `Ctrl+S`. The game loads this saved scene directly, so edits appear at runtime without procedural duplicates.
 
-There are 405 editable existing objects grouped into districts. Buildings are arranged in named, road-relative blocks: front and rear rows use consistent spacing and setbacks, while the rear row changes the building order for variety. Each building remains an independent compound object, so you can move one without selecting the entire district. Unique landmarks such as the lighthouse remain single objects.
+The saved objects are grouped into districts. Buildings are arranged in named, road-relative blocks: front and rear rows use consistent spacing and setbacks, while the rear row changes the building order for variety. Each building remains an independent compound object, so you can move one without selecting the entire district. Unique landmarks such as the lighthouse remain single objects.
+
+`NeighborhoodDetails` is an additive external scene containing the connective layer around those blocks: paired roadside lamps, sidewalks, rear walks, driveways, fences, bushes, docks and small boats. Expand it in the Scene tree to inspect the district folders. Lamps, driveways and boats remain separate objects; repeated sidewalk, fence, planting and dock pieces are compacted into block-level network roots to keep game performance reasonable. The instance has editable children enabled, so these roots can still be selected and adjusted from `editable_world.tscn`.
 
 Do not run `tools/generate_editable_world.gd` after beginning manual edits: that developer tool recreates the baseline scene and would replace those edits.
 

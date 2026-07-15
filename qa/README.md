@@ -77,6 +77,14 @@ Capture aerial and driver-height views of every building block for visual QA:
 .\godot\Godot_v4.7-stable_win64_console.exe --path . --rendering-method gl_compatibility --script res://qa/building_layout_visual_audit.gd
 ```
 
+Verify the neighborhood connective layer, including district coverage,
+balanced lamp spacing, terrain/water placement, compacted mesh budget and the
+preservation of all saved user catalog instances:
+
+```powershell
+.\godot\Godot_v4.7-stable_win64_console.exe --path . --headless --rendering-method gl_compatibility --script res://qa/neighborhood_detail_layout_test.gd
+```
+
 Verify all 52 small props and the complete 11-artwork x 5-carrier media matrix:
 
 ```powershell

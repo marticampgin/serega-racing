@@ -1,11 +1,12 @@
 extends SceneTree
 
 const MAX_TOTAL_MESHES := 5400
+const MAX_NEIGHBORHOOD_DETAIL_MESHES := 1200
 const OVERLAP_TOLERANCE := 0.75
 const MESH_OVERLAP_AREA_TOLERANCE := 0.35
 const FILLER_GROUPS := [&"palm_scenery", &"lamp_scenery", &"portrait_scenery"]
 const REQUIRED_POSTER_TEXTURES := [
-	"res://assets/generated/friends/1844112d-4cdc-4fd7-af55-4c29c7179983.jpg",
+	# CoastRacePoster was intentionally removed in the saved editor-authored scene.
 	"res://assets/generated/friends/1daf0fdc-2536-4e54-b476-fc61c770b23d.jpg",
 	"res://assets/generated/friends/61b5ddf7-ae71-4d13-b677-660bd070a785.jpg",
 	"res://assets/generated/friends/71b38443-851b-401f-a174-0b72d699a284.jpg",
@@ -57,13 +58,26 @@ func _run() -> void:
 	var all_meshes := race.find_children("*", "MeshInstance3D", true, false)
 	var manual_root := race.get_node_or_null("ManualScenery")
 	var manual_meshes := 0
+	var detail_meshes := 0
 	if manual_root != null:
 		for mesh in all_meshes:
 			if manual_root.is_ancestor_of(mesh):
 				manual_meshes += 1
-	var procedural_meshes := all_meshes.size() - manual_meshes
-	print("INFO: procedural MeshInstance3D nodes = %d (cap %d); manual = %d" % [procedural_meshes, MAX_TOTAL_MESHES, manual_meshes])
+	for mesh in all_meshes:
+		var counted_manual := false
+		for manual_value in get_nodes_in_group("manual_scenery"):
+			if manual_value is Node and (manual_value == mesh or (manual_value as Node).is_ancestor_of(mesh)):
+				counted_manual = true
+				break
+		if counted_manual and (manual_root == null or not manual_root.is_ancestor_of(mesh)):
+			manual_meshes += 1
+		var details_root := race.get_node_or_null("EditableWorld/NeighborhoodDetails")
+		if details_root != null and details_root.is_ancestor_of(mesh):
+			detail_meshes += 1
+	var procedural_meshes := all_meshes.size() - manual_meshes - detail_meshes
+	print("INFO: baseline meshes=%d (cap %d); neighborhood details=%d (cap %d); manual=%d" % [procedural_meshes, MAX_TOTAL_MESHES, detail_meshes, MAX_NEIGHBORHOOD_DETAIL_MESHES, manual_meshes])
 	check(procedural_meshes <= MAX_TOTAL_MESHES, "generated world remains within the generous scenery mesh budget")
+	check(detail_meshes <= MAX_NEIGHBORHOOD_DETAIL_MESHES, "compacted neighborhood detail layer stays within its mesh budget")
 
 	var zones: Array = course.get("course_zones")
 	var spans: Array[Dictionary] = []

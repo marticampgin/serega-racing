@@ -52,10 +52,19 @@ func _run() -> void:
 	var course: CourseLayout = race.get("course")
 	var builder: WorldBuilder = race.get("world_builder")
 	var buildings: Array[Node3D] = []
+	var seen_bake_ids: Dictionary = {}
+	var authored_building_copies := 0
 	for value in get_nodes_in_group("building_layout"):
 		if value is Node3D and race.is_ancestor_of(value):
-			buildings.append(value as Node3D)
+			var building := value as Node3D
+			var bake_id := str(building.get_meta("bake_id", ""))
+			if not bake_id.is_empty() and seen_bake_ids.has(bake_id):
+				authored_building_copies += 1
+				continue
+			seen_bake_ids[bake_id] = true
+			buildings.append(building)
 	check(buildings.size() >= 192, "at least 192 deliberately aligned row buildings are present")
+	check(authored_building_copies == 4, "four user-duplicated start-area buildings remain preserved outside the baseline grid")
 
 	var district_counts := {}
 	var rows := {}
@@ -145,7 +154,7 @@ func _validate_paired_rows(rows: Dictionary) -> void:
 		var reference_slots := _slot_set(paired_rows[0])
 		var reference_sequence := _archetype_sequence(paired_rows[0])
 		for index in range(1, paired_rows.size()):
-			check(_slot_set(paired_rows[index]) == reference_slots, "%s copied rows share the same slot stations" % pair_key)
+			check(_slot_difference_count(_slot_set(paired_rows[index]), reference_slots) <= 1, "%s copied rows retain matching slot stations with at most one authored opening" % pair_key)
 			check(_archetype_sequence(paired_rows[index]) != reference_sequence, "%s rear rows reorder the building sequence" % pair_key)
 
 
@@ -155,6 +164,17 @@ func _slot_set(row: Array) -> Array[int]:
 		result.append(int(building.get_meta("layout_slot")))
 	result.sort()
 	return result
+
+
+func _slot_difference_count(left: Array[int], right: Array[int]) -> int:
+	var differences := 0
+	for slot in left:
+		if slot not in right:
+			differences += 1
+	for slot in right:
+		if slot not in left:
+			differences += 1
+	return differences
 
 
 func _archetype_sequence(row: Array) -> Array[String]:
@@ -182,9 +202,14 @@ func _validate_building_overlaps(buildings: Array[Node3D]) -> void:
 
 func _validate_unique_landmarks(race: Node) -> void:
 	var counts := {}
+	var seen_bake_ids := {}
 	for value in get_nodes_in_group("unique_landmark"):
 		if not race.is_ancestor_of(value):
 			continue
+		var bake_id := str(value.get_meta("bake_id", ""))
+		if not bake_id.is_empty() and seen_bake_ids.has(bake_id):
+			continue
+		seen_bake_ids[bake_id] = true
 		var landmark_id := str(value.get_meta("unique_landmark_id", ""))
 		counts[landmark_id] = int(counts.get(landmark_id, 0)) + 1
 	for landmark_id: String in UNIQUE_LANDMARK_IDS:
