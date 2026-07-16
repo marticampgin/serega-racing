@@ -1,6 +1,12 @@
 extends SceneTree
 
 const SCREENSHOT_PATH := "res://qa/artifacts/smoke.png"
+const AUTHORED_FRIEND_TEXTURES := [
+	"res://assets/generated/friends/1daf0fdc-2536-4e54-b476-fc61c770b23d.jpg",
+	"res://assets/generated/friends/481d5ab6-7c3f-47be-a2bd-e02bdfb2c1d5.jpg",
+	"res://assets/generated/friends/5213d1b1-6e99-448d-ad81-26f61e859010.jpg",
+	"res://assets/generated/friends/882a2791-af8b-4378-b3b7-a05b4cf0dd08.jpg",
+]
 
 var failures: Array[String] = []
 
@@ -79,7 +85,13 @@ func _run() -> void:
 	grounded_buildings.append_array(get_nodes_in_group("hotel_scenery"))
 	grounded_buildings.append_array(get_nodes_in_group("shop_scenery"))
 	check(count_floating_roots(grounded_buildings, race) == 0, "houses, hotels, and shops sit on their local ground")
-	check(race.find_children("*", "Sprite3D", true, false).size() >= 6, "personalized portrait billboards remain placed")
+	var authored_friend_textures := {}
+	for value in race.find_children("*", "Sprite3D", true, false):
+		var sprite := value as Sprite3D
+		if sprite.texture != null:
+			authored_friend_textures[sprite.texture.resource_path] = true
+	for texture_path in AUTHORED_FRIEND_TEXTURES:
+		check(authored_friend_textures.has(texture_path), "user-placed friend display remains: %s" % texture_path)
 	check(race.get("fuel_bar") is ProgressBar, "fuel HUD exists")
 	check(race.get("status_label") is Label, "race status HUD exists")
 

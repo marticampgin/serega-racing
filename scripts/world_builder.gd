@@ -78,7 +78,6 @@ func _build_infrastructure_pass() -> void:
 
 
 func _build_decoration_pass() -> void:
-	_build_tunnel_posters()
 	_build_start_coast()
 	_build_party_town()
 	_build_city_centre()
@@ -87,11 +86,9 @@ func _build_decoration_pass() -> void:
 	_build_north_coast()
 	_build_district_landmarks()
 	_build_loop_landmarks()
-	_build_personalized_billboards()
 	_build_symmetric_building_rows()
 	_build_party_island_decorations()
 	_build_maritime_scenery()
-	_build_sky_traffic()
 	_build_roadside_rhythm()
 
 
@@ -972,7 +969,6 @@ func _add_grand_hotel(root: Node3D) -> void:
 	_box(root, Vector3(4.0, 0.16, 14.0), Vector3(0, 0.08, -15.0), _materials.wood, 1800.0)
 	for x in [-7.0, 7.0]:
 		_add_bush(root, Vector3(x, 0.0, -11.5), int(x))
-	_add_wall_art(root, "res://assets/generated/friends/481d5ab6-7c3f-47be-a2bd-e02bdfb2c1d5.jpg", Vector3(0.0, 3.35, -9.18), 4.8, 0.0, ["building_mural_scenery"])
 
 
 func _add_neon_theatre(root: Node3D) -> void:
@@ -985,7 +981,6 @@ func _add_neon_theatre(root: Node3D) -> void:
 		_box(root, Vector3(1.0, 16.0, 0.35), Vector3(side * 13.0, 18.0, -3.18), _materials.cyan, 1800.0)
 	_box(root, Vector3(16.0, 3.5, 0.4), Vector3(0, 16.0, -9.2), _materials.orange, 1800.0)
 	_box(root, Vector3(5.0, 0.16, 13.0), Vector3(0, 0.08, -15.0), _materials.asphalt, 1800.0)
-	_add_wall_art(root, "res://assets/generated/friends/5213d1b1-6e99-448d-ad81-26f61e859010.jpg", Vector3(0.0, 16.5, -9.28), 5.4, 0.0, ["building_mural_scenery"])
 
 
 func _add_civic_twin_towers(root: Node3D) -> void:
@@ -1021,7 +1016,6 @@ func _add_market_hall(root: Node3D) -> void:
 	_box(root, Vector3(4.0, 0.16, 13.0), Vector3(0, 0.08, -15.5), _materials.wood, 1700.0)
 	# The market's central marquee projects 3 m from the facade; mount the art on
 	# its outer face instead of burying it inside the sign volume.
-	_add_wall_art(root, "res://assets/generated/friends/882a2791-af8b-4378-b3b7-a05b4cf0dd08.jpg", Vector3(0.0, 8.3, -12.48), 4.7, 0.0, ["building_mural_scenery"])
 
 
 func _add_neon_arena(root: Node3D) -> void:
@@ -1051,7 +1045,6 @@ func _add_marina_hotel(root: Node3D) -> void:
 	_box(root, Vector3(5.0, 0.16, 14.0), Vector3(0, 0.08, -15.0), _materials.wood, 1800.0)
 	for x in [-7.0, 7.0]:
 		_add_bush(root, Vector3(x, 0.0, -11.5), int(x) + 8)
-	_add_wall_art(root, "res://assets/generated/friends/8608460d-bd44-4e25-b2dc-ccf8a5003e87.jpg", Vector3(0.0, 3.6, -9.18), 5.0, 0.0, ["building_mural_scenery"])
 
 
 func _build_loop_landmarks() -> void:

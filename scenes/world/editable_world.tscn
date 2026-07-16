@@ -1,22 +1,11 @@
-[gd_scene format=3 uid="uid://d37vmdyr0iqmc"]
+[gd_scene format=3]
 
-[ext_resource type="Texture2D" uid="uid://68m3rv1og7ag" path="res://assets/generated/friends/481d5ab6-7c3f-47be-a2bd-e02bdfb2c1d5.jpg" id="1_f7aky"]
-[ext_resource type="Texture2D" uid="uid://dfhlrw4doqd71" path="res://assets/generated/friends/friend-glasses-racing.png" id="2_vm2n8"]
-[ext_resource type="Texture2D" uid="uid://blnii016sfaoj" path="res://assets/generated/friends/882a2791-af8b-4378-b3b7-a05b4cf0dd08.jpg" id="4_1d6aq"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/landmarks/city_monument.tscn" id="4_4caq3"]
-[ext_resource type="Texture2D" uid="uid://cmu8houls7fd8" path="res://assets/generated/friends/5213d1b1-6e99-448d-ad81-26f61e859010.jpg" id="5_r3qow"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/buildings/beach_bar.tscn" id="5_tr8o0"]
-[ext_resource type="Texture2D" uid="uid://53ou170b14on" path="res://assets/generated/friends/8608460d-bd44-4e25-b2dc-ccf8a5003e87.jpg" id="6_82tlm"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/buildings/bungalow.tscn" id="6_rg52d"]
-[ext_resource type="Texture2D" uid="uid://dcipy8hep5icv" path="res://assets/generated/friends/friend-beard-racing.png" id="7_h4vj1"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/buildings/coastal_apartment.tscn" id="7_xccvu"]
-[ext_resource type="Texture2D" uid="uid://c0vni154tgyji" path="res://assets/generated/friends/71b38443-851b-401f-a174-0b72d699a284.jpg" id="8_iiro7"]
-[ext_resource type="Texture2D" uid="uid://b6ggubrsd2jod" path="res://assets/generated/friends/friend-dark-hair-racing.png" id="9_2mfsd"]
-[ext_resource type="Texture2D" uid="uid://gt1kiyj43rrx" path="res://assets/generated/friends/61b5ddf7-ae71-4d13-b677-660bd070a785.jpg" id="10_gbemt"]
-[ext_resource type="Texture2D" uid="uid://oaaqibmimvot" path="res://assets/generated/friends/1daf0fdc-2536-4e54-b476-fc61c770b23d.jpg" id="11_l8ua5"]
-[ext_resource type="Script" uid="uid://bkwomh2nqqeku" path="res://scripts/sky_traffic.gd" id="12_5mdqf"]
-[ext_resource type="Script" uid="uid://dlkcboonoeynn" path="res://scripts/editor/manual_scenery_root.gd" id="13_rwujd"]
-[ext_resource type="Script" uid="uid://dwpd4lkl8qwhl" path="res://scripts/editor/editor_placement_guide.gd" id="14_6axof"]
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_root.gd" id="13_rwujd"]
+[ext_resource type="Script" path="res://scripts/editor/editor_placement_guide.gd" id="14_6axof"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/friend_media/bralis/billboard.tscn" id="14_r3qow"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/buildings/art_deco_tower.tscn" id="15_82tlm"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/friend_media/milk_racer/wall_poster.tscn" id="16_h4vj1"]
@@ -41,13 +30,42 @@
 [ext_resource type="PackedScene" path="res://scenes/world/natural_landscapes/start_interior_dunes.tscn" id="40_nat_start_dunes"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/boats_waterfront/yacht.tscn" id="40_t3ifj"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/beach_marina/lifeguard_chair.tscn" id="41_wak7r"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/street_props/bench.tscn" id="42_5dsd2"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/beach_marina/surfboard_rack.tscn" id="42_fn6j1"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/buildings/marina_office.tscn" id="43_e00cp"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/vegetation/flower_bed.tscn" id="43_sg0es"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/paths_surfaces/sidewalk_straight.tscn" id="44_1aiff"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/street_furniture/park_lamp.tscn" id="44_qau6x"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/paths_surfaces/driveway.tscn" id="45_dw1pc"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/friend_media/crew_collage/billboard.tscn" id="45_scy3m"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/vegetation/hedge_short.tscn" id="46_6a31e"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/boats_waterfront/ferry.tscn" id="46_7nbt5"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/boats_waterfront/motorboat.tscn" id="47_7ku46"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/vegetation/bush.tscn" id="47_s8x8a"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/street_props/island_cabana.tscn" id="48_e6ncm"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/vegetation/bird_of_paradise.tscn" id="48_i6yd8"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/street_furniture/picnic_table.tscn" id="49_21sij"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/vegetation/agave.tscn" id="50_rlcpk"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/street_furniture/trash_bin.tscn" id="51_7h4os"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/street_furniture/wayfinding_sign.tscn" id="52_vqt80"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/vegetation/rectangular_planter.tscn" id="53_axwrc"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/street_furniture/bike_rack.tscn" id="54_4xhec"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/street_furniture/bus_stop.tscn" id="55_r30df"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/street_furniture/vending_machine.tscn" id="56_85shi"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/vegetation/round_planter.tscn" id="57_payh1"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/fences_barriers/white_picket_fence.tscn" id="58_qyvgh"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/vegetation/flowering_bush_cyan.tscn" id="59_0ketn"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/street_props/walking_trail.tscn" id="60_tluu3"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/vegetation/ornamental_grass.tscn" id="61_tcjr8"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/street_furniture/drinking_fountain.tscn" id="62_11pcl"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/landmarks/sunset_pavilion.tscn" id="63_hpt3w"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/vegetation/flowering_bush_pink.tscn" id="64_qthtq"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/street_props/umbrella_table.tscn" id="65_my38m"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/fences_barriers/low_pastel_wall.tscn" id="66_v4g41"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/beach_marina/life_ring_stand.tscn" id="67_5pgnf"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/street_furniture/recycling_bin.tscn" id="68_11232"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/vegetation/round_bush.tscn" id="69_7mji3"]
+[ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/street_furniture/neon_phone_booth.tscn" id="70_sg0es"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xn3dr"]
 albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
@@ -197,27 +215,6 @@ radial_segments = 8
 material = SubResource("StandardMaterial3D_wiuhp")
 size = Vector3(6.71087, 5.45, 0.24)
 
-[sub_resource type="BoxMesh" id="BoxMesh_8lttk"]
-material = SubResource("StandardMaterial3D_wiuhp")
-size = Vector3(4.9597263, 7.1, 0.35)
-
-[sub_resource type="BoxMesh" id="BoxMesh_ihq13"]
-material = SubResource("StandardMaterial3D_hi4r8")
-size = Vector3(5.3597264, 0.32, 0.58)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_st765"]
-albedo_color = Color(0.15294118, 0.1882353, 0.26666668, 1)
-metallic = 0.55
-roughness = 0.3
-
-[sub_resource type="BoxMesh" id="BoxMesh_aag6a"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.24, 1.4, 0.24)
-
-[sub_resource type="BoxMesh" id="BoxMesh_qprxx"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.24, 1.4, 0.24)
-
 [sub_resource type="BoxMesh" id="BoxMesh_qau6x"]
 material = SubResource("StandardMaterial3D_wuukr")
 size = Vector3(13, 7, 9)
@@ -265,6 +262,11 @@ size = Vector3(4.4, 0.5, 0.16)
 [sub_resource type="BoxMesh" id="BoxMesh_r30df"]
 material = SubResource("StandardMaterial3D_xn3dr")
 size = Vector3(4.4, 0.5, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_st765"]
+albedo_color = Color(0.15294118, 0.1882353, 0.26666668, 1)
+metallic = 0.55
+roughness = 0.3
 
 [sub_resource type="BoxMesh" id="BoxMesh_85shi"]
 material = SubResource("StandardMaterial3D_st765")
@@ -3531,18 +3533,6 @@ size = Vector3(0.30239996, 0.10079999, 3.7439997)
 material = SubResource("StandardMaterial3D_1j71q")
 size = Vector3(0.30239996, 0.10079999, 3.7439997)
 
-[sub_resource type="BoxMesh" id="BoxMesh_7h373"]
-material = SubResource("StandardMaterial3D_wiuhp")
-size = Vector3(6.142663, 5, 0.24)
-
-[sub_resource type="BoxMesh" id="BoxMesh_id4wi"]
-material = SubResource("StandardMaterial3D_wiuhp")
-size = Vector3(6.2221813, 5, 0.24)
-
-[sub_resource type="BoxMesh" id="BoxMesh_h71wq"]
-material = SubResource("StandardMaterial3D_wiuhp")
-size = Vector3(6.111141, 5, 0.24)
-
 [sub_resource type="BoxMesh" id="BoxMesh_b16xo"]
 material = SubResource("StandardMaterial3D_wng8f")
 size = Vector3(25, 0.9, 17)
@@ -3966,38 +3956,6 @@ size = Vector3(5, 0.16, 13)
 [sub_resource type="BoxMesh" id="BoxMesh_rol3r"]
 material = SubResource("StandardMaterial3D_wiuhp")
 size = Vector3(7.56719, 6.05, 0.24)
-
-[sub_resource type="BoxMesh" id="BoxMesh_w8r23"]
-material = SubResource("StandardMaterial3D_wiuhp")
-size = Vector3(4.5685678, 7.1, 0.35)
-
-[sub_resource type="BoxMesh" id="BoxMesh_acbvp"]
-material = SubResource("StandardMaterial3D_hi4r8")
-size = Vector3(4.968568, 0.32, 0.58)
-
-[sub_resource type="BoxMesh" id="BoxMesh_mhmwx"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.24, 1.4, 0.24)
-
-[sub_resource type="BoxMesh" id="BoxMesh_384gq"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.24, 1.4, 0.24)
-
-[sub_resource type="BoxMesh" id="BoxMesh_uj7ry"]
-material = SubResource("StandardMaterial3D_wiuhp")
-size = Vector3(5.5, 7.1, 0.35)
-
-[sub_resource type="BoxMesh" id="BoxMesh_3n2vi"]
-material = SubResource("StandardMaterial3D_hi4r8")
-size = Vector3(5.9, 0.32, 0.58)
-
-[sub_resource type="BoxMesh" id="BoxMesh_np3xf"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.24, 1.4, 0.24)
-
-[sub_resource type="BoxMesh" id="BoxMesh_awstm"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.24, 1.4, 0.24)
 
 [sub_resource type="BoxMesh" id="BoxMesh_l4gj1"]
 material = SubResource("StandardMaterial3D_wng8f")
@@ -5895,22 +5853,6 @@ size = Vector3(20, 3, 4)
 material = SubResource("StandardMaterial3D_vqt80")
 size = Vector3(5, 0.16, 14)
 
-[sub_resource type="BoxMesh" id="BoxMesh_cobyt"]
-material = SubResource("StandardMaterial3D_wiuhp")
-size = Vector3(5.2211795, 7.1, 0.35)
-
-[sub_resource type="BoxMesh" id="BoxMesh_jjyqm"]
-material = SubResource("StandardMaterial3D_hi4r8")
-size = Vector3(5.6211796, 0.32, 0.58)
-
-[sub_resource type="BoxMesh" id="BoxMesh_8m17n"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.24, 1.4, 0.24)
-
-[sub_resource type="BoxMesh" id="BoxMesh_afx33"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.24, 1.4, 0.24)
-
 [sub_resource type="BoxMesh" id="BoxMesh_knd0m"]
 material = SubResource("StandardMaterial3D_wiuhp")
 size = Vector3(17, 6, 14)
@@ -7108,38 +7050,6 @@ size = Vector3(4, 0.16, 13)
 [sub_resource type="BoxMesh" id="BoxMesh_u7upp"]
 material = SubResource("StandardMaterial3D_wiuhp")
 size = Vector3(6.595372, 5.35, 0.24)
-
-[sub_resource type="BoxMesh" id="BoxMesh_5iwko"]
-material = SubResource("StandardMaterial3D_wiuhp")
-size = Vector3(5.22, 7.1, 0.35)
-
-[sub_resource type="BoxMesh" id="BoxMesh_m3sy6"]
-material = SubResource("StandardMaterial3D_hi4r8")
-size = Vector3(5.62, 0.32, 0.58)
-
-[sub_resource type="BoxMesh" id="BoxMesh_prdux"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.24, 1.4, 0.24)
-
-[sub_resource type="BoxMesh" id="BoxMesh_hh1a1"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.24, 1.4, 0.24)
-
-[sub_resource type="BoxMesh" id="BoxMesh_2r2y7"]
-material = SubResource("StandardMaterial3D_wiuhp")
-size = Vector3(8.770055, 7, 0.35)
-
-[sub_resource type="BoxMesh" id="BoxMesh_q3xrm"]
-material = SubResource("StandardMaterial3D_hi4r8")
-size = Vector3(9.170055, 0.32, 0.58)
-
-[sub_resource type="BoxMesh" id="BoxMesh_5oqow"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.24, 1.4, 0.24)
-
-[sub_resource type="BoxMesh" id="BoxMesh_ggmvy"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.24, 1.4, 0.24)
 
 [sub_resource type="BoxMesh" id="BoxMesh_eui63"]
 material = SubResource("StandardMaterial3D_wuukr")
@@ -10563,38 +10473,6 @@ radial_segments = 8
 [sub_resource type="BoxMesh" id="BoxMesh_dva6x"]
 material = SubResource("StandardMaterial3D_wiuhp")
 size = Vector3(6.927174, 5.65, 0.24)
-
-[sub_resource type="BoxMesh" id="BoxMesh_3eruf"]
-material = SubResource("StandardMaterial3D_wiuhp")
-size = Vector3(9.099999, 7, 0.35)
-
-[sub_resource type="BoxMesh" id="BoxMesh_cxs3e"]
-material = SubResource("StandardMaterial3D_hi4r8")
-size = Vector3(9.5, 0.32, 0.58)
-
-[sub_resource type="BoxMesh" id="BoxMesh_lwy6x"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.24, 1.4, 0.24)
-
-[sub_resource type="BoxMesh" id="BoxMesh_y5ih1"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.24, 1.4, 0.24)
-
-[sub_resource type="BoxMesh" id="BoxMesh_af6wq"]
-material = SubResource("StandardMaterial3D_wiuhp")
-size = Vector3(8.60924, 7, 0.35)
-
-[sub_resource type="BoxMesh" id="BoxMesh_r33an"]
-material = SubResource("StandardMaterial3D_hi4r8")
-size = Vector3(9.009239, 0.32, 0.58)
-
-[sub_resource type="BoxMesh" id="BoxMesh_qkwyv"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.24, 1.4, 0.24)
-
-[sub_resource type="BoxMesh" id="BoxMesh_e1vs3"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.24, 1.4, 0.24)
 
 [sub_resource type="BoxMesh" id="BoxMesh_16xd6"]
 material = SubResource("StandardMaterial3D_wuukr")
@@ -16265,108 +16143,6 @@ radial_segments = 8
 material = SubResource("StandardMaterial3D_4caq3")
 size = Vector3(5, 0.18, 5)
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_u0d0p"]
-material = SubResource("StandardMaterial3D_tluu3")
-radius = 6.5
-height = 30.0
-radial_segments = 18
-
-[sub_resource type="BoxMesh" id="BoxMesh_oacof"]
-material = SubResource("StandardMaterial3D_wiuhp")
-size = Vector3(10, 3, 4)
-
-[sub_resource type="BoxMesh" id="BoxMesh_mafm1"]
-material = SubResource("StandardMaterial3D_fn6j1")
-size = Vector3(1.8, 0.8, 0.22)
-
-[sub_resource type="BoxMesh" id="BoxMesh_81qio"]
-material = SubResource("StandardMaterial3D_fn6j1")
-size = Vector3(1.8, 0.8, 0.22)
-
-[sub_resource type="BoxMesh" id="BoxMesh_ptouo"]
-material = SubResource("StandardMaterial3D_fn6j1")
-size = Vector3(1.8, 0.8, 0.22)
-
-[sub_resource type="BoxMesh" id="BoxMesh_nwbvq"]
-material = SubResource("StandardMaterial3D_hi4r8")
-size = Vector3(5, 0.4, 6)
-
-[sub_resource type="BoxMesh" id="BoxMesh_elya8"]
-material = SubResource("StandardMaterial3D_hi4r8")
-size = Vector3(5, 0.4, 6)
-
-[sub_resource type="BoxMesh" id="BoxMesh_ane6m"]
-material = SubResource("StandardMaterial3D_hi4r8")
-size = Vector3(20.090572, 11.8, 0.25)
-
-[sub_resource type="BoxMesh" id="BoxMesh_3lgt1"]
-material = SubResource("StandardMaterial3D_fn6j1")
-size = Vector3(2.4, 10.5, 0.3)
-
-[sub_resource type="BoxMesh" id="BoxMesh_4nby2"]
-material = SubResource("StandardMaterial3D_7fybk")
-size = Vector3(2.4, 10.5, 0.3)
-
-[sub_resource type="BoxMesh" id="BoxMesh_qk2nj"]
-material = SubResource("StandardMaterial3D_xn3dr")
-size = Vector3(12.954714, 0.12, 0.12)
-
-[sub_resource type="BoxMesh" id="BoxMesh_la6ow"]
-material = SubResource("StandardMaterial3D_xn3dr")
-size = Vector3(12.954714, 0.12, 0.12)
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_65nrt"]
-material = SubResource("StandardMaterial3D_xn3dr")
-radius = 1.35
-height = 13.0
-radial_segments = 12
-
-[sub_resource type="BoxMesh" id="BoxMesh_ohvn8"]
-material = SubResource("StandardMaterial3D_4caq3")
-size = Vector3(4, 0.35, 17)
-
-[sub_resource type="BoxMesh" id="BoxMesh_p75ru"]
-material = SubResource("StandardMaterial3D_hi4r8")
-size = Vector3(3.2, 0.3, 7)
-
-[sub_resource type="BoxMesh" id="BoxMesh_4inra"]
-material = SubResource("StandardMaterial3D_rg52d")
-size = Vector3(3, 1.8, 2.2)
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_o1g6o"]
-material = SubResource("StandardMaterial3D_wiuhp")
-top_radius = 0.7
-bottom_radius = 0.7
-height = 2.2
-radial_segments = 10
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_24f2a"]
-material = SubResource("StandardMaterial3D_wiuhp")
-top_radius = 0.7
-bottom_radius = 0.7
-height = 2.2
-radial_segments = 10
-
-[sub_resource type="BoxMesh" id="BoxMesh_v38dj"]
-material = SubResource("StandardMaterial3D_hi4r8")
-size = Vector3(18.649727, 10.8, 0.25)
-
-[sub_resource type="BoxMesh" id="BoxMesh_jm3uo"]
-material = SubResource("StandardMaterial3D_fn6j1")
-size = Vector3(2.4, 9.5, 0.3)
-
-[sub_resource type="BoxMesh" id="BoxMesh_5o6il"]
-material = SubResource("StandardMaterial3D_7fybk")
-size = Vector3(2.4, 9.5, 0.3)
-
-[sub_resource type="BoxMesh" id="BoxMesh_tajcv"]
-material = SubResource("StandardMaterial3D_xn3dr")
-size = Vector3(13.675137, 0.12, 0.12)
-
-[sub_resource type="BoxMesh" id="BoxMesh_bj0hf"]
-material = SubResource("StandardMaterial3D_xn3dr")
-size = Vector3(13.675137, 0.12, 0.12)
-
 [node name="EditableWorld" type="Node3D" unique_id=845270323 groups=["editable_world"]]
 
 [node name="StartCoast" type="Node3D" parent="." unique_id=1652387446 groups=["editable_district"]]
@@ -16503,52 +16279,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.35, -9.18)
 visibility_range_end = 2755.0
 visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_ltsse")
-
-[node name="@Sprite3D@226" type="Sprite3D" parent="StartCoast/StartCoast_GrandHotel" unique_id=837667196 groups=["building_mural_scenery", "poster_face", "wall_art_scenery"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.35, -9.320001)
-visibility_range_end = 2800.0
-visibility_range_fade_mode = 1
-pixel_size = 0.008695652
-texture = ExtResource("1_f7aky")
-
-[node name="StartGridPortrait" type="Node3D" parent="StartCoast" unique_id=901466200 groups=["editable_scenery", "grounded_scenery", "portrait_scenery", "poster_scenery"]]
-transform = Transform3D(0.6603933, 0, 0.7509199, 0, 1, 0, -0.7509199, 0, 0.6603933, -1070.1501, 1.2702286, -841.4274)
-metadata/ground_y = 1.2702286
-metadata/course_offset = 140.86742431640624
-metadata/scenery_radius = 5.958584
-metadata/poster_texture = "res://assets/generated/friends/friend-glasses-racing.png"
-metadata/bake_id = "StartCoast/StartGridPortrait/000"
-metadata/_edit_group_ = true
-
-[node name="@MeshInstance3D@381" type="MeshInstance3D" parent="StartCoast/StartGridPortrait" unique_id=1542867182]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, 0)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_8lttk")
-
-[node name="@MeshInstance3D@382" type="MeshInstance3D" parent="StartCoast/StartGridPortrait" unique_id=140708434]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.02, 0)
-cast_shadow = 0
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_ihq13")
-
-[node name="@MeshInstance3D@383" type="MeshInstance3D" parent="StartCoast/StartGridPortrait" unique_id=1791722388]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6186961, 0.7, 0.08)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_aag6a")
-
-[node name="@MeshInstance3D@384" type="MeshInstance3D" parent="StartCoast/StartGridPortrait" unique_id=594106704]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6186961, 0.7, 0.08)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_qprxx")
-
-[node name="@Sprite3D@385" type="Sprite3D" parent="StartCoast/StartGridPortrait" unique_id=927955161 groups=["portrait_scenery", "poster_face"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, -0.22)
-pixel_size = 0.004163956
-texture = ExtResource("2_vm2n8")
 
 [node name="StartCoast_Villa_Left_R01_S01" type="Node3D" parent="StartCoast" unique_id=1056877600 groups=["building_layout", "building_scenery", "district_infill", "editable_scenery", "grounded_scenery", "house_scenery", "neighborhood_scenery", "start_coast_scenery"]]
 transform = Transform3D(-0.72223, 0, 0.69165295, 0, 1, 0, -0.69165295, 0, -0.72223, -1061.547, 1.2899724, -867.9314)
@@ -30001,66 +29731,6 @@ metadata/manual_surface = 0
 
 [node name="UnderwaterTunnel" type="Node3D" parent="." unique_id=89615176 groups=["editable_district"]]
 
-[node name="TunnelPoster_00" type="Node3D" parent="UnderwaterTunnel" unique_id=1459331841 groups=["editable_scenery", "tunnel", "tunnel_wall_poster"]]
-transform = Transform3D(-0.93200976, -0.003340185, 0.36241797, 0, 0.9999576, 0.009215997, -0.36243337, 0.008589399, -0.9319701, -645.3077, -9.666292, 279.85312)
-metadata/course_offset = 2055.0
-metadata/poster_texture = "res://assets/generated/friends/481d5ab6-7c3f-47be-a2bd-e02bdfb2c1d5.jpg"
-metadata/bake_id = "UnderwaterTunnel/TunnelPoster_00/000"
-metadata/_edit_group_ = true
-
-[node name="@MeshInstance3D@2" type="MeshInstance3D" parent="UnderwaterTunnel/TunnelPoster_00" unique_id=520520362 groups=["poster_frame"]]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9.28, 3.55, 0)
-visibility_range_end = 2755.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_7h373")
-
-[node name="@Sprite3D@3" type="Sprite3D" parent="UnderwaterTunnel/TunnelPoster_00" unique_id=1034439617 groups=["poster_face", "tunnel_poster_face", "wall_art_scenery"]]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9.42, 3.55, 6.119594e-09)
-visibility_range_end = 2800.0
-visibility_range_fade_mode = 1
-pixel_size = 0.007880434
-texture = ExtResource("1_f7aky")
-
-[node name="TunnelPoster_01" type="Node3D" parent="UnderwaterTunnel" unique_id=788902955 groups=["editable_scenery", "tunnel", "tunnel_wall_poster"]]
-transform = Transform3D(-0.9329656, 0.0011833498, 0.3599637, 0, 0.99999464, -0.0032873962, -0.35996565, -0.0030670275, -0.9329605, -677.83386, -9.962644, 363.76865)
-metadata/course_offset = 2145.0
-metadata/poster_texture = "res://assets/generated/friends/5213d1b1-6e99-448d-ad81-26f61e859010.jpg"
-metadata/bake_id = "UnderwaterTunnel/TunnelPoster_01/000"
-metadata/_edit_group_ = true
-
-[node name="@MeshInstance3D@4" type="MeshInstance3D" parent="UnderwaterTunnel/TunnelPoster_01" unique_id=281983268 groups=["poster_frame"]]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 9.28, 3.55, 0)
-visibility_range_end = 2755.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_id4wi")
-
-[node name="@Sprite3D@5" type="Sprite3D" parent="UnderwaterTunnel/TunnelPoster_01" unique_id=1480834962 groups=["poster_face", "tunnel_poster_face", "wall_art_scenery"]]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 9.139999, 3.55, 6.119594e-09)
-visibility_range_end = 2800.0
-visibility_range_fade_mode = 1
-pixel_size = 0.008040666
-texture = ExtResource("5_r3qow")
-
-[node name="TunnelPoster_02" type="Node3D" parent="UnderwaterTunnel" unique_id=1114390703 groups=["editable_scenery", "tunnel", "tunnel_wall_poster"]]
-transform = Transform3D(-0.9315819, 0.0044745887, 0.36350396, 0, 0.9999243, -0.0123086665, -0.3635315, -0.011466532, -0.93151134, -710.351, -9.218155, 447.6856)
-metadata/course_offset = 2235.0
-metadata/poster_texture = "res://assets/generated/friends/8608460d-bd44-4e25-b2dc-ccf8a5003e87.jpg"
-metadata/bake_id = "UnderwaterTunnel/TunnelPoster_02/000"
-metadata/_edit_group_ = true
-
-[node name="@MeshInstance3D@6" type="MeshInstance3D" parent="UnderwaterTunnel/TunnelPoster_02" unique_id=1585335794 groups=["poster_frame"]]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9.28, 3.55, 0)
-visibility_range_end = 2755.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_h71wq")
-
-[node name="@Sprite3D@7" type="Sprite3D" parent="UnderwaterTunnel/TunnelPoster_02" unique_id=1024475806 groups=["poster_face", "tunnel_poster_face", "wall_art_scenery"]]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -9.42, 3.55, 6.119594e-09)
-visibility_range_end = 2800.0
-visibility_range_fade_mode = 1
-pixel_size = 0.007880434
-texture = ExtResource("6_82tlm")
-
 [node name="LoopTwo" type="Node3D" parent="." unique_id=780376197 groups=["editable_district"]]
 
 [node name="LoopTwo_MarinaOffice" type="Node3D" parent="LoopTwo" unique_id=884146196 groups=["building_scenery", "district_landmark", "editable_scenery", "grounded_scenery", "loop_landmark", "unique_landmark"]]
@@ -30777,91 +30447,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 16.5, -9.28)
 visibility_range_end = 2755.0
 visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_rol3r")
-
-[node name="@Sprite3D@238" type="Sprite3D" parent="PartyTown/PartyTown_NeonTheatre" unique_id=1239808219 groups=["building_mural_scenery", "poster_face", "wall_art_scenery"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 16.5, -9.42)
-visibility_range_end = 2800.0
-visibility_range_fade_mode = 1
-pixel_size = 0.009981516
-texture = ExtResource("5_r3qow")
-
-[node name="PartyCrewPortrait" type="Node3D" parent="PartyTown" unique_id=2001230490 groups=["editable_scenery", "grounded_scenery", "portrait_scenery", "poster_scenery"]]
-transform = Transform3D(0.52991647, 0, 0.8480499, 0, 1, 0, -0.8480499, 0, 0.52991647, 337.28763, 1.2834567, 1101.2455)
-metadata/ground_y = 1.2834567
-metadata/course_offset = 5077.42525390625
-metadata/scenery_radius = 5.6163116
-metadata/poster_texture = "res://assets/generated/friends/friend-beard-racing.png"
-metadata/bake_id = "PartyTown/PartyCrewPortrait/000"
-metadata/_edit_group_ = true
-
-[node name="@MeshInstance3D@391" type="MeshInstance3D" parent="PartyTown/PartyCrewPortrait" unique_id=710288348]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, 0)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_w8r23")
-
-[node name="@MeshInstance3D@392" type="MeshInstance3D" parent="PartyTown/PartyCrewPortrait" unique_id=1394613876]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.02, 0)
-cast_shadow = 0
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_acbvp")
-
-[node name="@MeshInstance3D@393" type="MeshInstance3D" parent="PartyTown/PartyCrewPortrait" unique_id=1305092978]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4700558, 0.7, 0.08)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_mhmwx")
-
-[node name="@MeshInstance3D@394" type="MeshInstance3D" parent="PartyTown/PartyCrewPortrait" unique_id=366711819]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4700558, 0.7, 0.08)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_384gq")
-
-[node name="@Sprite3D@395" type="Sprite3D" parent="PartyTown/PartyCrewPortrait" unique_id=1902457007 groups=["portrait_scenery", "poster_face"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, -0.22)
-pixel_size = 0.003967762
-texture = ExtResource("7_h4vj1")
-
-[node name="DanikHeroPoster" type="Node3D" parent="PartyTown" unique_id=896224588 groups=["editable_scenery", "grounded_scenery", "portrait_scenery", "poster_scenery"]]
-transform = Transform3D(-0.4495869, 0, -0.8932366, 0, 1, 0, 0.8932366, 0, -0.4495869, 447.24695, 1.298651, 802.4716)
-metadata/ground_y = 1.298651
-metadata/course_offset = 5391.85208984375
-metadata/scenery_radius = 6.440497
-metadata/poster_texture = "res://assets/generated/friends/71b38443-851b-401f-a174-0b72d699a284.jpg"
-metadata/bake_id = "PartyTown/DanikHeroPoster/000"
-metadata/_edit_group_ = true
-
-[node name="@MeshInstance3D@396" type="MeshInstance3D" parent="PartyTown/DanikHeroPoster" unique_id=2075451297]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, 0)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_uj7ry")
-
-[node name="@MeshInstance3D@397" type="MeshInstance3D" parent="PartyTown/DanikHeroPoster" unique_id=11604456]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.02, 0)
-cast_shadow = 0
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_3n2vi")
-
-[node name="@MeshInstance3D@398" type="MeshInstance3D" parent="PartyTown/DanikHeroPoster" unique_id=159510893]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8240001, 0.7, 0.08)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_np3xf")
-
-[node name="@MeshInstance3D@399" type="MeshInstance3D" parent="PartyTown/DanikHeroPoster" unique_id=76154236]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8240001, 0.7, 0.08)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_awstm")
-
-[node name="@Sprite3D@400" type="Sprite3D" parent="PartyTown/DanikHeroPoster" unique_id=1564997967 groups=["portrait_scenery", "poster_face"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, -0.22)
-pixel_size = 0.005
-texture = ExtResource("8_iiro7")
 
 [node name="PartyTown_PartyHotel_Left_R01_S02" type="Node3D" parent="PartyTown" unique_id=1990264268 groups=["building_layout", "building_scenery", "district_infill", "editable_scenery", "grounded_scenery", "hotel_scenery", "neighborhood_scenery", "party_town_scenery"]]
 transform = Transform3D(-0.5193717, 0, -0.85454845, 0, 1, 0, 0.85454845, 0, -0.5193717, 249.05049, 1.3853618, 1124.3254)
@@ -34678,45 +34263,6 @@ visibility_range_end = 2610.0
 visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_gtvpw")
 
-[node name="CityEngineerPortrait" type="Node3D" parent="CityCentre" unique_id=232783864 groups=["editable_scenery", "grounded_scenery", "portrait_scenery", "poster_scenery"]]
-transform = Transform3D(0.9031727, 0, -0.42927742, 0, 1, 0, 0.42927742, 0, 0.9031727, 379.44348, 1.311938, 517.3874)
-metadata/ground_y = 1.311938
-metadata/course_offset = 5790.859912109375
-metadata/scenery_radius = 6.190592
-metadata/poster_texture = "res://assets/generated/friends/friend-dark-hair-racing.png"
-metadata/bake_id = "CityCentre/CityEngineerPortrait/000"
-metadata/_edit_group_ = true
-
-[node name="@MeshInstance3D@401" type="MeshInstance3D" parent="CityCentre/CityEngineerPortrait" unique_id=921657236]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, 0)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_cobyt")
-
-[node name="@MeshInstance3D@402" type="MeshInstance3D" parent="CityCentre/CityEngineerPortrait" unique_id=797390806]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.02, 0)
-cast_shadow = 0
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_jjyqm")
-
-[node name="@MeshInstance3D@403" type="MeshInstance3D" parent="CityCentre/CityEngineerPortrait" unique_id=359302045]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.7180483, 0.7, 0.08)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_8m17n")
-
-[node name="@MeshInstance3D@404" type="MeshInstance3D" parent="CityCentre/CityEngineerPortrait" unique_id=3885584]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.7180483, 0.7, 0.08)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_afx33")
-
-[node name="@Sprite3D@405" type="Sprite3D" parent="CityCentre/CityEngineerPortrait" unique_id=494500534 groups=["portrait_scenery", "poster_face"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, -0.22)
-pixel_size = 0.004289544
-texture = ExtResource("9_2mfsd")
-
 [node name="CityCentre_Tower_Left_R01_S02" type="Node3D" parent="CityCentre" unique_id=1352748180 groups=["building_layout", "building_scenery", "city_centre_scenery", "district_infill", "editable_scenery", "grounded_scenery", "neighborhood_scenery"]]
 transform = Transform3D(0.79407424, 0, -0.60782075, 0, 1, 0, 0.60782075, 0, 0.79407424, 425.96436, 1.0982046, 568.01056)
 metadata/ground_y = 1.0982046
@@ -36798,91 +36344,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.3, -12.48)
 visibility_range_end = 2755.0
 visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_u7upp")
-
-[node name="@Sprite3D@277" type="Sprite3D" parent="ShoppingAlley/ShoppingAlley_MarketHall" unique_id=1188234615 groups=["building_mural_scenery", "poster_face", "wall_art_scenery"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.3, -12.62)
-visibility_range_end = 2800.0
-visibility_range_fade_mode = 1
-pixel_size = 0.008529945
-texture = ExtResource("4_1d6aq")
-
-[node name="ShoppingEngineerPoster" type="Node3D" parent="ShoppingAlley" unique_id=1115207161 groups=["editable_scenery", "grounded_scenery", "portrait_scenery", "poster_scenery"]]
-transform = Transform3D(0.63862556, 0, 0.76951766, 0, 1, 0, -0.76951766, 0, 0.63862556, 364.94568, 1.2899023, 62.957573)
-metadata/ground_y = 1.2899023
-metadata/course_offset = 7351.65333984375
-metadata/scenery_radius = 6.1895394
-metadata/poster_texture = "res://assets/generated/friends/61b5ddf7-ae71-4d13-b677-660bd070a785.jpg"
-metadata/bake_id = "ShoppingAlley/ShoppingEngineerPoster/000"
-metadata/_edit_group_ = true
-
-[node name="@MeshInstance3D@406" type="MeshInstance3D" parent="ShoppingAlley/ShoppingEngineerPoster" unique_id=1302866115]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, 0)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_5iwko")
-
-[node name="@MeshInstance3D@407" type="MeshInstance3D" parent="ShoppingAlley/ShoppingEngineerPoster" unique_id=266499422]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.02, 0)
-cast_shadow = 0
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_m3sy6")
-
-[node name="@MeshInstance3D@408" type="MeshInstance3D" parent="ShoppingAlley/ShoppingEngineerPoster" unique_id=1951388838]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.7176, 0.7, 0.08)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_prdux")
-
-[node name="@MeshInstance3D@409" type="MeshInstance3D" parent="ShoppingAlley/ShoppingEngineerPoster" unique_id=1010328528]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.7176, 0.7, 0.08)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_hh1a1")
-
-[node name="@Sprite3D@410" type="Sprite3D" parent="ShoppingAlley/ShoppingEngineerPoster" unique_id=1158590399 groups=["portrait_scenery", "poster_face"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, -0.22)
-pixel_size = 0.005
-texture = ExtResource("10_gbemt")
-
-[node name="ShoppingHedgehogBillboard" type="Node3D" parent="ShoppingAlley" unique_id=1923766904 groups=["editable_scenery", "grounded_scenery", "portrait_scenery", "poster_scenery"]]
-transform = Transform3D(0.72095066, 0, -0.69298637, 0, 1, 0, 0.69298637, 0, 0.72095066, 418.6139, 1.3120681, -165.83475)
-metadata/ground_y = 1.3120681
-metadata/course_offset = 7640.0
-metadata/scenery_radius = 9.492413
-metadata/poster_texture = "res://assets/generated/friends/5213d1b1-6e99-448d-ad81-26f61e859010.jpg"
-metadata/bake_id = "ShoppingAlley/ShoppingHedgehogBillboard/000"
-metadata/_edit_group_ = true
-
-[node name="@MeshInstance3D@421" type="MeshInstance3D" parent="ShoppingAlley/ShoppingHedgehogBillboard" unique_id=2141726224]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.35, 0)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_2r2y7")
-
-[node name="@MeshInstance3D@422" type="MeshInstance3D" parent="ShoppingAlley/ShoppingHedgehogBillboard" unique_id=191948372]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.92, 0)
-cast_shadow = 0
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_q3xrm")
-
-[node name="@MeshInstance3D@423" type="MeshInstance3D" parent="ShoppingAlley/ShoppingHedgehogBillboard" unique_id=1074392876]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.0666208, 0.7, 0.08)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_5oqow")
-
-[node name="@MeshInstance3D@424" type="MeshInstance3D" parent="ShoppingAlley/ShoppingHedgehogBillboard" unique_id=1652769990]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0666208, 0.7, 0.08)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_ggmvy")
-
-[node name="@Sprite3D@425" type="Sprite3D" parent="ShoppingAlley/ShoppingHedgehogBillboard" unique_id=1033605342 groups=["portrait_scenery", "poster_face"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.35, -0.22)
-pixel_size = 0.011645102
-texture = ExtResource("5_r3qow")
 
 [node name="ShoppingAlley_ShopPair_Left_R01_S01" type="Node3D" parent="ShoppingAlley" unique_id=1170234236 groups=["building_layout", "building_scenery", "district_infill", "editable_scenery", "grounded_scenery", "neighborhood_scenery", "shop_scenery", "shopping_alley_scenery"]]
 transform = Transform3D(-0.6650113, 0, -0.7468333, 0, 1, 0, 0.7468333, 0, -0.6650113, 244.47618, 1.3090737, 111.904755)
@@ -42788,91 +42249,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.6, -9.18)
 visibility_range_end = 2755.0
 visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_dva6x")
-
-[node name="@Sprite3D@308" type="Sprite3D" parent="NorthCoast/NorthCoast_MarinaHotel" unique_id=963544159 groups=["building_mural_scenery", "poster_face", "wall_art_scenery"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.6, -9.320001)
-visibility_range_end = 2800.0
-visibility_range_fade_mode = 1
-pixel_size = 0.009057971
-texture = ExtResource("6_82tlm")
-
-[node name="NorthCoastCrewBillboard" type="Node3D" parent="NorthCoast" unique_id=393983782 groups=["editable_scenery", "grounded_scenery", "portrait_scenery", "poster_scenery"]]
-transform = Transform3D(0.978869, 0, -0.20448828, 0, 1, 0, 0.20448828, 0, 0.978869, 160.5383, 1.3063872, -1366.5062)
-metadata/ground_y = 1.3063872
-metadata/course_offset = 10185.4015234375
-metadata/scenery_radius = 9.808159
-metadata/poster_texture = "res://assets/generated/friends/1daf0fdc-2536-4e54-b476-fc61c770b23d.jpg"
-metadata/bake_id = "NorthCoast/NorthCoastCrewBillboard/000"
-metadata/_edit_group_ = true
-
-[node name="@MeshInstance3D@411" type="MeshInstance3D" parent="NorthCoast/NorthCoastCrewBillboard" unique_id=1770222686]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.35, 0)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_3eruf")
-
-[node name="@MeshInstance3D@412" type="MeshInstance3D" parent="NorthCoast/NorthCoastCrewBillboard" unique_id=406903697]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.92, 0)
-cast_shadow = 0
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_cxs3e")
-
-[node name="@MeshInstance3D@413" type="MeshInstance3D" parent="NorthCoast/NorthCoastCrewBillboard" unique_id=1016696795]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.192, 0.7, 0.08)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_lwy6x")
-
-[node name="@MeshInstance3D@414" type="MeshInstance3D" parent="NorthCoast/NorthCoastCrewBillboard" unique_id=808461939]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.192, 0.7, 0.08)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_y5ih1")
-
-[node name="@Sprite3D@415" type="Sprite3D" parent="NorthCoast/NorthCoastCrewBillboard" unique_id=8809725 groups=["portrait_scenery", "poster_face"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.35, -0.22)
-pixel_size = 0.0065625003
-texture = ExtResource("11_l8ua5")
-
-[node name="NorthCoastRiderBillboard" type="Node3D" parent="NorthCoast" unique_id=864370340 groups=["editable_scenery", "grounded_scenery", "portrait_scenery", "poster_scenery"]]
-transform = Transform3D(-0.944295, 0, -0.3291003, 0, 1, 0, 0.3291003, 0, -0.944295, -302.8186, 1.2732738, -1410.4908)
-metadata/ground_y = 1.2732738
-metadata/course_offset = 10650.0
-metadata/scenery_radius = 9.338872
-metadata/poster_texture = "res://assets/generated/friends/8608460d-bd44-4e25-b2dc-ccf8a5003e87.jpg"
-metadata/bake_id = "NorthCoast/NorthCoastRiderBillboard/000"
-metadata/_edit_group_ = true
-
-[node name="@MeshInstance3D@426" type="MeshInstance3D" parent="NorthCoast/NorthCoastRiderBillboard" unique_id=2040291919]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.35, 0)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_af6wq")
-
-[node name="@MeshInstance3D@427" type="MeshInstance3D" parent="NorthCoast/NorthCoastRiderBillboard" unique_id=21714884]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.92, 0)
-cast_shadow = 0
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_r33an")
-
-[node name="@MeshInstance3D@428" type="MeshInstance3D" parent="NorthCoast/NorthCoastRiderBillboard" unique_id=1907227061]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.005511, 0.7, 0.08)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_qkwyv")
-
-[node name="@MeshInstance3D@429" type="MeshInstance3D" parent="NorthCoast/NorthCoastRiderBillboard" unique_id=1221800784]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.005511, 0.7, 0.08)
-visibility_range_end = 1595.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_e1vs3")
-
-[node name="@Sprite3D@430" type="Sprite3D" parent="NorthCoast/NorthCoastRiderBillboard" unique_id=1815788271 groups=["portrait_scenery", "poster_face"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.35, -0.22)
-pixel_size = 0.011413043
-texture = ExtResource("6_82tlm")
 
 [node name="NorthCoast_Villa_Left_R01_S01" type="Node3D" parent="NorthCoast" unique_id=640213178 groups=["building_layout", "building_scenery", "district_infill", "editable_scenery", "grounded_scenery", "house_scenery", "neighborhood_scenery", "north_coast_scenery"]]
 transform = Transform3D(-0.80431944, 0, -0.59419715, 0, 1, 0, 0.59419715, 0, -0.80431944, 327.63144, 1.4422445, -762.3835)
@@ -52839,204 +52215,6 @@ mesh = SubResource("BoxMesh_4pxud")
 
 [node name="Sky" type="Node3D" parent="." unique_id=7682689 groups=["editable_district"]]
 
-[node name="SkyTraffic" type="Node3D" parent="Sky" unique_id=1015136539 groups=["editable_scenery", "sky_traffic"]]
-script = ExtResource("12_5mdqf")
-metadata/bake_id = "Sky/SkyTraffic/000"
-metadata/_edit_group_ = true
-
-[node name="SeregaZeppelin" type="Node3D" parent="Sky/SkyTraffic" unique_id=1266447147 groups=["sky_traffic_vehicle", "zeppelin_scenery"]]
-transform = Transform3D(-0.32553586, 0, -0.9455297, 0, 1, 0, 0.9455297, 0, -0.32553586, 239.71663, 89.82453, -1384.7125)
-metadata/flight_centre = Vector3(237.37277, 90, -1377.9047)
-metadata/flight_axis = Vector3(-0.32553586, 0, 0.9455297)
-metadata/flight_half_span = 360.0
-metadata/flight_speed = 9.0
-metadata/flight_period = 80.0
-metadata/flight_bob_height = 1.4
-metadata/flight_progress = 0.49
-
-[node name="@MeshInstance3D@3488" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaZeppelin" unique_id=561658364]
-transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 0, 0, 0)
-visibility_range_end = 4350.0
-visibility_range_fade_mode = 1
-mesh = SubResource("CapsuleMesh_u0d0p")
-
-[node name="@MeshInstance3D@3489" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaZeppelin" unique_id=1764779440]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -7, 0)
-visibility_range_end = 4350.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_oacof")
-
-[node name="@MeshInstance3D@3490" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaZeppelin" unique_id=58956858]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, -7, -2.12)
-visibility_range_end = 4350.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_mafm1")
-
-[node name="@MeshInstance3D@3491" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaZeppelin" unique_id=1560803423]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -7, -2.12)
-visibility_range_end = 4350.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_81qio")
-
-[node name="@MeshInstance3D@3492" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaZeppelin" unique_id=562799321]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, -7, -2.12)
-visibility_range_end = 4350.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_ptouo")
-
-[node name="@MeshInstance3D@3493" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaZeppelin" unique_id=1944745899]
-transform = Transform3D(1, 0, 0, 0, 0.99280864, 0.119712204, 0, -0.119712204, 0.99280864, -14, 0, -2.7)
-visibility_range_end = 4350.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_nwbvq")
-
-[node name="@MeshInstance3D@3494" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaZeppelin" unique_id=906109971]
-transform = Transform3D(1, 0, 0, 0, 0.99280864, -0.119712204, 0, 0.119712204, 0.99280864, -14, 0, 2.7)
-visibility_range_end = 4350.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_elya8")
-
-[node name="@MeshInstance3D@3495" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaZeppelin" unique_id=1044206770]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, -7, 0)
-cast_shadow = 0
-visibility_range_end = 4640.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_ane6m")
-
-[node name="@MeshInstance3D@3496" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaZeppelin" unique_id=951821348]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -38.495285, -7, -0.03)
-cast_shadow = 0
-visibility_range_end = 4640.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_3lgt1")
-
-[node name="@MeshInstance3D@3497" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaZeppelin" unique_id=1511235860]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.504713, -7, -0.03)
-cast_shadow = 0
-visibility_range_end = 4640.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_4nby2")
-
-[node name="@MeshInstance3D@3498" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaZeppelin" unique_id=1549385342]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.477357, -10.74, 0)
-cast_shadow = 0
-visibility_range_end = 4640.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_qk2nj")
-
-[node name="@MeshInstance3D@3499" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaZeppelin" unique_id=749289216]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.477357, -3.26, 0)
-cast_shadow = 0
-visibility_range_end = 4640.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_la6ow")
-
-[node name="@Sprite3D@3500" type="Sprite3D" parent="Sky/SkyTraffic/SeregaZeppelin" unique_id=1516690414 groups=["air_banner_scenery"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, -7, -0.38)
-visibility_range_end = 3200.0
-pixel_size = 0.020332716
-texture = ExtResource("5_r3qow")
-
-[node name="@Sprite3D@3501" type="Sprite3D" parent="Sky/SkyTraffic/SeregaZeppelin" unique_id=47419190 groups=["air_banner_scenery"]]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -30, -7, 0.38)
-visibility_range_end = 3200.0
-pixel_size = 0.020332716
-texture = ExtResource("5_r3qow")
-
-[node name="SeregaBannerPlane" type="Node3D" parent="Sky/SkyTraffic" unique_id=267432984 groups=["plane_scenery", "sky_traffic_vehicle"]]
-transform = Transform3D(0.60521144, 0, 0.79606473, 0, 1, 0, -0.79606473, 0, 0.60521144, -635.35803, 116.96322, -381.57047)
-metadata/flight_centre = Vector3(-628.0955, 117.05095, -391.12323)
-metadata/flight_axis = Vector3(0.60521144, 0, -0.79606473)
-metadata/flight_half_span = 600.0
-metadata/flight_speed = 42.0
-metadata/flight_period = 28.571428571428573
-metadata/flight_bob_height = 0.7
-metadata/flight_progress = 0.49
-
-[node name="@MeshInstance3D@3502" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaBannerPlane" unique_id=1857197743]
-transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 0, 0, 0)
-visibility_range_end = 3770.0
-visibility_range_fade_mode = 1
-mesh = SubResource("CapsuleMesh_65nrt")
-
-[node name="@MeshInstance3D@3503" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaBannerPlane" unique_id=1282127953]
-cast_shadow = 0
-visibility_range_end = 3770.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_ohvn8")
-
-[node name="@MeshInstance3D@3504" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaBannerPlane" unique_id=30763732]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2, 1.1, 0)
-cast_shadow = 0
-visibility_range_end = 3770.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_p75ru")
-
-[node name="@MeshInstance3D@3505" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaBannerPlane" unique_id=1751702675]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 1.2, 0)
-visibility_range_end = 3770.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_4inra")
-
-[node name="@MeshInstance3D@3506" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaBannerPlane" unique_id=572581188]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, -0.8, -5.8)
-visibility_range_end = 3770.0
-visibility_range_fade_mode = 1
-mesh = SubResource("CylinderMesh_o1g6o")
-
-[node name="@MeshInstance3D@3507" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaBannerPlane" unique_id=2040544889]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, -0.8, 5.8)
-visibility_range_end = 3770.0
-visibility_range_fade_mode = 1
-mesh = SubResource("CylinderMesh_24f2a")
-
-[node name="@MeshInstance3D@3508" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaBannerPlane" unique_id=1001518482]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, -3, 0)
-cast_shadow = 0
-visibility_range_end = 4350.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_v38dj")
-
-[node name="@MeshInstance3D@3509" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaBannerPlane" unique_id=1414065291]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.774864, -3, -0.03)
-cast_shadow = 0
-visibility_range_end = 4350.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_jm3uo")
-
-[node name="@MeshInstance3D@3510" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaBannerPlane" unique_id=953715471]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.225136, -3, -0.03)
-cast_shadow = 0
-visibility_range_end = 4350.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_5o6il")
-
-[node name="@MeshInstance3D@3511" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaBannerPlane" unique_id=1708403525]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.837568, -6.4, 0)
-cast_shadow = 0
-visibility_range_end = 4350.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_tajcv")
-
-[node name="@MeshInstance3D@3512" type="MeshInstance3D" parent="Sky/SkyTraffic/SeregaBannerPlane" unique_id=304934330]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.837568, 0.4, 0)
-cast_shadow = 0
-visibility_range_end = 4350.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_bj0hf")
-
-[node name="@Sprite3D@3513" type="Sprite3D" parent="Sky/SkyTraffic/SeregaBannerPlane" unique_id=651951138 groups=["air_banner_scenery"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, -3, -0.38)
-visibility_range_end = 3000.0
-pixel_size = 0.01814882
-texture = ExtResource("4_1d6aq")
-
-[node name="@Sprite3D@3514" type="Sprite3D" parent="Sky/SkyTraffic/SeregaBannerPlane" unique_id=1229398321 groups=["air_banner_scenery"]]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -30, -3, 0.38)
-visibility_range_end = 3000.0
-pixel_size = 0.01814882
-texture = ExtResource("4_1d6aq")
-
 [node name="Other" type="Node3D" parent="." unique_id=1479825486 groups=["editable_district"]]
 
 [node name="ManualScenery" type="Node3D" parent="." unique_id=381846563 groups=["manual_scenery_root"]]
@@ -53186,12 +52364,6 @@ metadata/manual_surface = 0
 
 [node name="BoardwalkSection8" parent="." unique_id=1569092709 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("18_2mfsd")]
 transform = Transform3D(0.6868807, 0, 0.72677016, 0, 1, 0, -0.72677016, 0, 0.6868807, -1190.4186, 1.3877182, -864.56104)
-metadata/catalog_id = "boardwalk_section"
-metadata/scenery_radius = 6.0
-metadata/manual_surface = 0
-
-[node name="BoardwalkSection11" parent="." unique_id=1945779030 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("18_2mfsd")]
-transform = Transform3D(-0.31130052, 0, 0.7819818, 0, 0.20174938, 0, -0.3744978, 0, -0.65002084, -1195.9198, 1.6598778, -858.2971)
 metadata/catalog_id = "boardwalk_section"
 metadata/scenery_radius = 6.0
 metadata/manual_surface = 0
@@ -53629,30 +52801,6 @@ metadata/scenery_radius = 6.0
 metadata/manual_surface = 0
 
 [node name="TallPalm40" parent="." unique_id=1261874769 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("30_wuukr")]
-transform = Transform3D(0.64034474, 0, -0.7680876, 0, 1, 0, 0.7680876, 0, 0.64034474, -567.2409, -3.8146973e-06, -1013.9466)
-metadata/catalog_id = "palm_tall"
-metadata/scenery_radius = 5.0
-metadata/manual_surface = 0
-
-[node name="WidePalm41" parent="." unique_id=1260756443 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("29_x202x")]
-transform = Transform3D(0.64034474, 0, -0.7680876, 0, 1, 0, 0.7680876, 0, 0.64034474, -552.74164, -3.8146973e-06, -1033.4524)
-metadata/catalog_id = "palm_wide"
-metadata/scenery_radius = 6.0
-metadata/manual_surface = 0
-
-[node name="TallPalm41" parent="." unique_id=1681501161 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("30_wuukr")]
-transform = Transform3D(0.64034474, 0, -0.7680876, 0, 1, 0, 0.7680876, 0, 0.64034474, -562.1314, -3.8146973e-06, -1031.686)
-metadata/catalog_id = "palm_tall"
-metadata/scenery_radius = 5.0
-metadata/manual_surface = 0
-
-[node name="WidePalm42" parent="." unique_id=1125399805 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("29_x202x")]
-transform = Transform3D(0.64034474, 0, -0.7680876, 0, 1, 0, 0.7680876, 0, 0.64034474, -557.85114, -0.34309673, -1015.7128)
-metadata/catalog_id = "palm_wide"
-metadata/scenery_radius = 6.0
-metadata/manual_surface = 0
-
-[node name="TallPalm42" parent="." unique_id=245151964 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("30_wuukr")]
 transform = Transform3D(0.64034474, 0, -0.7680876, 0, 1, 0, 0.7680876, 0, 0.64034474, -567.2409, -3.8146973e-06, -1013.9466)
 metadata/catalog_id = "palm_tall"
 metadata/scenery_radius = 5.0
@@ -54317,3 +53465,419 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 261.1978, 0.7547703, 1148.855
 metadata/catalog_id = "bird_of_paradise"
 metadata/scenery_radius = 2.3
 metadata/manual_surface = 0
+
+[node name="FinalSprinkle_01_01_CityMonument" parent="." unique_id=607719916 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("4_4caq3")]
+transform = Transform3D(0.89549893, 0, -0.44506362, 0, 1, 0, 0.44506362, 0, 0.89549893, 142.77722, 1.36, 433.29672)
+metadata/catalog_id = "city_monument"
+metadata/scenery_radius = 10.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 6040.0
+
+[node name="FinalSprinkle_01_02_Bench" parent="." unique_id=329371264 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("42_5dsd2")]
+transform = Transform3D(0.24348404, 0, 0.96990496, 0, 1, 0, -0.96990496, 0, 0.24348404, 153.95216, 1.36, 431.0338)
+metadata/catalog_id = "bench"
+metadata/scenery_radius = 2.5
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 6040.0
+
+[node name="FinalSprinkle_01_03_FlowerBed" parent="." unique_id=171831572 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("43_sg0es")]
+transform = Transform3D(0.7823671, 0, -0.6228175, 0, 1, 0, 0.6228175, 0, 0.7823671, 137.3881, 1.36, 423.91815)
+metadata/catalog_id = "flower_bed"
+metadata/scenery_radius = 3.8
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 6040.0
+
+[node name="FinalSprinkle_01_04_ParkLamp" parent="." unique_id=1919867041 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("44_qau6x")]
+transform = Transform3D(0.895499, 0, -0.44506353, 0, 1, 0, 0.44506353, 0, 0.895499, 147.22786, 1.36, 424.34174)
+metadata/catalog_id = "park_lamp"
+metadata/scenery_radius = 1.6
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 6040.0
+
+[node name="FinalSprinkle_02_01_Bungalow" parent="." unique_id=1716859074 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("6_rg52d")]
+transform = Transform3D(0.74323416, 0, -0.6690313, 0, 1, 0, 0.6690313, 0, 0.74323416, -16.705702, 1.36, 341.66214)
+metadata/catalog_id = "bungalow"
+metadata/scenery_radius = 11.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 6210.0
+
+[node name="FinalSprinkle_02_02_Driveway" parent="." unique_id=1591961241 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("45_dw1pc")]
+transform = Transform3D(0.7432344, 0, -0.6690311, 0, 1, 0, 0.6690311, 0, 0.7432344, -8.008294, 1.36, 332.00012)
+metadata/catalog_id = "driveway"
+metadata/scenery_radius = 5.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 6210.0
+
+[node name="FinalSprinkle_02_03_HedgeShort" parent="." unique_id=913876092 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("46_6a31e")]
+transform = Transform3D(0.85579747, 0, -0.51731104, 0, 1, 0, 0.51731104, 0, 0.85579747, -3.32628, 1.36, 340.25107)
+metadata/catalog_id = "hedge_short"
+metadata/scenery_radius = 3.5
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 6210.0
+
+[node name="FinalSprinkle_02_04_Bush" parent="." unique_id=1817526859 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("47_s8x8a")]
+transform = Transform3D(0.5437486, 0, -0.8392481, 0, 1, 0, 0.8392481, 0, 0.5437486, -23.765823, 1.36, 328.57956)
+metadata/catalog_id = "bush"
+metadata/scenery_radius = 2.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 6210.0
+
+[node name="FinalSprinkle_03_01_IslandCabana" parent="." unique_id=1134193894 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("48_e6ncm")]
+transform = Transform3D(0.098994285, 0, -0.995088, 0, 1, 0, 0.995088, 0, 0.098994285, -244.82742, 1.36, 353.46994)
+metadata/catalog_id = "island_cabana"
+metadata/scenery_radius = 7.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 6550.0
+
+[node name="FinalSprinkle_03_02_PicnicTable" parent="." unique_id=1380674429 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("49_21sij")]
+transform = Transform3D(-0.106958, 0, -0.9942635, 0, 1, 0, 0.9942635, 0, -0.106958, -236.76257, 1.36, 343.62338)
+metadata/catalog_id = "picnic_table"
+metadata/scenery_radius = 2.7
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 6550.0
+
+[node name="FinalSprinkle_03_03_Agave" parent="." unique_id=643520968 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("50_rlcpk")]
+transform = Transform3D(0.31249785, 0, -0.94991845, 0, 1, 0, 0.94991845, 0, 0.31249785, -236.87189, 1.36, 362.72766)
+metadata/catalog_id = "agave"
+metadata/scenery_radius = 1.8
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 6550.0
+
+[node name="FinalSprinkle_03_04_TrashBin" parent="." unique_id=1742849198 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("51_7h4os")]
+transform = Transform3D(0.020372964, 0, -0.99979246, 0, 1, 0, 0.99979246, 0, 0.020372964, -231.19318, 1.36, 349.09882)
+metadata/catalog_id = "trash_bin"
+metadata/scenery_radius = 1.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 6550.0
+
+[node name="FinalSprinkle_04_01_MarinaOffice" parent="." unique_id=851411494 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("43_e00cp")]
+transform = Transform3D(-0.06436894, 0, 0.9979262, 0, 1, 0, -0.9979262, 0, -0.06436894, 527.84375, 1.36, -129.89854)
+metadata/catalog_id = "marina_office"
+metadata/scenery_radius = 15.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 7570.0
+
+[node name="FinalSprinkle_04_02_WayfindingSign" parent="." unique_id=1767888418 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("52_vqt80")]
+transform = Transform3D(0.16852169, 0, 0.9856979, 0, 1, 0, -0.9856979, 0, 0.16852169, 514.5165, 1.36, -119.01812)
+metadata/catalog_id = "wayfinding_sign"
+metadata/scenery_radius = 1.5
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 7570.0
+
+[node name="FinalSprinkle_04_03_RectangularPlanter" parent="." unique_id=1846390193 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("53_axwrc")]
+transform = Transform3D(-0.26304394, 0, 0.96478385, 0, 1, 0, -0.96478385, 0, -0.26304394, 515.2893, 1.36, -138.10745)
+metadata/catalog_id = "rectangular_planter"
+metadata/scenery_radius = 2.8
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 7570.0
+
+[node name="FinalSprinkle_04_04_BikeRack" parent="." unique_id=1706155644 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("54_4xhec")]
+transform = Transform3D(-0.08928913, 0, 0.9960058, 0, 1, 0, -0.9960058, 0, -0.08928913, 511.81256, 1.36, -129.86656)
+metadata/catalog_id = "bike_rack"
+metadata/scenery_radius = 2.2
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 7570.0
+
+[node name="FinalSprinkle_05_01_BusStop" parent="." unique_id=887179723 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("55_r30df")]
+transform = Transform3D(0.8002958, 0, -0.5996054, 0, 1, 0, 0.5996054, 0, 0.8002958, 334.10864, 1.36, -214.1055)
+metadata/catalog_id = "bus_stop"
+metadata/scenery_radius = 4.5
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 7740.0
+
+[node name="FinalSprinkle_05_02_VendingMachine" parent="." unique_id=319196499 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("56_85shi")]
+transform = Transform3D(0.65117437, 0, -0.7589282, 0, 1, 0, 0.7589282, 0, 0.65117437, 324.9069, 1.36, -218.50063)
+metadata/catalog_id = "vending_machine"
+metadata/scenery_radius = 1.3
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 7740.0
+
+[node name="FinalSprinkle_05_03_RoundPlanter" parent="." unique_id=312249474 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("57_payh1")]
+transform = Transform3D(0.91130644, 0, -0.4117288, 0, 1, 0, 0.4117288, 0, 0.91130644, 340.91196, 1.36, -206.50917)
+metadata/catalog_id = "round_planter"
+metadata/scenery_radius = 2.2
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 7740.0
+
+[node name="FinalSprinkle_05_04_SidewalkStraight" parent="." unique_id=831392432 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("44_1aiff")]
+transform = Transform3D(0.8002957, 0, -0.5996055, 0, 1, 0, 0.5996055, 0, 0.8002957, 337.70627, 1.36, -218.90727)
+metadata/catalog_id = "sidewalk_straight"
+metadata/scenery_radius = 6.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 7740.0
+
+[node name="FinalSprinkle_06_01_Bungalow" parent="." unique_id=1851449719 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("6_rg52d")]
+transform = Transform3D(0.06265999, 0, -0.99803495, 0, 1, 0, 0.99803495, 0, 0.06265999, -265.9289, 1.36, -459.96402)
+metadata/catalog_id = "bungalow"
+metadata/scenery_radius = 11.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 8420.0
+
+[node name="FinalSprinkle_06_02_SteppingStonePath" parent="." unique_id=1482772784 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("17_iiro7")]
+transform = Transform3D(0.062660106, 0, -0.99803495, 0, 1, 0, 0.99803495, 0, 0.062660106, -252.95444, 1.36, -460.7786)
+metadata/catalog_id = "stepping_stone_path"
+metadata/scenery_radius = 5.5
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 8420.0
+
+[node name="FinalSprinkle_06_03_WhitePicketFence" parent="." unique_id=808767546 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("58_qyvgh")]
+transform = Transform3D(-0.12230612, 0, -0.99249244, 0, 1, 0, 0.99249244, 0, -0.12230612, -256.5124, 1.36, -469.57126)
+metadata/catalog_id = "white_picket_fence"
+metadata/scenery_radius = 5.5
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 8420.0
+
+[node name="FinalSprinkle_06_04_FloweringBushCyan" parent="." unique_id=1729195037 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("59_0ketn")]
+transform = Transform3D(0.31542757, 0, -0.94894964, 0, 1, 0, 0.94894964, 0, 0.31542757, -260.06165, 1.36, -446.30743)
+metadata/catalog_id = "flowering_bush_cyan"
+metadata/scenery_radius = 2.2
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 8420.0
+
+[node name="FinalSprinkle_07_01_WalkingTrail" parent="." unique_id=1286143284 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("60_tluu3")]
+transform = Transform3D(0.6763219, 0, 0.7366062, 0, 1, 0, -0.7366062, 0, 0.6763219, 51.483784, 1.36, -475.78864)
+metadata/catalog_id = "walking_trail"
+metadata/scenery_radius = 7.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 8760.0
+
+[node name="FinalSprinkle_07_02_BirdOfParadise" parent="." unique_id=284751185 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("48_i6yd8")]
+transform = Transform3D(0.79253125, 0, 0.6098313, 0, 1, 0, -0.6098313, 0, 0.79253125, 43.12678, 1.36, -472.60107)
+metadata/catalog_id = "bird_of_paradise"
+metadata/scenery_radius = 2.3
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 8760.0
+
+[node name="FinalSprinkle_07_03_OrnamentalGrass" parent="." unique_id=1427249530 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("61_tcjr8")]
+transform = Transform3D(0.5401093, 0, 0.8415949, 0, 1, 0, -0.8415949, 0, 0.5401093, 53.947933, 1.36, -484.38678)
+metadata/catalog_id = "ornamental_grass"
+metadata/scenery_radius = 1.7
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 8760.0
+
+[node name="FinalSprinkle_07_04_DrinkingFountain" parent="." unique_id=714907306 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("62_11pcl")]
+transform = Transform3D(0.67632174, 0, 0.73660636, 0, 1, 0, -0.73660636, 0, 0.67632174, 44.85433, 1.36, -481.87555)
+metadata/catalog_id = "drinking_fountain"
+metadata/scenery_radius = 1.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 8760.0
+
+[node name="FinalSprinkle_08_01_SunsetPavilion" parent="." unique_id=120647390 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("63_hpt3w")]
+transform = Transform3D(-0.855813, 0, -0.5172853, 0, 1, 0, 0.5172853, 0, -0.855813, 266.10638, 1.36, -745.6296)
+metadata/catalog_id = "sunset_pavilion"
+metadata/scenery_radius = 14.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 9100.0
+
+[node name="FinalSprinkle_08_02_Bench" parent="." unique_id=1123068608 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("42_5dsd2")]
+transform = Transform3D(0.6981311, 0, -0.71597004, 0, 1, 0, 0.71597004, 0, 0.6981311, 262.89987, 1.36, -729.6697)
+metadata/catalog_id = "bench"
+metadata/scenery_radius = 2.5
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 9100.0
+
+[node name="FinalSprinkle_08_03_FloweringBushPink" parent="." unique_id=699843436 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("64_qthtq")]
+transform = Transform3D(-0.97547543, 0, -0.22010823, 0, 1, 0, 0.22010823, 0, -0.97547543, 284.7935, 1.36, -747.5769)
+metadata/catalog_id = "flowering_bush_pink"
+metadata/scenery_radius = 2.2
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 9100.0
+
+[node name="FinalSprinkle_08_04_ParkLamp" parent="." unique_id=2062921224 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("44_qau6x")]
+transform = Transform3D(-0.85581315, 0, -0.5172851, 0, 1, 0, 0.5172851, 0, -0.85581315, 275.4175, 1.36, -730.225)
+metadata/catalog_id = "park_lamp"
+metadata/scenery_radius = 1.6
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 9100.0
+
+[node name="FinalSprinkle_09_01_IslandCabana" parent="." unique_id=637744027 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("48_e6ncm")]
+transform = Transform3D(-0.9656085, 0, 0.2600006, 0, 1, 0, -0.2600006, 0, -0.9656085, 244.7471, 1.36, -1433.768)
+metadata/catalog_id = "island_cabana"
+metadata/scenery_radius = 7.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 10120.0
+
+[node name="FinalSprinkle_09_02_UmbrellaTable" parent="." unique_id=986670569 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("65_my38m")]
+transform = Transform3D(-0.9027522, 0, 0.43016097, 0, 1, 0, -0.43016097, 0, -0.9027522, 251.09758, 1.36, -1422.7375)
+metadata/catalog_id = "umbrella_table"
+metadata/scenery_radius = 3.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 10120.0
+
+[node name="FinalSprinkle_09_03_Bush" parent="." unique_id=150391727 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("47_s8x8a")]
+transform = Transform3D(-0.99639565, 0, 0.08482756, 0, 1, 0, -0.08482756, 0, -0.99639565, 233.97662, 1.36, -1428.383)
+metadata/catalog_id = "bush"
+metadata/scenery_radius = 2.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 10120.0
+
+[node name="FinalSprinkle_09_04_LowPastelWall" parent="." unique_id=365880163 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("66_v4g41")]
+transform = Transform3D(-0.96560854, 0, 0.26000035, 0, 1, 0, -0.26000035, 0, -0.96560854, 240.5871, 1.36, -1418.3182)
+metadata/catalog_id = "low_pastel_wall"
+metadata/scenery_radius = 5.5
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 10120.0
+
+[node name="FinalSprinkle_10_01_MarinaOffice" parent="." unique_id=1599019756 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("43_e00cp")]
+transform = Transform3D(0.99904203, 0, 0.043761104, 0, 1, 0, -0.043761104, 0, 0.99904203, -104.40666, 1.36, -1357.7811)
+metadata/catalog_id = "marina_office"
+metadata/scenery_radius = 15.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 10460.0
+
+[node name="FinalSprinkle_10_02_SurfboardRack" parent="." unique_id=593751544 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("42_fn6j1")]
+transform = Transform3D(0.9738661, 0, 0.22712295, 0, 1, 0, -0.22712295, 0, 0.9738661, -95.809135, 1.36, -1367.1663)
+metadata/catalog_id = "surfboard_rack"
+metadata/scenery_radius = 2.6
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 10460.0
+
+[node name="FinalSprinkle_10_03_LifeRingStand" parent="." unique_id=823670303 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("67_5pgnf")]
+transform = Transform3D(0.9899953, 0, -0.14110035, 0, 1, 0, 0.14110035, 0, 0.9899953, -113.79189, 1.36, -1366.3787)
+metadata/catalog_id = "life_ring_stand"
+metadata/scenery_radius = 1.5
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 10460.0
+
+[node name="FinalSprinkle_10_04_Agave" parent="." unique_id=1856793679 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("50_rlcpk")]
+transform = Transform3D(0.99904203, 0, 0.043761037, 0, 1, 0, -0.043761037, 0, 0.99904203, -105.06308, 1.36, -1372.7667)
+metadata/catalog_id = "agave"
+metadata/scenery_radius = 1.8
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 10460.0
+
+[node name="FinalSprinkle_11_01_IslandCabana" parent="." unique_id=2026768669 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("48_e6ncm")]
+transform = Transform3D(0.7297215, 0, 0.68374455, 0, 1, 0, -0.68374455, 0, 0.7297215, -585.13934, 1.36, -809.24945)
+metadata/catalog_id = "island_cabana"
+metadata/scenery_radius = 7.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 11310.0
+
+[node name="FinalSprinkle_11_02_UmbrellaTable" parent="." unique_id=1515648620 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("65_my38m")]
+transform = Transform3D(0.588106, 0, 0.8087839, 0, 1, 0, -0.8087839, 0, 0.588106, -584.7255, 1.36, -821.97064)
+metadata/catalog_id = "umbrella_table"
+metadata/scenery_radius = 3.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 11310.0
+
+[node name="FinalSprinkle_11_03_RecyclingBin" parent="." unique_id=1982153094 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("68_11232")]
+transform = Transform3D(0.8496442, 0, 0.5273564, 0, 1, 0, -0.5273564, 0, 0.8496442, -599.228, 1.36, -811.1227)
+metadata/catalog_id = "recycling_bin"
+metadata/scenery_radius = 1.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 11310.0
+
+[node name="FinalSprinkle_11_04_RoundBush" parent="." unique_id=918849845 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("69_7mji3")]
+transform = Transform3D(0.72972167, 0, 0.6837443, 0, 1, 0, -0.6837443, 0, 0.72972167, -595.3955, 1.36, -820.19525)
+metadata/catalog_id = "round_bush"
+metadata/scenery_radius = 1.8
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 11310.0
+
+[node name="FinalSprinkle_12_01_IslandCabana" parent="." unique_id=1715030855 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("48_e6ncm")]
+transform = Transform3D(-0.35671794, 0, -0.93421215, 0, 1, 0, 0.93421215, 0, -0.35671794, -1182.7804, 1.36, 792.99365)
+metadata/catalog_id = "island_cabana"
+metadata/scenery_radius = 7.0
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 2980.0
+
+[node name="FinalSprinkle_12_02_PicnicTable" parent="." unique_id=208303068 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("49_21sij")]
+transform = Transform3D(-0.17846166, 0, -0.98394686, 0, 1, 0, 0.98394686, 0, -0.17846166, -1177.5826, 1.36, 804.61115)
+metadata/catalog_id = "picnic_table"
+metadata/scenery_radius = 2.7
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 2980.0
+
+[node name="FinalSprinkle_12_03_Agave" parent="." unique_id=1502244468 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("50_rlcpk")]
+transform = Transform3D(-0.5227562, 0, -0.8524822, 0, 1, 0, 0.8524822, 0, -0.5227562, -1171.1625, 1.36, 787.79706)
+metadata/catalog_id = "agave"
+metadata/scenery_radius = 1.8
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 2980.0
+
+[node name="FinalSprinkle_12_04_WayfindingSign" parent="." unique_id=399565452 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("52_vqt80")]
+transform = Transform3D(-0.35671848, 0, -0.9342119, 0, 1, 0, 0.9342119, 0, -0.35671848, -1167.833, 1.36, 798.7011)
+metadata/catalog_id = "wayfinding_sign"
+metadata/scenery_radius = 1.5
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 2980.0
+
+[node name="FinalSprinkle_13_01_NeonPhoneBooth" parent="." unique_id=1989130232 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("70_sg0es")]
+transform = Transform3D(-0.31873932, 0, -0.9478424, 0, 1, 0, 0.9478424, 0, -0.31873932, 479.57373, 1.36, 672.18665)
+metadata/catalog_id = "neon_phone_booth"
+metadata/scenery_radius = 1.6
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 5530.0
+
+[node name="FinalSprinkle_13_02_RoundPlanter" parent="." unique_id=588640596 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("57_payh1")]
+transform = Transform3D(-0.12666374, 0, -0.9919457, 0, 1, 0, 0.9919457, 0, -0.12666374, 480.49646, 1.36, 681.9921)
+metadata/catalog_id = "round_planter"
+metadata/scenery_radius = 2.2
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 5530.0
+
+[node name="FinalSprinkle_13_03_Bench" parent="." unique_id=880086984 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("42_5dsd2")]
+transform = Transform3D(0.8665283, 0, -0.499128, 0, 1, 0, 0.499128, 0, 0.8665283, 486.23376, 1.36, 664.93097)
+metadata/catalog_id = "bench"
+metadata/scenery_radius = 2.5
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 5530.0
+
+[node name="FinalSprinkle_13_04_ParkLamp" parent="." unique_id=1457281109 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("44_qau6x")]
+transform = Transform3D(-0.31873968, 0, -0.9478423, 0, 1, 0, 0.9478423, 0, -0.31873968, 489.05215, 1.36, 675.374)
+metadata/catalog_id = "park_lamp"
+metadata/scenery_radius = 1.6
+metadata/manual_surface = 0
+metadata/final_sprinkle = true
+metadata/course_offset = 5530.0

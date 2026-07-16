@@ -1,6 +1,12 @@
 extends SceneTree
 
 var failures: Array[String] = []
+const AUTHORED_FRIEND_TEXTURES := [
+	"res://assets/generated/friends/1daf0fdc-2536-4e54-b476-fc61c770b23d.jpg",
+	"res://assets/generated/friends/481d5ab6-7c3f-47be-a2bd-e02bdfb2c1d5.jpg",
+	"res://assets/generated/friends/5213d1b1-6e99-448d-ad81-26f61e859010.jpg",
+	"res://assets/generated/friends/882a2791-af8b-4378-b3b7-a05b4cf0dd08.jpg",
+]
 
 
 func _initialize() -> void:
@@ -27,7 +33,16 @@ func _run() -> void:
 	var length: float = race.get("TRACK_LENGTH")
 	check(length > 11000.0, "map lap retains the intended four-to-six-minute scale")
 	check(get_nodes_in_group("obstacle").is_empty(), "track-testing build remains obstacle-free")
-	check(get_nodes_in_group("portrait_scenery").size() >= 6, "personalized portrait billboards remain in the rebuilt world")
+	var authored_friend_textures := {}
+	for value in race.find_children("*", "Sprite3D", true, false):
+		var sprite := value as Sprite3D
+		if sprite.texture != null:
+			authored_friend_textures[sprite.texture.resource_path] = true
+	for texture_path in AUTHORED_FRIEND_TEXTURES:
+		check(authored_friend_textures.has(texture_path), "user-placed friend display remains: %s" % texture_path)
+	check(get_nodes_in_group("poster_scenery").is_empty(), "no unplaced generated friend posters are restored")
+	check(get_nodes_in_group("tunnel_wall_poster").is_empty(), "no unplaced tunnel friend art is restored")
+	check(get_nodes_in_group("sky_traffic_vehicle").is_empty(), "no unplaced friend-banner aircraft are restored")
 
 	# Follow the racing line in small deterministic jumps. This exercises the same
 	# branch-local progress resolver used during play, including all three loops.

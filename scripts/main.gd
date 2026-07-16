@@ -252,21 +252,25 @@ func build_world() -> void:
 	var environment := WorldEnvironment.new()
 	var env := Environment.new()
 	var panorama := PanoramaSkyMaterial.new()
-	panorama.panorama = load("res://assets/generated/backgrounds/synthwave-sky-only-v2.png")
-	panorama.energy_multiplier = 0.72
+	panorama.panorama = load("res://assets/generated/backgrounds/synthwave-polygon-sunset-v5.png")
+	panorama.energy_multiplier = 0.56
 	var synthwave_sky := Sky.new()
 	synthwave_sky.sky_material = panorama
 	env.sky = synthwave_sky
 	env.background_mode = Environment.BG_SKY
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color("c9b5ff")
-	env.ambient_light_energy = 0.38
+	env.ambient_light_color = Color("b59ac8")
+	env.ambient_light_energy = 0.29
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.adjustment_enabled = true
+	env.adjustment_brightness = 0.9
+	env.adjustment_saturation = 0.94
 	environment.environment = env
 	add_child(environment)
 	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-52, -28, 0)
-	sun.light_energy = 0.92
+	sun.rotation_degrees = Vector3(-29, -38, 0)
+	sun.light_color = Color("ffd1b0")
+	sun.light_energy = 0.68
 	sun.shadow_enabled = true
 	# District meshes remain visible for at least 1.2 km. Match the sunlight to
 	# that baseline while retaining four progressively coarser near-to-far maps.
@@ -727,7 +731,6 @@ func build_hud() -> void:
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	layer.add_child(status_label)
 	finish_portrait = TextureRect.new()
-	finish_portrait.texture = load("res://assets/generated/friends/friend-dark-hair-racing.png")
 	finish_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	finish_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	finish_portrait.anchor_left = 1.0
@@ -945,7 +948,7 @@ func update_progress(delta: float) -> void:
 	if distance >= TRACK_LENGTH - 2.0:
 		race_active = false
 		speed = 0.0
-		finish_portrait.visible = true
+		finish_portrait.visible = finish_portrait.texture != null
 		status_label.text = "FINISH!  %s  |  PRESS R TO RACE AGAIN" % format_time(elapsed)
 
 

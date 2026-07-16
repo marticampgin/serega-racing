@@ -6,7 +6,7 @@ const MINIMUM_DECORATIVE_MESHES := 3951
 const MINIMUM_AUTHORED_BAKED_COPIES := 12
 const EXPECTED_DISTRICTS := ["StartCoast", "LoopOne", "UnderwaterTunnel", "LoopTwo", "BridgeApproach", "PartyTown", "CityCentre", "LoopThree", "ShoppingAlley", "SportComplex", "NorthCoast", "PartyIsland", "Waterfront", "Sky", "Other"]
 const FORBIDDEN_GROUPS := ["ocean_scenery", "island_terrain", "shoreline_contour", "bridge_boundary", "bridge_support", "flyover_boundary", "tunnel_boundary", "party_island_foundation"]
-const REQUIRED_GROUPS := ["district_infill", "grounded_scenery", "poster_scenery", "boat_scenery", "sky_traffic_vehicle"]
+const REQUIRED_GROUPS := ["district_infill", "grounded_scenery", "boat_scenery"]
 
 var failures: Array[String] = []
 
@@ -39,7 +39,7 @@ func _run() -> void:
 		if district == null:
 			continue
 		check(not bool(district.get_meta("_edit_group_", false)), "%s allows viewport selection of individual objects" % district_name)
-		if district_name not in ["BridgeApproach", "Other"]:
+		if district_name not in ["UnderwaterTunnel", "BridgeApproach", "Sky", "Other"]:
 			check(district.get_child_count() > 0, "district contains editable scenery: %s" % district_name)
 		for child in district.get_children():
 			# Catalog presets are valid externally-instanced authored objects, not
@@ -98,7 +98,7 @@ func _run() -> void:
 					crown_colors[material.albedo_color.to_html(false)] = true
 		natural_crowns = natural_crowns and leaves == 6
 		natural_crowns = natural_crowns and crown_colors.has(Color("20a779").to_html(false)) and crown_colors.has(Color("116553").to_html(false))
-	check(baked_palms >= 125, "all baked standalone palms remain in the editable world")
+	check(baked_palms >= 100, "the authored standalone palm population remains in the editable world")
 	check(natural_crowns, "every baked standalone palm matches the natural-landscape crown model")
 	for group_name: String in REQUIRED_GROUPS:
 		check(_contains_group(editable, group_name), "semantic group survives scene serialization: %s" % group_name)
@@ -130,18 +130,9 @@ func _run() -> void:
 	for group_name: String in REQUIRED_GROUPS:
 		check(not get_nodes_in_group(group_name).is_empty(), "runtime restores semantic group: %s" % group_name)
 	check(race.find_children("*", "MeshInstance3D", true, false).size() >= expected_saved_meshes, "runtime contains the saved scenery and procedural infrastructure")
-	var vehicles := get_nodes_in_group("sky_traffic_vehicle")
-	var vehicle_positions: Array[Vector3] = []
-	for vehicle in vehicles:
-		vehicle_positions.append((vehicle as Node3D).global_position)
-	for frame in range(12):
-		await process_frame
-	var moving_vehicles := 0
-	for index in range(vehicles.size()):
-		if (vehicles[index] as Node3D).global_position.distance_to(vehicle_positions[index]) > 0.01:
-			moving_vehicles += 1
-	check(vehicles.size() == 2, "both baked sky vehicles retain their movement tags")
-	check(moving_vehicles == vehicles.size(), "baked plane and zeppelin continue moving")
+	check(get_nodes_in_group("poster_scenery").is_empty(), "unplaced generated friend posters stay absent")
+	check(get_nodes_in_group("tunnel_wall_poster").is_empty(), "unplaced tunnel friend art stays absent")
+	check(get_nodes_in_group("sky_traffic_vehicle").is_empty(), "unplaced friend-banner aircraft stay absent")
 	print("INFO: editable-world runtime startup = %d ms" % startup_ms)
 	root.remove_child(race)
 	race.free()
