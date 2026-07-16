@@ -45,7 +45,7 @@ func _run() -> void:
 	check(landscapes.find_children("*", "MeshInstance3D", true, false).size() <= 800, "natural landscape mesh budget remains bounded after authored copies")
 	var island := race.find_child("IslandTerrain", true, false) as MeshInstance3D
 	var island_material := island.material_override as StandardMaterial3D if island != null else null
-	check(island_material != null and island_material.albedo_color.is_equal_approx(Color("d8b58d")), "map terrain uses the canonical limestone-cliff sand color")
+	check(island_material != null and island_material.albedo_color.is_equal_approx(Color("c77d68")), "map terrain uses the canonical unified sand color")
 
 	var course: CourseLayout = race.get("course")
 	var terrain: WorldBuilder = race.get("world_builder")
@@ -59,8 +59,8 @@ func _run() -> void:
 		check(feature.get_parent() == landscapes, "%s is a directly movable landscape instance" % feature.name)
 		check(not feature.scene_file_path.is_empty(), "%s remains linked to an external reusable scene" % feature.name)
 		check(bool(feature.get_meta("_edit_group_", false)), "%s is click-selectable as one compound editor object" % feature.name)
-		if str(feature.get_meta("landscape_kind", "")) in ["dune_field", "rock_garden"]:
-			check(_feature_uses_sand(feature, Color("d8b58d")), "%s sandy surface matches the map terrain" % feature.name)
+		if str(feature.get_meta("landscape_kind", "")) in ["coastal_hills", "dune_field", "sharp_cliffs", "coastal_bluff", "limestone_arch", "rock_garden"]:
+			check(_feature_uses_sand(feature, Color("c77d68")), "%s sandy surface matches the map terrain" % feature.name)
 		if _uses_default_transform(feature):
 			_check_feature(feature, course, terrain)
 		else:
@@ -100,6 +100,8 @@ func _check_feature(feature: Node3D, course: CourseLayout, terrain: WorldBuilder
 
 func _feature_uses_sand(feature: Node3D, expected: Color) -> bool:
 	var landform := feature.find_child("ContinuousLandform", true, false) as MeshInstance3D
+	if landform == null:
+		landform = feature.find_child("TerracedBluff", true, false) as MeshInstance3D
 	if landform == null or landform.mesh == null or landform.mesh.get_surface_count() == 0:
 		return false
 	var material := landform.mesh.surface_get_material(0) as StandardMaterial3D

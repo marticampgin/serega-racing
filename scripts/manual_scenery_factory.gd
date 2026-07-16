@@ -95,7 +95,7 @@ func _build_materials() -> void:
 	if not _m.is_empty():
 		return
 	_m = {
-		"sand": _material(Color("d8b58d"), 0.0, 0.93), "rock": _material(Color("59476f")),
+		"sand": _material(Color("c77d68"), 0.0, 0.93), "rock": _material(Color("59476f")),
 		"asphalt": _material(Color("242832")), "cream": _material(Color("f2d8b5")),
 		"coral": _material(Color("ff8066")), "mint": _material(Color("4ed7bd")),
 		"lavender": _material(Color("9b78cf")), "night": _material(Color("34204f")),

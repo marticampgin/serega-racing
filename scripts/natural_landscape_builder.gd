@@ -151,7 +151,7 @@ func _build_coastal_hills(root: Node3D, radius: float, height: float) -> void:
 		{"centre": Vector2(-0.34, -0.08), "spread": Vector2(0.23, 0.29), "height": height},
 		{"centre": Vector2(0.35, 0.20), "spread": Vector2(0.21, 0.25), "height": height * 0.72},
 		{"centre": Vector2(0.02, -0.34), "spread": Vector2(0.48, 0.30), "height": height * 0.18},
-	], _materials.rock_warm, 3)
+	], _materials.sand_shadow, 3)
 	_add_rocks(root, radius, 7)
 	_add_palms(root, radius, 3)
 
@@ -191,7 +191,7 @@ func _build_sharp_cliffs(root: Node3D, radius: float, height: float) -> void:
 
 
 func _build_coastal_bluff(root: Node3D, radius: float, height: float) -> void:
-	_add_terraced_landform(root, Vector2(radius, radius * 0.76), height, _materials.rock_warm)
+	_add_terraced_landform(root, Vector2(radius, radius * 0.76), height, _materials.sand_shadow)
 	_add_rocks(root, radius, 10)
 	_add_shrubs_ring(root, radius * 0.64, 11)
 	_add_palms(root, radius, 4)
@@ -501,11 +501,11 @@ func _add_shrubs_ring(root: Node3D, radius: float, count: int) -> void:
 
 func _build_materials() -> void:
 	_materials = {
-		"sand_light": _material(Color("d8b58d"), 0.93),
-		"sand_shadow": _material(Color("d8b58d"), 0.93),
+		"sand_light": _material(Color("c77d68"), 0.93),
+		"sand_shadow": _material(Color("c77d68"), 0.93),
 		"rock": _material(Color("6c5473"), 0.9),
 		"rock_warm": _material(Color("9a5f68"), 0.88),
-		"limestone": _material(Color("d8b58d"), 0.93),
+		"limestone": _material(Color("c77d68"), 0.93),
 		"trunk": _material(Color("6f3d48"), 0.92),
 		"leaves": _material(Color("20a779"), 0.84),
 		"leaves_dark": _material(Color("116553"), 0.9),

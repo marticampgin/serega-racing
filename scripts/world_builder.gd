@@ -321,7 +321,7 @@ func _build_materials() -> void:
 		# Opaque water prevents the panorama and underwater geometry from being
 		# alpha-sorted through each other. The tunnel supplies its own interior.
 		"ocean": _material(Color("087f9f"), 0.0, 0.78),
-		"sand": _material(Color("d8b58d"), 0.0, 0.93),
+		"sand": _material(Color("c77d68"), 0.0, 0.93),
 		"rock": _material(Color("59476f"), 0.0, 0.88),
 		"asphalt": _material(Color("242832"), 0.0, 0.9),
 		"cream": _material(Color("f2d8b5"), 0.0, 0.76),
