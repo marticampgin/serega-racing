@@ -23543,7 +23543,7 @@ visibility_range_fade_mode = 1
 mesh = SubResource("CylinderMesh_m36ex")
 
 [node name="LoopOne_BeachMotel" type="Node3D" parent="LoopOne" unique_id=1985775716 groups=["building_scenery", "district_landmark", "editable_scenery", "grounded_scenery", "loop_landmark", "unique_landmark"]]
-transform = Transform3D(-0.73461705, 0, 0.67848194, 0, 1, 0, -0.67848194, 0, -0.73461705, -743.7518, 1.381828, -291.2883)
+transform = Transform3D(-0.73461705, 0, 0.67848194, 0, 1, 0, -0.67848194, 0, -0.73461705, -731.5096, 1.381828, -282.97296)
 metadata/ground_y = 1.381828
 metadata/course_offset = 1134.4
 metadata/scenery_radius = 17.0
@@ -27036,7 +27036,7 @@ texture = ExtResource("6_82tlm")
 [node name="LoopTwo" type="Node3D" parent="." unique_id=780376197 groups=["editable_district"]]
 
 [node name="LoopTwo_MarinaOffice" type="Node3D" parent="LoopTwo" unique_id=884146196 groups=["building_scenery", "district_landmark", "editable_scenery", "grounded_scenery", "loop_landmark", "unique_landmark"]]
-transform = Transform3D(0.76189804, 0, -0.647697, 0, 1, 0, 0.647697, 0, 0.76189804, -1142.0205, -0.41399416, 935.88245)
+transform = Transform3D(0.76189804, 0, -0.647697, 0, 1, 0, 0.647697, 0, 0.76189804, -1140.1312, 1.8953168, 934.3685)
 metadata/ground_y = -0.41399416
 metadata/course_offset = 2899.4
 metadata/scenery_radius = 15.0
