@@ -95,13 +95,13 @@ func _build_materials() -> void:
 	if not _m.is_empty():
 		return
 	_m = {
-		"sand": _material(Color("b97457")), "rock": _material(Color("59476f")),
+		"sand": _material(Color("c77d68")), "rock": _material(Color("59476f")),
 		"asphalt": _material(Color("242832")), "cream": _material(Color("f2d8b5")),
 		"coral": _material(Color("ff8066")), "mint": _material(Color("4ed7bd")),
 		"lavender": _material(Color("9b78cf")), "night": _material(Color("34204f")),
 		"glass": _material(Color("123a68"), 0.35, 0.16), "steel": _material(Color("273044"), 0.55, 0.3),
 		"wood": _material(Color("825137")), "green": _material(Color("087f65")),
-		"leaf": _material(Color("19d39b")), "white": _material(Color("f7f0dd")),
+		"leaf": _material(Color("20a779")), "leaf_dark": _material(Color("116553")), "white": _material(Color("f7f0dd")),
 		"field": _material(Color("2b9b64")), "court": _material(Color("cf5b76")),
 		"cyan": _emissive(Color("35e0dd"), 1.35), "pink": _emissive(Color("ff3fcf"), 1.4),
 		"orange": _emissive(Color("ff9c42"), 1.25), "yellow": _emissive(Color("ffe45e"), 1.2),
@@ -352,11 +352,11 @@ func _marina_docks(root: Node3D) -> void:
 func _palm(root: Node3D, scale_factor: float) -> void:
 	var height := 8.0 * scale_factor
 	_cylinder(root, 0.35 * scale_factor, height, Vector3.UP * height * 0.5, _m.wood, 0.2 * scale_factor, 1700, 9)
-	for index in range(7):
-		var angle := TAU * index / 7.0
-		var frond := _box(root, Vector3(0.5, 0.16, 5.0) * scale_factor, Vector3.UP * height + Vector3(cos(angle), -0.15, sin(angle)) * 1.6 * scale_factor, _m.leaf, 1700, false)
-		frond.rotation.y = -angle
-		frond.rotation.x = 0.16
+	for index in range(6):
+		var angle := TAU * float(index) / 6.0
+		var material: Material = _m.leaf if index % 2 == 0 else _m.leaf_dark
+		var frond := _box(root, Vector3(0.42, 0.14, 5.2) * scale_factor, Vector3.UP * height, material, 1900, true)
+		frond.rotation = Vector3(-0.17, angle, 0.0)
 
 
 func _bush(root: Node3D) -> void:

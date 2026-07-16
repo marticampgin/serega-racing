@@ -321,7 +321,7 @@ func _build_materials() -> void:
 		# Opaque water prevents the panorama and underwater geometry from being
 		# alpha-sorted through each other. The tunnel supplies its own interior.
 		"ocean": _material(Color("087f9f"), 0.0, 0.78),
-		"sand": _material(Color("b97457"), 0.0, 0.9),
+		"sand": _material(Color("c77d68"), 0.0, 0.9),
 		"rock": _material(Color("59476f"), 0.0, 0.88),
 		"asphalt": _material(Color("242832"), 0.0, 0.9),
 		"cream": _material(Color("f2d8b5"), 0.0, 0.76),
@@ -333,7 +333,8 @@ func _build_materials() -> void:
 		"steel": _material(Color("273044"), 0.55, 0.3),
 		"wood": _material(Color("825137"), 0.0, 0.8),
 		"green": _material(Color("087f65"), 0.0, 0.8),
-		"leaf": _material(Color("19d39b"), 0.0, 0.7),
+		"leaf": _material(Color("20a779"), 0.0, 0.7),
+		"leaf_dark": _material(Color("116553"), 0.0, 0.82),
 		"white": _material(Color("f7f0dd"), 0.0, 0.72),
 		"field": _material(Color("2b9b64"), 0.0, 0.9),
 		"court": _material(Color("cf5b76"), 0.0, 0.85),
@@ -2010,9 +2011,9 @@ func _add_palm_at(parent: Node, position: Vector3, scale_factor: float) -> void:
 	_cylinder(parent, 0.32 * scale_factor, height, position + Vector3.UP * height * 0.5, _materials.wood, 0.18 * scale_factor)
 	for blade in range(6):
 		var angle := TAU * float(blade) / 6.0
-		var frond := _box(parent, Vector3(0.45, 0.14, 4.8) * scale_factor, position + Vector3.UP * height + Vector3(cos(angle), -0.15, sin(angle)) * 1.5 * scale_factor, _materials.leaf)
-		frond.rotation.y = -angle
-		frond.rotation.x = 0.16
+		var material: Material = _materials.leaf if blade % 2 == 0 else _materials.leaf_dark
+		var frond := _box(parent, Vector3(0.42, 0.14, 5.2) * scale_factor, position + Vector3.UP * height, material)
+		frond.rotation = Vector3(-0.17, angle, 0.0)
 
 
 func _add_lamp(offset: float, side: float) -> void:

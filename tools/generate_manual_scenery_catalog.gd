@@ -12,7 +12,14 @@ func _initialize() -> void:
 func _generate() -> void:
 	var factory := FactoryScript.new()
 	var generated := 0
+	var only_ids: Array[String] = []
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--only="):
+			for value in argument.trim_prefix("--only=").split(",", false):
+				only_ids.append(value.strip_edges())
 	for entry: Dictionary in CatalogScript.entries():
+		if not only_ids.is_empty() and str(entry.id) not in only_ids:
+			continue
 		var scene_path := CatalogScript.scene_path(entry)
 		var directory_error := DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(scene_path.get_base_dir()))
 		if directory_error != OK:
@@ -51,7 +58,7 @@ func _generate() -> void:
 			return
 		generated += 1
 		root.free()
-	print("MANUAL SCENERY CATALOG: generated %d draggable scenes" % generated)
+	print("MANUAL SCENERY CATALOG: generated %d draggable scenes%s" % [generated, " (filtered)" if not only_ids.is_empty() else ""])
 	quit(0)
 
 
