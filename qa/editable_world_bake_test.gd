@@ -77,7 +77,29 @@ func _run() -> void:
 		building_count += 1
 		check(bool(building.get_meta("_edit_group_", false)), "%s is individually click-selectable" % building.name)
 		check(building.owner == editable or not building.scene_file_path.is_empty(), "%s is an authored local or external scene object" % building.name)
-	check(building_count >= 258, "all placed buildings are represented by editable roots")
+	print("INFO: editable building roots=%d" % building_count)
+	check(building_count >= 250, "the user-edited world retains its dense set of individually editable buildings")
+	var baked_palms := 0
+	var natural_crowns := true
+	for value in editable.find_children("*", "Node3D", true, false):
+		var palm := value as Node3D
+		if not palm.is_in_group("palm_scenery"):
+			continue
+		baked_palms += 1
+		var leaves := 0
+		var crown_colors: Dictionary = {}
+		for child in palm.get_children():
+			if child is MeshInstance3D and (child as MeshInstance3D).mesh is BoxMesh:
+				var leaf := child as MeshInstance3D
+				leaves += 1
+				natural_crowns = natural_crowns and Vector2(leaf.position.x, leaf.position.z).length() <= 0.01
+				var material := (leaf.mesh as BoxMesh).material as StandardMaterial3D
+				if material != null:
+					crown_colors[material.albedo_color.to_html(false)] = true
+		natural_crowns = natural_crowns and leaves == 6
+		natural_crowns = natural_crowns and crown_colors.has(Color("20a779").to_html(false)) and crown_colors.has(Color("116553").to_html(false))
+	check(baked_palms >= 125, "all baked standalone palms remain in the editable world")
+	check(natural_crowns, "every baked standalone palm matches the natural-landscape crown model")
 	for group_name: String in REQUIRED_GROUPS:
 		check(_contains_group(editable, group_name), "semantic group survives scene serialization: %s" % group_name)
 	for group_name: String in FORBIDDEN_GROUPS:

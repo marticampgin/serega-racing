@@ -27,14 +27,19 @@ func _run() -> void:
 	for value in get_nodes_in_group("natural_landscape_scenery"):
 		if value is Node3D and race.is_ancestor_of(value):
 			features.append(value as Node3D)
-	features.sort_custom(func(a: Node3D, b: Node3D) -> bool: return str(a.get_meta("landscape_id")) < str(b.get_meta("landscape_id")))
+	features.sort_custom(func(a: Node3D, b: Node3D) -> bool: return str(a.name) < str(b.name))
 	var failures := 0
 	var captures := 0
+	var name_counts: Dictionary = {}
 	for feature in features:
-		var id := str(feature.get_meta("landscape_id"))
-		var radius := float(feature.get_meta("landscape_radius", 25.0))
-		var offset := float(feature.get_meta("course_offset", 0.0))
+		var base_id := str(feature.name).to_snake_case()
+		var copy_index := int(name_counts.get(base_id, 0))
+		name_counts[base_id] = copy_index + 1
+		var id := base_id if copy_index == 0 else "%s_copy_%02d" % [base_id, copy_index]
+		var scale := feature.global_transform.basis.get_scale()
+		var radius := float(feature.get_meta("landscape_radius", 25.0)) * maxf(absf(scale.x), absf(scale.z))
 		var centre := feature.global_position
+		var offset := _closest_course_offset(course, Vector2(centre.x, centre.z))
 		var lateral := course.lateral_at(offset)
 		var tangent := course.tangent_at(offset)
 		camera.global_position = centre + lateral * radius * 1.8 - tangent * radius * 1.4 + Vector3.UP * maxf(42.0, radius * 1.6)
@@ -48,6 +53,20 @@ func _run() -> void:
 		captures += 1
 	print("NATURAL LANDSCAPE VISUAL QA: %d captures, %d failures" % [captures, failures])
 	quit(0 if failures == 0 else 1)
+
+
+func _closest_course_offset(course: CourseLayout, position: Vector2) -> float:
+	var best_offset := 0.0
+	var best_distance := INF
+	var offset := 0.0
+	while offset < course.length():
+		var point := course.point_at(offset)
+		var distance := position.distance_squared_to(Vector2(point.x, point.z))
+		if distance < best_distance:
+			best_distance = distance
+			best_offset = offset
+		offset += 8.0
+	return best_offset
 
 
 func _capture(file_name: String) -> Error:

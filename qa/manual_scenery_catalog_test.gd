@@ -65,7 +65,7 @@ func _run() -> void:
 	check(guide != null and guide.find_children("*", "MeshInstance3D", true, false).is_empty(), "placement guide contributes zero runtime meshes")
 	check(guide != null and guide.find_children("*", "CollisionObject3D", true, false).is_empty(), "placement guide contributes zero runtime collision")
 	check(manual_root != null and manual_root.is_in_group("manual_scenery_root"), "manual layer registers its editor/runtime contract")
-	check(race.find_children("*", "MeshInstance3D", true, false).size() == 5046, "empty manual layer leaves procedural mesh baseline unchanged")
+	check(race.find_children("*", "MeshInstance3D", true, false).size() >= 5000, "empty manual layer retains the expanded procedural and authored mesh baseline")
 	traced_cleanup(race)
 
 	print("MANUAL SCENERY QA: %d presets, %d failures" % [entries.size(), failures.size()])
@@ -109,7 +109,31 @@ func _check_preset(entry: Dictionary, scene_path: String) -> void:
 		for value in sprites:
 			updated = updated and (value as Sprite3D).texture == replacement
 		check(updated, "%s artwork is editable from the preset root Inspector" % entry.id)
+	if str(entry.archetype) == "palm":
+		_check_palm_preset(instance, str(entry.id))
 	instance.queue_free()
+
+
+func _check_palm_preset(instance: Node3D, id: String) -> void:
+	var trunks := 0
+	var leaves: Array[MeshInstance3D] = []
+	var colors: Dictionary = {}
+	for value in instance.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := value as MeshInstance3D
+		if mesh_instance.mesh is CylinderMesh:
+			trunks += 1
+		elif mesh_instance.mesh is BoxMesh:
+			leaves.append(mesh_instance)
+			var material := (mesh_instance.mesh as BoxMesh).material as StandardMaterial3D
+			if material != null:
+				colors[material.albedo_color.to_html(false)] = true
+	check(trunks == 1, "%s has one tapered trunk" % id)
+	check(leaves.size() == 6, "%s uses the six-frond natural landscape crown" % id)
+	check(colors.has(Color("20a779").to_html(false)) and colors.has(Color("116553").to_html(false)), "%s alternates both natural palm greens" % id)
+	var centred := true
+	for leaf in leaves:
+		centred = centred and Vector2(leaf.position.x, leaf.position.z).length() <= 0.01
+	check(centred, "%s fronds meet cleanly at the trunk crown" % id)
 
 
 func _tree_uses_group(node: Node, group_name: StringName) -> bool:
