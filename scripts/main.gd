@@ -478,7 +478,7 @@ func build_landmarks(steel: Material, yellow: Material, red: Material, blue: Mat
 	var purple := make_material(Color("863dba"), 0.2, 0.35)
 	var coral := make_material(Color("ff8066"), 0.02, 0.6)
 	var aqua := make_material(Color("35e0dd"), 0.08, 0.42)
-	var sand := make_material(Color("c77d68"), 0.0, 0.92)
+	var sand := make_material(Color("d8b58d"), 0.0, 0.93)
 	var trunk := make_material(Color("8d542f"))
 	var leaves := make_material(Color("0c9b70"), 0.0, 0.72)
 	# Offshore keys and tiny marinas replace the old giant tapered formations that

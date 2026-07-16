@@ -61,7 +61,7 @@ func _add_ground(parent: Node3D) -> void:
 	var mesh := BoxMesh.new()
 	mesh.size = Vector3(40, 0.35, 20)
 	var material := StandardMaterial3D.new()
-	material.albedo_color = Color("c77d68")
+	material.albedo_color = Color("d8b58d")
 	material.roughness = 0.9
 	mesh.material = material
 	ground.mesh = mesh

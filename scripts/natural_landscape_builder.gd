@@ -501,8 +501,8 @@ func _add_shrubs_ring(root: Node3D, radius: float, count: int) -> void:
 
 func _build_materials() -> void:
 	_materials = {
-		"sand_light": _material(Color("efb884"), 0.95),
-		"sand_shadow": _material(Color("c77d68"), 0.92),
+		"sand_light": _material(Color("d8b58d"), 0.93),
+		"sand_shadow": _material(Color("d8b58d"), 0.93),
 		"rock": _material(Color("6c5473"), 0.9),
 		"rock_warm": _material(Color("9a5f68"), 0.88),
 		"limestone": _material(Color("d8b58d"), 0.93),

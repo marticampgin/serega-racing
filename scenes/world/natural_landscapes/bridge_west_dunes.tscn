@@ -1,8 +1,8 @@
 [gd_scene format=4]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6ctkr"]
-albedo_color = Color(0.78039217, 0.49019608, 0.40784314, 1)
-roughness = 0.92
+albedo_color = Color(0.84705883, 0.70980394, 0.5529412, 1)
+roughness = 0.93
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_nmbng"]
 _surfaces = [{
@@ -132,7 +132,7 @@ size = Vector3(0.42, 0.14, 5.2)
 material = SubResource("StandardMaterial3D_3yqy8")
 size = Vector3(0.42, 0.14, 5.2)
 
-[node name="BridgeWestDunes" type="Node3D" unique_id=1200117138 groups=["editable_scenery", "loop_2_scenery", "natural_dune_field", "natural_landscape_scenery"]]
+[node name="BridgeWestDunes" type="Node3D" unique_id=632500628 groups=["editable_scenery", "loop_2_scenery", "natural_dune_field", "natural_landscape_scenery"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1035, 1.2510513, 960)
 metadata/natural_landscape = true
 metadata/landscape_id = "bridge_west_dunes"
@@ -147,102 +147,102 @@ metadata/default_radius = 24.0
 metadata/default_height = 7.5
 metadata/_edit_group_ = true
 
-[node name="ContinuousLandform" type="MeshInstance3D" parent="." unique_id=1866101621]
+[node name="ContinuousLandform" type="MeshInstance3D" parent="." unique_id=761756423]
 visibility_range_end = 2800.0
 visibility_range_fade_mode = 1
 mesh = SubResource("ArrayMesh_nmbng")
 
-[node name="CoastalRock" type="MeshInstance3D" parent="." unique_id=1967209854]
+[node name="CoastalRock" type="MeshInstance3D" parent="." unique_id=393872825]
 transform = Transform3D(1.5, 0, 0, 0, 0.744, 0, 0, 0, 0.984, 15.215582, 0.74, 5.9015636)
 visibility_range_end = 1800.0
 mesh = SubResource("SphereMesh_8u708")
 
-[node name="@MeshInstance3D@853" type="MeshInstance3D" parent="." unique_id=646363790]
+[node name="@MeshInstance3D@853" type="MeshInstance3D" parent="." unique_id=1531707315]
 transform = Transform3D(1.5641214, 0, 1.0217494, 0, 1.023, 0, -1.3444072, 0, 1.1887323, -1.0314006, 0.9425, 18.451195)
 visibility_range_end = 1800.0
 mesh = SubResource("SphereMesh_autpp")
 
-[node name="@MeshInstance3D@854" type="MeshInstance3D" parent="." unique_id=395089899]
+[node name="@MeshInstance3D@854" type="MeshInstance3D" parent="." unique_id=1725587392]
 transform = Transform3D(0.39434195, 0, 2.2422621, 0, 1.302, 0, -2.5952108, 0, 0.3407114, -19.955183, 1.145, 5.272596)
 visibility_range_end = 1800.0
 mesh = SubResource("SphereMesh_6eovw")
 
-[node name="@MeshInstance3D@855" type="MeshInstance3D" parent="." unique_id=918260477]
+[node name="@MeshInstance3D@855" type="MeshInstance3D" parent="." unique_id=209845629]
 transform = Transform3D(-1.6910052, 0, 1.7724943, 0, 1.581, 0, -2.701973, 0, -1.1092994, -8.840813, 1.3475001, -13.71796)
 visibility_range_end = 1800.0
 mesh = SubResource("SphereMesh_ai6qu")
 
-[node name="@MeshInstance3D@856" type="MeshInstance3D" parent="." unique_id=1104577375]
+[node name="@MeshInstance3D@856" type="MeshInstance3D" parent="." unique_id=1077243495]
 transform = Transform3D(-1.4322969, 0, 0.33862725, 0, 0.744, 0, -0.44556218, 0, -1.0885456, 11.679761, 0.74, -14.321089)
 visibility_range_end = 1800.0
 mesh = SubResource("SphereMesh_ruajx")
 
-[node name="@MeshInstance3D@857" type="MeshInstance3D" parent="." unique_id=1782428970]
+[node name="@MeshInstance3D@857" type="MeshInstance3D" parent="." unique_id=1256318748]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.042151, 3.5, 10.980419)
 visibility_range_end = 1900.0
 mesh = SubResource("CylinderMesh_yoqh3")
 
-[node name="@MeshInstance3D@858" type="MeshInstance3D" parent="." unique_id=375618017]
+[node name="@MeshInstance3D@858" type="MeshInstance3D" parent="." unique_id=879179414]
 transform = Transform3D(1, 0, 0, 0, 0.9855848, 0.16918235, 0, -0.16918235, 0.9855848, 10.042151, 7, 10.980419)
 visibility_range_end = 1900.0
 mesh = SubResource("BoxMesh_0mc8g")
 
-[node name="@MeshInstance3D@859" type="MeshInstance3D" parent="." unique_id=1735370344]
+[node name="@MeshInstance3D@859" type="MeshInstance3D" parent="." unique_id=2028005116]
 transform = Transform3D(0.49999997, -0.14651622, 0.8535415, 0, 0.9855848, 0.16918235, -0.86602545, -0.084591165, 0.49279237, 10.042151, 7, 10.980419)
 visibility_range_end = 1900.0
 mesh = SubResource("BoxMesh_a0n0s")
 
-[node name="@MeshInstance3D@860" type="MeshInstance3D" parent="." unique_id=1806416950]
+[node name="@MeshInstance3D@860" type="MeshInstance3D" parent="." unique_id=759856466]
 transform = Transform3D(-0.50000006, -0.1465162, 0.85354143, 0, 0.9855848, 0.16918235, -0.8660254, 0.08459118, -0.49279246, 10.042151, 7, 10.980419)
 visibility_range_end = 1900.0
 mesh = SubResource("BoxMesh_28qev")
 
-[node name="@MeshInstance3D@861" type="MeshInstance3D" parent="." unique_id=880030374]
+[node name="@MeshInstance3D@861" type="MeshInstance3D" parent="." unique_id=1361322673]
 transform = Transform3D(-1, 1.479039e-08, -8.616256e-08, 0, 0.9855848, 0.16918235, 8.742278e-08, 0.16918235, -0.9855848, 10.042151, 7, 10.980419)
 visibility_range_end = 1900.0
 mesh = SubResource("BoxMesh_jcka3")
 
-[node name="@MeshInstance3D@862" type="MeshInstance3D" parent="." unique_id=1407717112]
+[node name="@MeshInstance3D@862" type="MeshInstance3D" parent="." unique_id=733663030]
 transform = Transform3D(-0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, 0.08459116, -0.4927923, 10.042151, 7, 10.980419)
 visibility_range_end = 1900.0
 mesh = SubResource("BoxMesh_n01jx")
 
-[node name="@MeshInstance3D@863" type="MeshInstance3D" parent="." unique_id=829915331]
+[node name="@MeshInstance3D@863" type="MeshInstance3D" parent="." unique_id=632037905]
 transform = Transform3D(0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, -0.08459116, 0.4927923, 10.042151, 7, 10.980419)
 visibility_range_end = 1900.0
 mesh = SubResource("BoxMesh_es14q")
 
-[node name="@MeshInstance3D@864" type="MeshInstance3D" parent="." unique_id=449508652]
+[node name="@MeshInstance3D@864" type="MeshInstance3D" parent="." unique_id=1532108570]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.957615, 4, -14.1682825)
 visibility_range_end = 1900.0
 mesh = SubResource("CylinderMesh_k7lct")
 
-[node name="@MeshInstance3D@865" type="MeshInstance3D" parent="." unique_id=1037437081]
+[node name="@MeshInstance3D@865" type="MeshInstance3D" parent="." unique_id=142293638]
 transform = Transform3D(1, 0, 0, 0, 0.9855848, 0.16918235, 0, -0.16918235, 0.9855848, -12.957615, 8, -14.1682825)
 visibility_range_end = 1900.0
 mesh = SubResource("BoxMesh_u2ror")
 
-[node name="@MeshInstance3D@866" type="MeshInstance3D" parent="." unique_id=568508885]
+[node name="@MeshInstance3D@866" type="MeshInstance3D" parent="." unique_id=325859323]
 transform = Transform3D(0.49999997, -0.14651622, 0.8535415, 0, 0.9855848, 0.16918235, -0.86602545, -0.084591165, 0.49279237, -12.957615, 8, -14.1682825)
 visibility_range_end = 1900.0
 mesh = SubResource("BoxMesh_hhpms")
 
-[node name="@MeshInstance3D@867" type="MeshInstance3D" parent="." unique_id=1291193945]
+[node name="@MeshInstance3D@867" type="MeshInstance3D" parent="." unique_id=657480402]
 transform = Transform3D(-0.50000006, -0.1465162, 0.85354143, 0, 0.9855848, 0.16918235, -0.8660254, 0.08459118, -0.49279246, -12.957615, 8, -14.1682825)
 visibility_range_end = 1900.0
 mesh = SubResource("BoxMesh_s6jwo")
 
-[node name="@MeshInstance3D@868" type="MeshInstance3D" parent="." unique_id=1495984036]
+[node name="@MeshInstance3D@868" type="MeshInstance3D" parent="." unique_id=953522541]
 transform = Transform3D(-1, 1.479039e-08, -8.616256e-08, 0, 0.9855848, 0.16918235, 8.742278e-08, 0.16918235, -0.9855848, -12.957615, 8, -14.1682825)
 visibility_range_end = 1900.0
 mesh = SubResource("BoxMesh_re4ll")
 
-[node name="@MeshInstance3D@869" type="MeshInstance3D" parent="." unique_id=1941372246]
+[node name="@MeshInstance3D@869" type="MeshInstance3D" parent="." unique_id=1974287485]
 transform = Transform3D(-0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, 0.08459116, -0.4927923, -12.957615, 8, -14.1682825)
 visibility_range_end = 1900.0
 mesh = SubResource("BoxMesh_2o408")
 
-[node name="@MeshInstance3D@870" type="MeshInstance3D" parent="." unique_id=1606625513]
+[node name="@MeshInstance3D@870" type="MeshInstance3D" parent="." unique_id=1192278532]
 transform = Transform3D(0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, -0.08459116, 0.4927923, -12.957615, 8, -14.1682825)
 visibility_range_end = 1900.0
 mesh = SubResource("BoxMesh_3frik")
