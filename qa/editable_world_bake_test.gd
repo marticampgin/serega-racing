@@ -61,11 +61,23 @@ func _run() -> void:
 					descendants_owned = false
 					break
 			check(descendants_owned, "%s descendants survive scene serialization" % child.name)
-	var expected_editable_objects := baked_roots.size()
+	var landscapes := editable.get_node_or_null("NaturalLandscapes") as Node3D
+	var landscape_count := landscapes.get_child_count() if landscapes != null else 0
+	check(landscape_count >= 11, "natural landscape roots are persisted as separate editable objects")
+	var expected_editable_objects := baked_roots.size() + landscape_count
 	var expected_saved_meshes := editable.find_children("*", "MeshInstance3D", true, false).size()
 	check(expected_editable_objects >= MINIMUM_EDITABLE_OBJECTS, "the editable baseline plus authored copies remain saved")
 	check(expected_saved_meshes >= MINIMUM_DECORATIVE_MESHES, "the saved world preserves the decorative mesh baseline")
 	check(repeated_bake_ids >= MINIMUM_AUTHORED_BAKED_COPIES, "authored baked copies retain their source bake identity")
+	var building_count := 0
+	for value in editable.find_children("*", "Node3D", true, false):
+		var building := value as Node3D
+		if not building.is_in_group("building_scenery"):
+			continue
+		building_count += 1
+		check(bool(building.get_meta("_edit_group_", false)), "%s is individually click-selectable" % building.name)
+		check(building.owner == editable or not building.scene_file_path.is_empty(), "%s is an authored local or external scene object" % building.name)
+	check(building_count >= 258, "all placed buildings are represented by editable roots")
 	for group_name: String in REQUIRED_GROUPS:
 		check(_contains_group(editable, group_name), "semantic group survives scene serialization: %s" % group_name)
 	for group_name: String in FORBIDDEN_GROUPS:

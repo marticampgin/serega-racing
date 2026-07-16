@@ -72,7 +72,7 @@ func _run() -> void:
 	if overlay_root == null or not bool(overlay_root.get_meta("_edit_lock_", false)):
 		_fail("Generated scenery overlays must be present in a locked preview root")
 		return
-	for overlay_name in ["NeighborhoodDetails", "NaturalLandscapes"]:
+	for overlay_name in ["NeighborhoodDetails"]:
 		var overlay := overlay_root.get_node_or_null(overlay_name) as Node3D
 		if overlay == null or not overlay.transform.is_equal_approx(Transform3D.IDENTITY):
 			_fail("Preview overlay %s must load once at identity" % overlay_name)
@@ -82,6 +82,14 @@ func _run() -> void:
 			if geometry.visibility_range_end < 99999.0:
 				_fail("Preview overlay %s still has runtime distance culling" % overlay_name)
 				return
+	if overlay_root.get_node_or_null("NaturalLandscapes") != null:
+		_fail("Editable natural landscapes must not be duplicated as a generated overlay")
+		return
+	var saved_world := preview.get_node_or_null("SavedEditableSceneryPreview") as Node3D
+	var saved_landscapes := saved_world.get_node_or_null("NaturalLandscapes") if saved_world != null else null
+	if saved_landscapes == null or saved_landscapes.get_child_count() < 11:
+		_fail("Saved editable preview must include every authored natural landscape")
+		return
 	if not capture_path.is_empty():
 		await _capture_preview(race, capture_path)
 

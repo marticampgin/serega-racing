@@ -7,6 +7,11 @@ const EXPECTED_IDS := [
 	"loop_two_highlands",
 	"bridge_west_dunes",
 	"bridge_east_dunes",
+	"south_limestone_cliffs",
+	"city_coastal_bluff",
+	"south_natural_arch",
+	"north_mangrove_lagoon",
+	"east_coastal_rock_garden",
 ]
 
 var failures: Array[String] = []
@@ -30,14 +35,14 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	var landscapes := race.get_node_or_null("EditableWorld/NaturalLandscapes") as Node3D
-	check(landscapes != null, "natural landscapes load as an additive runtime overlay")
+	check(landscapes != null, "natural landscapes load from the editable world")
 	if landscapes == null:
 		_finish()
 		return
-	check(landscapes.transform.is_equal_approx(Transform3D.IDENTITY), "natural landscape overlay always loads at identity")
-	check(get_nodes_in_group("natural_landscapes_root").size() == 1, "natural landscape overlay is instantiated exactly once")
+	check(landscapes.transform.is_equal_approx(Transform3D.IDENTITY), "natural landscape folder retains a stable identity transform")
+	check(get_nodes_in_group("natural_landscapes_root").size() == 1, "natural landscape folder is instantiated exactly once")
 	check(landscapes.find_children("*", "CollisionObject3D", true, false).is_empty(), "natural landscapes remain visual-only")
-	check(landscapes.find_children("*", "MeshInstance3D", true, false).size() <= 260, "natural landscape mesh budget remains bounded")
+	check(landscapes.find_children("*", "MeshInstance3D", true, false).size() <= 500, "natural landscape mesh budget remains bounded")
 
 	var course: CourseLayout = race.get("course")
 	var terrain: WorldBuilder = race.get("world_builder")
@@ -48,6 +53,9 @@ func _run() -> void:
 		var feature := value as Node3D
 		var id := str(feature.get_meta("landscape_id", ""))
 		found[id] = int(found.get(id, 0)) + 1
+		check(feature.get_parent() == landscapes, "%s is a directly movable landscape instance" % feature.name)
+		check(not feature.scene_file_path.is_empty(), "%s remains linked to an external reusable scene" % feature.name)
+		check(bool(feature.get_meta("_edit_group_", false)), "%s is click-selectable as one compound editor object" % feature.name)
 		_check_feature(feature, course, terrain)
 	for id in EXPECTED_IDS:
 		check(int(found.get(id, 0)) == 1, "%s appears exactly once" % id)
@@ -56,7 +64,8 @@ func _run() -> void:
 
 
 func _check_feature(feature: Node3D, course: CourseLayout, terrain: WorldBuilder) -> void:
-	var radius := float(feature.get_meta("landscape_radius", 0.0))
+	var scale := feature.global_transform.basis.get_scale()
+	var radius := float(feature.get_meta("landscape_radius", 0.0)) * maxf(absf(scale.x), absf(scale.z))
 	var centre := Vector2(feature.global_position.x, feature.global_position.z)
 	var ground := terrain.terrain_rendered_height_at(centre)
 	check(absf(feature.global_position.y - ground) <= 0.12, "%s is grounded to the rendered sand surface" % feature.name)

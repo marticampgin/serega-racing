@@ -152,7 +152,8 @@ func _check_land_and_water_details(details_root: Node3D, terrain: Object) -> voi
 func _check_catalog_preservation(race: Node) -> void:
 	var editable := (load(EDITABLE_WORLD_PATH) as PackedScene).instantiate() as Node3D
 	check(editable.get_node_or_null("NeighborhoodDetails") == null, "editable world stores no movable neighborhood overlay instance")
-	check(editable.get_node_or_null("NaturalLandscapes") == null, "editable world stores no movable natural overlay instance")
+	var landscapes := editable.get_node_or_null("NaturalLandscapes") as Node3D
+	check(landscapes != null and landscapes.get_child_count() >= 11, "editable world stores individually movable natural landscape instances")
 	var expected := _catalog_counts(editable)
 	var actual: Dictionary = {}
 	for value in get_nodes_in_group("manual_scenery"):
