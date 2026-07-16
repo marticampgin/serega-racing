@@ -5,7 +5,6 @@ const WorldBuilderScript := preload("res://scripts/world_builder.gd")
 const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
 const GENERATED_SCENERY_PATHS := [
 	"res://scenes/world/neighborhood_details.tscn",
-	"res://scenes/world/natural_landscapes.tscn",
 ]
 const ROAD_WIDTH := 17.0
 const ROAD_SAMPLE_STEP := 2.0
@@ -403,7 +402,7 @@ func _load_generated_scenery_overlays(editable_world: Node3D) -> void:
 	# Older editable scenes may contain a moved or overridden external instance.
 	# Always replace it with the canonical generated scene at identity so authored
 	# edits and generated connective scenery cannot accidentally move each other.
-	for legacy_name in ["NeighborhoodDetails", "NaturalLandscapes"]:
+	for legacy_name in ["NeighborhoodDetails"]:
 		var legacy := editable_world.get_node_or_null(legacy_name)
 		if legacy != null:
 			editable_world.remove_child(legacy)

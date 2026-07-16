@@ -1,0 +1,834 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7lo5l"]
+albedo_color = Color(0.14117648, 0.8117647, 0.8901961, 1)
+metallic = 0.18
+roughness = 0.34
+emission_enabled = true
+emission = Color(0.03137255, 0.49019608, 0.6, 1)
+emission_energy_multiplier = 0.6
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_v04qq"]
+material = SubResource("StandardMaterial3D_7lo5l")
+top_radius = 17.92
+bottom_radius = 18.56
+height = 0.12
+radial_segments = 40
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0288u"]
+albedo_color = Color(0.42352942, 0.32941177, 0.4509804, 1)
+roughness = 0.9
+
+[sub_resource type="SphereMesh" id="SphereMesh_ho381"]
+material = SubResource("StandardMaterial3D_0288u")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6fgpw"]
+albedo_color = Color(0.6039216, 0.37254903, 0.40784314, 1)
+roughness = 0.88
+
+[sub_resource type="SphereMesh" id="SphereMesh_krdkv"]
+material = SubResource("StandardMaterial3D_6fgpw")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_stl7u"]
+material = SubResource("StandardMaterial3D_0288u")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_l6po4"]
+material = SubResource("StandardMaterial3D_6fgpw")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_iynsu"]
+material = SubResource("StandardMaterial3D_0288u")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_gu03m"]
+material = SubResource("StandardMaterial3D_6fgpw")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_0el7a"]
+material = SubResource("StandardMaterial3D_0288u")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_he3vf"]
+material = SubResource("StandardMaterial3D_6fgpw")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_mj2sc"]
+material = SubResource("StandardMaterial3D_0288u")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_mchtr"]
+material = SubResource("StandardMaterial3D_6fgpw")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_rfg2k"]
+material = SubResource("StandardMaterial3D_0288u")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_a5gwa"]
+material = SubResource("StandardMaterial3D_6fgpw")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_d7byi"]
+material = SubResource("StandardMaterial3D_0288u")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_bf1j7"]
+material = SubResource("StandardMaterial3D_6fgpw")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_mbqx0"]
+material = SubResource("StandardMaterial3D_0288u")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_nqw7q"]
+material = SubResource("StandardMaterial3D_6fgpw")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_16tnb"]
+material = SubResource("StandardMaterial3D_0288u")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_x563q"]
+material = SubResource("StandardMaterial3D_6fgpw")
+radius = 1.0
+height = 2.0
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qutc3"]
+albedo_color = Color(0.43529412, 0.23921569, 0.28235295, 1)
+roughness = 0.92
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_l8mrx"]
+material = SubResource("StandardMaterial3D_qutc3")
+top_radius = 0.22
+bottom_radius = 0.42
+height = 7.0
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jdfn1"]
+albedo_color = Color(0.1254902, 0.654902, 0.4745098, 1)
+roughness = 0.84
+
+[sub_resource type="BoxMesh" id="BoxMesh_rps3o"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3yqy8"]
+albedo_color = Color(0.06666667, 0.39607844, 0.3254902, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="BoxMesh_7jmax"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_oj5ik"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1b5g1"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_c65ip"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1gvbo"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_gfqxy"]
+material = SubResource("StandardMaterial3D_qutc3")
+top_radius = 0.22
+bottom_radius = 0.42
+height = 8.0
+radial_segments = 8
+
+[sub_resource type="BoxMesh" id="BoxMesh_bbanp"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pk87f"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5ftre"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_dh6x7"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5hc6e"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_dxv2p"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_4c6d2"]
+material = SubResource("StandardMaterial3D_qutc3")
+top_radius = 0.22
+bottom_radius = 0.42
+height = 9.0
+radial_segments = 8
+
+[sub_resource type="BoxMesh" id="BoxMesh_2ho8l"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pctfy"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_paa5h"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_80141"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_f2bpb"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wx6k3"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_f57al"]
+material = SubResource("StandardMaterial3D_qutc3")
+top_radius = 0.22
+bottom_radius = 0.42
+height = 7.0
+radial_segments = 8
+
+[sub_resource type="BoxMesh" id="BoxMesh_voi3b"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cv44c"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_m6ops"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mciit"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_brkj7"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hn4wv"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_mgops"]
+material = SubResource("StandardMaterial3D_qutc3")
+top_radius = 0.22
+bottom_radius = 0.42
+height = 8.0
+radial_segments = 8
+
+[sub_resource type="BoxMesh" id="BoxMesh_mp7tn"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_c7cv5"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_61lm1"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_j5mtg"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_weqsi"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_p638r"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_v0n2s"]
+material = SubResource("StandardMaterial3D_qutc3")
+top_radius = 0.22
+bottom_radius = 0.42
+height = 9.0
+radial_segments = 8
+
+[sub_resource type="BoxMesh" id="BoxMesh_7v36t"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_sc3b0"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_b7mq2"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_sf5si"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6o41b"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_emsnb"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ykuua"]
+material = SubResource("StandardMaterial3D_qutc3")
+top_radius = 0.22
+bottom_radius = 0.42
+height = 7.0
+radial_segments = 8
+
+[sub_resource type="BoxMesh" id="BoxMesh_w7v24"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_r70tt"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5v0iv"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ihwwu"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wb1ve"]
+material = SubResource("StandardMaterial3D_jdfn1")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xflvc"]
+material = SubResource("StandardMaterial3D_3yqy8")
+size = Vector3(0.42, 0.14, 5.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_se7nh"]
+albedo_color = Color(0.9372549, 0.35686275, 0.6156863, 1)
+roughness = 0.7
+
+[sub_resource type="SphereMesh" id="SphereMesh_0pa7a"]
+material = SubResource("StandardMaterial3D_se7nh")
+radius = 1.1
+height = 1.7
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_c3whl"]
+material = SubResource("StandardMaterial3D_jdfn1")
+radius = 1.1
+height = 1.7
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_sdjsb"]
+material = SubResource("StandardMaterial3D_jdfn1")
+radius = 1.1
+height = 1.7
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_kyrdu"]
+material = SubResource("StandardMaterial3D_se7nh")
+radius = 1.1
+height = 1.7
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_rf1wn"]
+material = SubResource("StandardMaterial3D_jdfn1")
+radius = 1.1
+height = 1.7
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_w8bdu"]
+material = SubResource("StandardMaterial3D_jdfn1")
+radius = 1.1
+height = 1.7
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_7lhja"]
+material = SubResource("StandardMaterial3D_se7nh")
+radius = 1.1
+height = 1.7
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_fnayo"]
+material = SubResource("StandardMaterial3D_jdfn1")
+radius = 1.1
+height = 1.7
+radial_segments = 8
+rings = 4
+
+[node name="LoopOneOasis" type="Node3D" unique_id=318714176 groups=["editable_scenery", "loop_1_scenery", "natural_landscape_scenery", "natural_oasis"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -675, 0.94408953, -270)
+metadata/natural_landscape = true
+metadata/landscape_id = "loop_one_oasis"
+metadata/landscape_kind = "oasis"
+metadata/landscape_radius = 32.0
+metadata/scenery_radius = 32.0
+metadata/course_offset = 1000.0
+metadata/landscape_district = "loop_1"
+metadata/ground_y = 0.94408953
+metadata/size_hint = "Scale this root uniformly in X/Y/Z to resize the whole landscape"
+metadata/default_radius = 32.0
+metadata/default_height = 4.0
+metadata/_edit_group_ = true
+
+[node name="OasisWater" type="MeshInstance3D" parent="." unique_id=2043405115]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.68, 0, 0.12, 0)
+visibility_range_end = 2200.0
+mesh = SubResource("CylinderMesh_v04qq")
+
+[node name="CoastalRock" type="MeshInstance3D" parent="." unique_id=142498191]
+transform = Transform3D(1.25, 0, 0, 0, 0.62, 0, 0, 0, 0.82, 19.84, 0.57, 0)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_ho381")
+
+[node name="@MeshInstance3D@757" type="MeshInstance3D" parent="." unique_id=1273362963]
+transform = Transform3D(1.2797357, 0, 0.83597684, 0, 0.837, 0, -1.0999695, 0, 0.97259915, 18.643501, 0.7275, 4.7061973)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_krdkv")
+
+[node name="@MeshInstance3D@758" type="MeshInstance3D" parent="." unique_id=1555283620]
+transform = Transform3D(0.3192292, 0, 1.8151646, 0, 1.054, 0, -2.100885, 0, 0.27581403, 15.198321, 0.885, 8.844757)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_stl7u")
+
+[node name="@MeshInstance3D@759" type="MeshInstance3D" parent="." unique_id=454550277]
+transform = Transform3D(-0.6631393, 0, 0.6950958, 0, 0.62, 0, -1.0595973, 0, -0.43501937, 9.92, 0.57, 11.91651)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_l6po4")
+
+[node name="@MeshInstance3D@760" type="MeshInstance3D" parent="." unique_id=407394302]
+transform = Transform3D(-1.611334, 0, 0.38095567, 0, 0.837, 0, -0.5012574, 0, -1.2246138, 3.44518, 0.7275, 13.550955)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_iynsu")
+
+[node name="@MeshInstance3D@761" type="MeshInstance3D" parent="." unique_id=1036256452]
+transform = Transform3D(-1.9502283, 0, -0.72916394, 0, 1.054, 0, 0.8439398, 0, -1.6849973, -3.44518, 0.885, 13.550955)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_gu03m")
+
+[node name="@MeshInstance3D@762" type="MeshInstance3D" parent="." unique_id=182026316]
+transform = Transform3D(-0.54639405, 0, -0.7375125, 0, 0.62, 0, 1.124257, 0, -0.35843447, -9.92, 0.57, 11.91651)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_0el7a")
+
+[node name="@MeshInstance3D@763" type="MeshInstance3D" parent="." unique_id=1957481930]
+transform = Transform3D(0.42992595, 0, -1.2401794, 0, 0.837, 0, 1.631815, 0, 0.32674372, -15.198321, 0.7275, 8.844757)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_he3vf")
+
+[node name="@MeshInstance3D@764" type="MeshInstance3D" parent="." unique_id=539330472]
+transform = Transform3D(1.7500072, 0, -1.0415052, 0, 1.054, 0, 1.2054459, 0, 1.5120062, -18.643501, 0.885, 4.7061973)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_mj2sc")
+
+[node name="@MeshInstance3D@765" type="MeshInstance3D" parent="." unique_id=2095617844]
+transform = Transform3D(1.2428759, 0, 0.08742148, 0, 0.62, 0, -0.13326445, 0, 0.8153266, -19.84, 0.57, 1.6850583e-15)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_mchtr")
+
+[node name="@MeshInstance3D@766" type="MeshInstance3D" parent="." unique_id=1349701018]
+transform = Transform3D(1.1551726, 0, 0.9349027, 0, 0.837, 0, -1.2301352, 0, 0.8779312, -18.643501, 0.7275, -4.7061973)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_rfg2k")
+
+[node name="@MeshInstance3D@767" type="MeshInstance3D" parent="." unique_id=1234912728]
+transform = Transform3D(0.09343096, 0, 1.8342245, 0, 1.054, 0, -2.122945, 0, 0.08072435, -15.198321, 0.885, -8.844757)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_a5gwa")
+
+[node name="@MeshInstance3D@768" type="MeshInstance3D" parent="." unique_id=1655100833]
+transform = Transform3D(-0.7723257, 0, 0.6447559, 0, 0.62, 0, -0.9828597, 0, -0.5066457, -9.92, 0.57, -11.91651)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_d7byi")
+
+[node name="@MeshInstance3D@769" type="MeshInstance3D" parent="." unique_id=1826156514]
+transform = Transform3D(-1.6555904, 0, 0.24822678, 0, 0.837, 0, -0.32661417, 0, -1.2582487, -3.44518, 0.7275, -13.550955)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_bf1j7")
+
+[node name="@MeshInstance3D@770" type="MeshInstance3D" parent="." unique_id=1448195257]
+transform = Transform3D(-1.84914, 0, -0.904648, 0, 1.054, 0, 1.0470463, 0, -1.597657, 3.44518, 0.885, -13.550955)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_mbqx0")
+
+[node name="@MeshInstance3D@771" type="MeshInstance3D" parent="." unique_id=1959173403]
+transform = Transform3D(-0.4234218, 0, -0.7715224, 0, 0.62, 0, 1.1761012, 0, -0.27776468, 9.92, 0.57, -11.91651)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_nqw7q")
+
+[node name="@MeshInstance3D@772" type="MeshInstance3D" parent="." unique_id=836421017]
+transform = Transform3D(0.60144603, 0, -1.1982766, 0, 0.837, 0, 1.5766797, 0, 0.457099, 15.198321, 0.7275, -8.844757)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_16tnb")
+
+[node name="@MeshInstance3D@773" type="MeshInstance3D" parent="." unique_id=1512309512]
+transform = Transform3D(1.8685478, 0, -0.8743721, 0, 1.054, 0, 1.0120049, 0, 1.6144253, 18.643501, 0.885, -4.7061973)
+visibility_range_end = 1800.0
+mesh = SubResource("SphereMesh_x563q")
+
+[node name="@MeshInstance3D@774" type="MeshInstance3D" parent="." unique_id=470199374]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.389535, 3.5, 14.640558)
+visibility_range_end = 1900.0
+mesh = SubResource("CylinderMesh_l8mrx")
+
+[node name="@MeshInstance3D@775" type="MeshInstance3D" parent="." unique_id=1028134881]
+transform = Transform3D(1, 0, 0, 0, 0.9855848, 0.16918235, 0, -0.16918235, 0.9855848, 13.389535, 7, 14.640558)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_rps3o")
+
+[node name="@MeshInstance3D@776" type="MeshInstance3D" parent="." unique_id=2105252845]
+transform = Transform3D(0.49999997, -0.14651622, 0.8535415, 0, 0.9855848, 0.16918235, -0.86602545, -0.084591165, 0.49279237, 13.389535, 7, 14.640558)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_7jmax")
+
+[node name="@MeshInstance3D@777" type="MeshInstance3D" parent="." unique_id=1730421499]
+transform = Transform3D(-0.50000006, -0.1465162, 0.85354143, 0, 0.9855848, 0.16918235, -0.8660254, 0.08459118, -0.49279246, 13.389535, 7, 14.640558)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_oj5ik")
+
+[node name="@MeshInstance3D@778" type="MeshInstance3D" parent="." unique_id=269923748]
+transform = Transform3D(-1, 1.479039e-08, -8.616256e-08, 0, 0.9855848, 0.16918235, 8.742278e-08, 0.16918235, -0.9855848, 13.389535, 7, 14.640558)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_1b5g1")
+
+[node name="@MeshInstance3D@779" type="MeshInstance3D" parent="." unique_id=974079743]
+transform = Transform3D(-0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, 0.08459116, -0.4927923, 13.389535, 7, 14.640558)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_c65ip")
+
+[node name="@MeshInstance3D@780" type="MeshInstance3D" parent="." unique_id=409037902]
+transform = Transform3D(0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, -0.08459116, 0.4927923, 13.389535, 7, 14.640558)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_1gvbo")
+
+[node name="@MeshInstance3D@781" type="MeshInstance3D" parent="." unique_id=7440137]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.9976914, 4, 25.285934)
+visibility_range_end = 1900.0
+mesh = SubResource("CylinderMesh_gfqxy")
+
+[node name="@MeshInstance3D@782" type="MeshInstance3D" parent="." unique_id=1841846985]
+transform = Transform3D(1, 0, 0, 0, 0.9855848, 0.16918235, 0, -0.16918235, 0.9855848, -3.9976914, 8, 25.285934)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_bbanp")
+
+[node name="@MeshInstance3D@783" type="MeshInstance3D" parent="." unique_id=768709776]
+transform = Transform3D(0.49999997, -0.14651622, 0.8535415, 0, 0.9855848, 0.16918235, -0.86602545, -0.084591165, 0.49279237, -3.9976914, 8, 25.285934)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_pk87f")
+
+[node name="@MeshInstance3D@784" type="MeshInstance3D" parent="." unique_id=1713930344]
+transform = Transform3D(-0.50000006, -0.1465162, 0.85354143, 0, 0.9855848, 0.16918235, -0.8660254, 0.08459118, -0.49279246, -3.9976914, 8, 25.285934)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_5ftre")
+
+[node name="@MeshInstance3D@785" type="MeshInstance3D" parent="." unique_id=305514050]
+transform = Transform3D(-1, 1.479039e-08, -8.616256e-08, 0, 0.9855848, 0.16918235, 8.742278e-08, 0.16918235, -0.9855848, -3.9976914, 8, 25.285934)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_dh6x7")
+
+[node name="@MeshInstance3D@786" type="MeshInstance3D" parent="." unique_id=1643551067]
+transform = Transform3D(-0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, 0.08459116, -0.4927923, -3.9976914, 8, 25.285934)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_5hc6e")
+
+[node name="@MeshInstance3D@787" type="MeshInstance3D" parent="." unique_id=377132447]
+transform = Transform3D(0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, -0.08459116, 0.4927923, -3.9976914, 8, 25.285934)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_dxv2p")
+
+[node name="@MeshInstance3D@788" type="MeshInstance3D" parent="." unique_id=1970347806]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.252941, 4.5, 9.7960005)
+visibility_range_end = 1900.0
+mesh = SubResource("CylinderMesh_4c6d2")
+
+[node name="@MeshInstance3D@789" type="MeshInstance3D" parent="." unique_id=476068593]
+transform = Transform3D(1, 0, 0, 0, 0.9855848, 0.16918235, 0, -0.16918235, 0.9855848, -17.252941, 9, 9.7960005)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_2ho8l")
+
+[node name="@MeshInstance3D@790" type="MeshInstance3D" parent="." unique_id=365614118]
+transform = Transform3D(0.49999997, -0.14651622, 0.8535415, 0, 0.9855848, 0.16918235, -0.86602545, -0.084591165, 0.49279237, -17.252941, 9, 9.7960005)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_pctfy")
+
+[node name="@MeshInstance3D@791" type="MeshInstance3D" parent="." unique_id=991107333]
+transform = Transform3D(-0.50000006, -0.1465162, 0.85354143, 0, 0.9855848, 0.16918235, -0.8660254, 0.08459118, -0.49279246, -17.252941, 9, 9.7960005)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_paa5h")
+
+[node name="@MeshInstance3D@792" type="MeshInstance3D" parent="." unique_id=958296462]
+transform = Transform3D(-1, 1.479039e-08, -8.616256e-08, 0, 0.9855848, 0.16918235, 8.742278e-08, 0.16918235, -0.9855848, -17.252941, 9, 9.7960005)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_80141")
+
+[node name="@MeshInstance3D@793" type="MeshInstance3D" parent="." unique_id=936185824]
+transform = Transform3D(-0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, 0.08459116, -0.4927923, -17.252941, 9, 9.7960005)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_f2bpb")
+
+[node name="@MeshInstance3D@794" type="MeshInstance3D" parent="." unique_id=349383454]
+transform = Transform3D(0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, -0.08459116, 0.4927923, -17.252941, 9, 9.7960005)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_wx6k3")
+
+[node name="@MeshInstance3D@795" type="MeshInstance3D" parent="." unique_id=53490070]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.762392, 3.5, -9.524111)
+visibility_range_end = 1900.0
+mesh = SubResource("CylinderMesh_f57al")
+
+[node name="@MeshInstance3D@796" type="MeshInstance3D" parent="." unique_id=184776538]
+transform = Transform3D(1, 0, 0, 0, 0.9855848, 0.16918235, 0, -0.16918235, 0.9855848, -23.762392, 7, -9.524111)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_voi3b")
+
+[node name="@MeshInstance3D@797" type="MeshInstance3D" parent="." unique_id=1839476651]
+transform = Transform3D(0.49999997, -0.14651622, 0.8535415, 0, 0.9855848, 0.16918235, -0.86602545, -0.084591165, 0.49279237, -23.762392, 7, -9.524111)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_cv44c")
+
+[node name="@MeshInstance3D@798" type="MeshInstance3D" parent="." unique_id=541727384]
+transform = Transform3D(-0.50000006, -0.1465162, 0.85354143, 0, 0.9855848, 0.16918235, -0.8660254, 0.08459118, -0.49279246, -23.762392, 7, -9.524111)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_m6ops")
+
+[node name="@MeshInstance3D@799" type="MeshInstance3D" parent="." unique_id=211605687]
+transform = Transform3D(-1, 1.479039e-08, -8.616256e-08, 0, 0.9855848, 0.16918235, 8.742278e-08, 0.16918235, -0.9855848, -23.762392, 7, -9.524111)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_mciit")
+
+[node name="@MeshInstance3D@800" type="MeshInstance3D" parent="." unique_id=1864578639]
+transform = Transform3D(-0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, 0.08459116, -0.4927923, -23.762392, 7, -9.524111)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_brkj7")
+
+[node name="@MeshInstance3D@801" type="MeshInstance3D" parent="." unique_id=1285735872]
+transform = Transform3D(0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, -0.08459116, 0.4927923, -23.762392, 7, -9.524111)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_hn4wv")
+
+[node name="@MeshInstance3D@802" type="MeshInstance3D" parent="." unique_id=1457815803]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.711254, 4, -19.000189)
+visibility_range_end = 1900.0
+mesh = SubResource("CylinderMesh_mgops")
+
+[node name="@MeshInstance3D@803" type="MeshInstance3D" parent="." unique_id=1044838222]
+transform = Transform3D(1, 0, 0, 0, 0.9855848, 0.16918235, 0, -0.16918235, 0.9855848, -5.711254, 8, -19.000189)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_mp7tn")
+
+[node name="@MeshInstance3D@804" type="MeshInstance3D" parent="." unique_id=593994719]
+transform = Transform3D(0.49999997, -0.14651622, 0.8535415, 0, 0.9855848, 0.16918235, -0.86602545, -0.084591165, 0.49279237, -5.711254, 8, -19.000189)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_c7cv5")
+
+[node name="@MeshInstance3D@805" type="MeshInstance3D" parent="." unique_id=1211212838]
+transform = Transform3D(-0.50000006, -0.1465162, 0.85354143, 0, 0.9855848, 0.16918235, -0.8660254, 0.08459118, -0.49279246, -5.711254, 8, -19.000189)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_61lm1")
+
+[node name="@MeshInstance3D@806" type="MeshInstance3D" parent="." unique_id=1227686667]
+transform = Transform3D(-1, 1.479039e-08, -8.616256e-08, 0, 0.9855848, 0.16918235, 8.742278e-08, 0.16918235, -0.9855848, -5.711254, 8, -19.000189)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_j5mtg")
+
+[node name="@MeshInstance3D@807" type="MeshInstance3D" parent="." unique_id=242796627]
+transform = Transform3D(-0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, 0.08459116, -0.4927923, -5.711254, 8, -19.000189)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_weqsi")
+
+[node name="@MeshInstance3D@808" type="MeshInstance3D" parent="." unique_id=886400094]
+transform = Transform3D(0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, -0.08459116, 0.4927923, -5.711254, 8, -19.000189)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_p638r")
+
+[node name="@MeshInstance3D@809" type="MeshInstance3D" parent="." unique_id=1300330657]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.572951, 4.5, -21.047306)
+visibility_range_end = 1900.0
+mesh = SubResource("CylinderMesh_v0n2s")
+
+[node name="@MeshInstance3D@810" type="MeshInstance3D" parent="." unique_id=1818412944]
+transform = Transform3D(1, 0, 0, 0, 0.9855848, 0.16918235, 0, -0.16918235, 0.9855848, 14.572951, 9, -21.047306)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_7v36t")
+
+[node name="@MeshInstance3D@811" type="MeshInstance3D" parent="." unique_id=588517104]
+transform = Transform3D(0.49999997, -0.14651622, 0.8535415, 0, 0.9855848, 0.16918235, -0.86602545, -0.084591165, 0.49279237, 14.572951, 9, -21.047306)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_sc3b0")
+
+[node name="@MeshInstance3D@812" type="MeshInstance3D" parent="." unique_id=1877569606]
+transform = Transform3D(-0.50000006, -0.1465162, 0.85354143, 0, 0.9855848, 0.16918235, -0.8660254, 0.08459118, -0.49279246, 14.572951, 9, -21.047306)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_b7mq2")
+
+[node name="@MeshInstance3D@813" type="MeshInstance3D" parent="." unique_id=1202541780]
+transform = Transform3D(-1, 1.479039e-08, -8.616256e-08, 0, 0.9855848, 0.16918235, 8.742278e-08, 0.16918235, -0.9855848, 14.572951, 9, -21.047306)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_sf5si")
+
+[node name="@MeshInstance3D@814" type="MeshInstance3D" parent="." unique_id=935096173]
+transform = Transform3D(-0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, 0.08459116, -0.4927923, 14.572951, 9, -21.047306)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_6o41b")
+
+[node name="@MeshInstance3D@815" type="MeshInstance3D" parent="." unique_id=592527265]
+transform = Transform3D(0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, -0.08459116, 0.4927923, 14.572951, 9, -21.047306)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_emsnb")
+
+[node name="@MeshInstance3D@816" type="MeshInstance3D" parent="." unique_id=662229653]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.794687, 3.5, -1.3401212)
+visibility_range_end = 1900.0
+mesh = SubResource("CylinderMesh_ykuua")
+
+[node name="@MeshInstance3D@817" type="MeshInstance3D" parent="." unique_id=1547629786]
+transform = Transform3D(1, 0, 0, 0, 0.9855848, 0.16918235, 0, -0.16918235, 0.9855848, 19.794687, 7, -1.3401212)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_w7v24")
+
+[node name="@MeshInstance3D@818" type="MeshInstance3D" parent="." unique_id=112563082]
+transform = Transform3D(0.49999997, -0.14651622, 0.8535415, 0, 0.9855848, 0.16918235, -0.86602545, -0.084591165, 0.49279237, 19.794687, 7, -1.3401212)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_r70tt")
+
+[node name="@MeshInstance3D@819" type="MeshInstance3D" parent="." unique_id=43491392]
+transform = Transform3D(-0.50000006, -0.1465162, 0.85354143, 0, 0.9855848, 0.16918235, -0.8660254, 0.08459118, -0.49279246, 19.794687, 7, -1.3401212)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_5v0iv")
+
+[node name="@MeshInstance3D@820" type="MeshInstance3D" parent="." unique_id=1429888092]
+transform = Transform3D(-1, 1.479039e-08, -8.616256e-08, 0, 0.9855848, 0.16918235, 8.742278e-08, 0.16918235, -0.9855848, 19.794687, 7, -1.3401212)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_ihwwu")
+
+[node name="@MeshInstance3D@821" type="MeshInstance3D" parent="." unique_id=2116028953]
+transform = Transform3D(-0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, 0.08459116, -0.4927923, 19.794687, 7, -1.3401212)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_wb1ve")
+
+[node name="@MeshInstance3D@822" type="MeshInstance3D" parent="." unique_id=826472254]
+transform = Transform3D(0.4999999, 0.14651622, -0.8535415, 0, 0.9855848, 0.16918235, 0.86602545, -0.08459116, 0.4927923, 19.794687, 7, -1.3401212)
+visibility_range_end = 1900.0
+mesh = SubResource("BoxMesh_xflvc")
+
+[node name="@MeshInstance3D@823" type="MeshInstance3D" parent="." unique_id=1590745490]
+transform = Transform3D(1.3, 0, 0, 0, 0.8, 0, 0, 0, 1, 24.3584, 0.75, 4.1900086)
+visibility_range_end = 1400.0
+mesh = SubResource("SphereMesh_0pa7a")
+
+[node name="@MeshInstance3D@824" type="MeshInstance3D" parent="." unique_id=15165853]
+transform = Transform3D(1.3, 0, 0, 0, 0.8, 0, 0, 0, 1, 13.372372, 0.75, 16.212008)
+visibility_range_end = 1400.0
+mesh = SubResource("SphereMesh_c3whl")
+
+[node name="@MeshInstance3D@825" type="MeshInstance3D" parent="." unique_id=778874695]
+transform = Transform3D(1.3, 0, 0, 0, 0.8, 0, 0, 0, 1, -5.4470115, 0.75, 18.73723)
+visibility_range_end = 1400.0
+mesh = SubResource("SphereMesh_sdjsb")
+
+[node name="@MeshInstance3D@826" type="MeshInstance3D" parent="." unique_id=1516256722]
+transform = Transform3D(1.3, 0, 0, 0, 0.8, 0, 0, 0, 1, -21.07561, 0.75, 10.28644)
+visibility_range_end = 1400.0
+mesh = SubResource("SphereMesh_kyrdu")
+
+[node name="@MeshInstance3D@827" type="MeshInstance3D" parent="." unique_id=994876648]
+transform = Transform3D(1.3, 0, 0, 0, 0.8, 0, 0, 0, 1, -24.3584, 0.75, -4.1900086)
+visibility_range_end = 1400.0
+mesh = SubResource("SphereMesh_rf1wn")
+
+[node name="@MeshInstance3D@828" type="MeshInstance3D" parent="." unique_id=1335101585]
+transform = Transform3D(1.3, 0, 0, 0, 0.8, 0, 0, 0, 1, -13.372372, 0.75, -16.212008)
+visibility_range_end = 1400.0
+mesh = SubResource("SphereMesh_w8bdu")
+
+[node name="@MeshInstance3D@829" type="MeshInstance3D" parent="." unique_id=569805793]
+transform = Transform3D(1.3, 0, 0, 0, 0.8, 0, 0, 0, 1, 5.4470115, 0.75, -18.73723)
+visibility_range_end = 1400.0
+mesh = SubResource("SphereMesh_7lhja")
+
+[node name="@MeshInstance3D@830" type="MeshInstance3D" parent="." unique_id=741265257]
+transform = Transform3D(1.3, 0, 0, 0, 0.8, 0, 0, 0, 1, 21.07561, 0.75, -10.28644)
+visibility_range_end = 1400.0
+mesh = SubResource("SphereMesh_fnayo")

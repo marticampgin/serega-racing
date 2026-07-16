@@ -5,7 +5,7 @@ const WorldBuilderScript := preload("res://scripts/world_builder.gd")
 const LandscapeBuilderScript := preload("res://scripts/natural_landscape_builder.gd")
 
 const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
-const OUTPUT_PATH := "res://scenes/world/natural_landscapes.tscn"
+const OUTPUT_DIRECTORY := "res://scenes/world/natural_landscapes"
 
 
 func _initialize() -> void:
@@ -38,21 +38,30 @@ func _generate() -> void:
 	root.add_child(landscapes)
 	var builder = LandscapeBuilderScript.new()
 	builder.build(landscapes, course, terrain, editable)
-	_persist_groups(landscapes)
-	_set_owned(landscapes, landscapes)
-
-	var packed := PackedScene.new()
-	var pack_error := packed.pack(landscapes)
-	if pack_error != OK:
-		push_error("Could not pack natural landscapes: %s" % error_string(pack_error))
-		quit(1)
-		return
-	var save_error := ResourceSaver.save(packed, OUTPUT_PATH)
-	if save_error != OK:
-		push_error("Could not save natural landscapes: %s" % error_string(save_error))
-		quit(1)
-		return
-	print("NATURAL LANDSCAPE: saved %d sites / %d meshes to %s" % [builder.landscape_count, landscapes.find_children("*", "MeshInstance3D", true, false).size(), OUTPUT_PATH])
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT_DIRECTORY))
+	var mesh_count := landscapes.find_children("*", "MeshInstance3D", true, false).size()
+	var saved_count := 0
+	for value in landscapes.get_children():
+		var feature := value as Node3D
+		landscapes.remove_child(feature)
+		_persist_groups(feature)
+		_set_owned(feature, feature)
+		var id := str(feature.get_meta("landscape_id", feature.name.to_snake_case()))
+		var packed := PackedScene.new()
+		var pack_error := packed.pack(feature)
+		if pack_error != OK:
+			push_error("Could not pack natural landscape %s: %s" % [id, error_string(pack_error)])
+			quit(1)
+			return
+		var output_path := "%s/%s.tscn" % [OUTPUT_DIRECTORY, id]
+		var save_error := ResourceSaver.save(packed, output_path)
+		if save_error != OK:
+			push_error("Could not save natural landscape %s: %s" % [id, error_string(save_error)])
+			quit(1)
+			return
+		saved_count += 1
+		feature.free()
+	print("NATURAL LANDSCAPE: saved %d editable sites / %d meshes to %s" % [saved_count, mesh_count, OUTPUT_DIRECTORY])
 	quit(0)
 
 

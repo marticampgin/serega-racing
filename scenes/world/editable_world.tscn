@@ -29,6 +29,17 @@
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/friend_media/punk_hedgehog/billboard.tscn" id="28_wiuhp"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/vegetation/palm_wide.tscn" id="29_x202x"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/vegetation/palm_tall.tscn" id="30_wuukr"]
+[ext_resource type="PackedScene" path="res://scenes/world/natural_landscapes/bridge_east_dunes.tscn" id="31_nat_bridge_e"]
+[ext_resource type="PackedScene" path="res://scenes/world/natural_landscapes/bridge_west_dunes.tscn" id="32_nat_bridge_w"]
+[ext_resource type="PackedScene" path="res://scenes/world/natural_landscapes/city_coastal_bluff.tscn" id="33_nat_bluff"]
+[ext_resource type="PackedScene" path="res://scenes/world/natural_landscapes/east_coastal_rock_garden.tscn" id="34_nat_rocks"]
+[ext_resource type="PackedScene" path="res://scenes/world/natural_landscapes/loop_one_oasis.tscn" id="35_nat_oasis"]
+[ext_resource type="PackedScene" path="res://scenes/world/natural_landscapes/loop_two_highlands.tscn" id="36_nat_highlands"]
+[ext_resource type="PackedScene" path="res://scenes/world/natural_landscapes/north_mangrove_lagoon.tscn" id="37_nat_mangrove"]
+[ext_resource type="PackedScene" path="res://scenes/world/natural_landscapes/south_limestone_cliffs.tscn" id="38_nat_cliffs"]
+[ext_resource type="PackedScene" path="res://scenes/world/natural_landscapes/south_natural_arch.tscn" id="39_nat_arch"]
+[ext_resource type="PackedScene" path="res://scenes/world/natural_landscapes/start_interior_dunes.tscn" id="40_nat_start_dunes"]
+[ext_resource type="PackedScene" path="res://scenes/world/natural_landscapes/start_west_headland.tscn" id="41_nat_headland"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xn3dr"]
 albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
@@ -50393,6 +50404,30 @@ texture = ExtResource("4_1d6aq")
 
 [node name="ManualScenery" type="Node3D" parent="." unique_id=381846563 groups=["manual_scenery_root"]]
 script = ExtResource("13_rwujd")
+
+[node name="NaturalLandscapes" type="Node3D" parent="." groups=["natural_landscapes_root"]]
+
+[node name="BridgeEastDunes" parent="NaturalLandscapes" instance=ExtResource("31_nat_bridge_e")]
+
+[node name="BridgeWestDunes" parent="NaturalLandscapes" instance=ExtResource("32_nat_bridge_w")]
+
+[node name="CityCoastalBluff" parent="NaturalLandscapes" instance=ExtResource("33_nat_bluff")]
+
+[node name="EastCoastalRockGarden" parent="NaturalLandscapes" instance=ExtResource("34_nat_rocks")]
+
+[node name="LoopOneOasis" parent="NaturalLandscapes" instance=ExtResource("35_nat_oasis")]
+
+[node name="LoopTwoHighlands" parent="NaturalLandscapes" instance=ExtResource("36_nat_highlands")]
+
+[node name="NorthMangroveLagoon" parent="NaturalLandscapes" instance=ExtResource("37_nat_mangrove")]
+
+[node name="SouthLimestoneCliffs" parent="NaturalLandscapes" instance=ExtResource("38_nat_cliffs")]
+
+[node name="SouthNaturalArch" parent="NaturalLandscapes" instance=ExtResource("39_nat_arch")]
+
+[node name="StartInteriorDunes" parent="NaturalLandscapes" instance=ExtResource("40_nat_start_dunes")]
+
+[node name="StartWestHeadland" parent="NaturalLandscapes" instance=ExtResource("41_nat_headland")]
 
 [node name="EditorPlacementGuide" type="Node3D" parent="." unique_id=861885390 groups=["editor_placement_guide"]]
 script = ExtResource("14_6axof")

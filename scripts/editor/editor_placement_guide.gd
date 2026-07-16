@@ -6,7 +6,6 @@ const WorldBuilderScript := preload("res://scripts/world_builder.gd")
 const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
 const GENERATED_SCENERY_PATHS := [
 	"res://scenes/world/neighborhood_details.tscn",
-	"res://scenes/world/natural_landscapes.tscn",
 ]
 
 const ROAD_WIDTH := 17.0
@@ -94,7 +93,7 @@ func _build_detailed_preview(course: CourseLayout) -> void:
 		var packed := load(EDITABLE_WORLD_PATH) as PackedScene
 		if packed != null:
 			var saved_world := packed.instantiate() as Node3D
-			for legacy_name in ["NeighborhoodDetails", "NaturalLandscapes"]:
+			for legacy_name in ["NeighborhoodDetails"]:
 				var legacy := saved_world.get_node_or_null(legacy_name)
 				if legacy != null:
 					saved_world.remove_child(legacy)

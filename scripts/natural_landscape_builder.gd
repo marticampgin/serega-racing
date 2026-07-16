@@ -25,12 +25,17 @@ func build(parent: Node3D, course: CourseLayout, terrain: WorldBuilder, source: 
 	# start-coast headlands, the interiors of Loops 1 and 2, and both sides of
 	# the bridge approach. A small local search keeps them clear of authored edits.
 	var sites: Array[Dictionary] = [
-		{"id": "start_west_headland", "kind": "coastal_hills", "target": Vector2(-1185, -975), "radius": 36.0, "height": 21.0},
-		{"id": "start_interior_dunes", "kind": "dune_field", "target": Vector2(-840, -930), "radius": 34.0, "height": 10.0},
-		{"id": "loop_one_oasis", "kind": "oasis", "target": Vector2(-675, -270), "radius": 25.0, "height": 4.0},
-		{"id": "loop_two_highlands", "kind": "mountain", "target": Vector2(-1035, 830), "radius": 40.0, "height": 35.0},
-		{"id": "bridge_west_dunes", "kind": "dune_field", "target": Vector2(-1035, 960), "radius": 22.0, "height": 6.0},
-		{"id": "bridge_east_dunes", "kind": "dune_field", "target": Vector2(-930, 990), "radius": 22.0, "height": 6.5},
+		{"id": "start_west_headland", "kind": "coastal_hills", "target": Vector2(-1185, -975), "radius": 38.0, "height": 24.0},
+		{"id": "start_interior_dunes", "kind": "dune_field", "target": Vector2(-840, -930), "radius": 36.0, "height": 12.0},
+		{"id": "loop_one_oasis", "kind": "oasis", "target": Vector2(-675, -270), "radius": 32.0, "height": 4.0},
+		{"id": "loop_two_highlands", "kind": "mountain", "target": Vector2(-1035, 830), "radius": 46.0, "height": 42.0},
+		{"id": "bridge_west_dunes", "kind": "dune_field", "target": Vector2(-1035, 960), "radius": 24.0, "height": 7.5},
+		{"id": "bridge_east_dunes", "kind": "dune_field", "target": Vector2(-930, 990), "radius": 24.0, "height": 8.0},
+		{"id": "south_limestone_cliffs", "kind": "sharp_cliffs", "target": Vector2(-570, -1150), "radius": 36.0, "height": 38.0},
+		{"id": "city_coastal_bluff", "kind": "coastal_bluff", "target": Vector2(190, 400), "radius": 40.0, "height": 25.0},
+		{"id": "south_natural_arch", "kind": "limestone_arch", "target": Vector2(270, -750), "radius": 34.0, "height": 24.0},
+		{"id": "north_mangrove_lagoon", "kind": "mangrove_lagoon", "target": Vector2(590, 650), "radius": 34.0, "height": 5.0},
+		{"id": "east_coastal_rock_garden", "kind": "rock_garden", "target": Vector2(670, -1070), "radius": 34.0, "height": 17.0},
 	]
 	for site in sites:
 		var position := _find_site(site.target as Vector2, float(site.radius))
@@ -109,6 +114,9 @@ func _build_site(id: String, kind: String, xz: Vector2, radius: float, height: f
 	root.set_meta("course_offset", offset)
 	root.set_meta("landscape_district", district)
 	root.set_meta("ground_y", root.position.y)
+	root.set_meta("size_hint", "Scale this root uniformly in X/Y/Z to resize the whole landscape")
+	root.set_meta("default_radius", radius)
+	root.set_meta("default_height", height)
 	root.set_meta("_edit_group_", true)
 	_parent.add_child(root, true)
 	landscape_count += 1
@@ -116,6 +124,11 @@ func _build_site(id: String, kind: String, xz: Vector2, radius: float, height: f
 		"oasis": _build_oasis(root, radius)
 		"mountain": _build_mountain(root, radius, height)
 		"dune_field": _build_dunes(root, radius, height)
+		"sharp_cliffs": _build_sharp_cliffs(root, radius, height)
+		"coastal_bluff": _build_coastal_bluff(root, radius, height)
+		"limestone_arch": _build_limestone_arch(root, radius, height)
+		"mangrove_lagoon": _build_mangrove_lagoon(root, radius)
+		"rock_garden": _build_rock_garden(root, radius, height)
 		_: _build_coastal_hills(root, radius, height)
 
 
@@ -162,6 +175,101 @@ func _build_mountain(root: Node3D, radius: float, height: float) -> void:
 	], _materials.rock, 47)
 	_add_rocks(root, radius, 9)
 	_add_palms(root, radius, 2)
+
+
+func _build_sharp_cliffs(root: Node3D, radius: float, height: float) -> void:
+	_add_multi_peak_landform(root, Vector2(radius * 0.98, radius * 0.72), [
+		{"centre": Vector2(-0.38, -0.04), "spread": Vector2(0.13, 0.20), "height": height},
+		{"centre": Vector2(-0.05, 0.13), "spread": Vector2(0.12, 0.18), "height": height * 0.82},
+		{"centre": Vector2(0.34, -0.12), "spread": Vector2(0.14, 0.21), "height": height * 0.92},
+		{"centre": Vector2.ZERO, "spread": Vector2(0.72, 0.55), "height": height * 0.10},
+	], _materials.limestone, 71)
+	for index in range(7):
+		var angle := -1.05 + float(index) * 0.34
+		_add_rock(root, Vector3(cos(angle) * radius * 0.72, 0.4, sin(angle) * radius * 0.58), 2.8 + float(index % 3), index)
+	_add_palms(root, radius, 2)
+
+
+func _build_coastal_bluff(root: Node3D, radius: float, height: float) -> void:
+	_add_terraced_landform(root, Vector2(radius, radius * 0.76), height, _materials.rock_warm)
+	_add_rocks(root, radius, 10)
+	_add_shrubs_ring(root, radius * 0.64, 11)
+	_add_palms(root, radius, 4)
+
+
+func _build_limestone_arch(root: Node3D, radius: float, height: float) -> void:
+	_add_multi_peak_landform(root, Vector2(radius * 0.98, radius * 0.70), [
+		{"centre": Vector2(-0.48, 0.05), "spread": Vector2(0.18, 0.30), "height": height * 0.60},
+		{"centre": Vector2(0.48, 0.05), "spread": Vector2(0.18, 0.30), "height": height * 0.60},
+	], _materials.limestone, 83)
+	for index in range(11):
+		var fraction := float(index) / 10.0
+		var angle := fraction * PI
+		var arch_position := Vector3(cos(angle) * radius * 0.34, sin(angle) * height * 0.72 + height * 0.08, 0)
+		_add_arch_rock(root, arch_position, radius * 0.085, index)
+	_add_rocks(root, radius, 6)
+	_add_palms(root, radius, 3)
+
+
+func _build_mangrove_lagoon(root: Node3D, radius: float) -> void:
+	var pond := MeshInstance3D.new()
+	pond.name = "MangroveLagoonWater"
+	var water := CylinderMesh.new()
+	water.top_radius = radius * 0.72
+	water.bottom_radius = radius * 0.74
+	water.height = 0.10
+	water.radial_segments = 48
+	water.material = _materials.water
+	pond.mesh = water
+	pond.scale = Vector3(1.0, 1.0, 0.58)
+	pond.position.y = 0.10
+	pond.visibility_range_end = 3000.0
+	root.add_child(pond)
+	for index in range(14):
+		var angle := TAU * float(index) / 14.0 + 0.15
+		var distance := radius * (0.72 + float(index % 2) * 0.10)
+		_add_mangrove(root, Vector3(cos(angle) * distance, 0, sin(angle) * distance * 0.62), index)
+	_add_rocks(root, radius, 7)
+
+
+func _build_rock_garden(root: Node3D, radius: float, height: float) -> void:
+	_add_multi_peak_landform(root, Vector2(radius * 0.94, radius * 0.72), [
+		{"centre": Vector2.ZERO, "spread": Vector2(0.68, 0.58), "height": height * 0.18},
+		{"centre": Vector2(-0.30, -0.10), "spread": Vector2(0.15, 0.18), "height": height * 0.46},
+		{"centre": Vector2(0.34, 0.16), "spread": Vector2(0.14, 0.17), "height": height * 0.36},
+	], _materials.sand_shadow, 97)
+	for index in range(15):
+		var angle := TAU * float(index) / 15.0 + 0.24
+		var distance := radius * (0.26 + float(index % 4) * 0.16)
+		_add_rock(root, Vector3(cos(angle) * distance, 0.35, sin(angle) * distance * 0.76), 2.0 + float(index % 5) * 0.65, index)
+	_add_shrubs_ring(root, radius * 0.74, 9)
+	_add_palms(root, radius, 3)
+
+
+func _add_terraced_landform(root: Node3D, radii: Vector2, height: float, material: Material) -> void:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var segments := 48
+	var fractions := [0.0, 0.30, 0.58, 0.61, 0.84, 0.88, 1.0]
+	var heights := [1.0, 0.96, 0.82, 0.55, 0.48, 0.16, 0.0]
+	var vertices: Array[Vector3] = []
+	for ring in range(fractions.size()):
+		for segment in range(segments):
+			var angle := TAU * float(segment) / float(segments)
+			var wobble := 1.0 + sin(angle * 3.0) * 0.05 + cos(angle * 7.0) * 0.025
+			vertices.append(Vector3(cos(angle) * radii.x * float(fractions[ring]) * wobble, height * float(heights[ring]), sin(angle) * radii.y * float(fractions[ring]) * wobble))
+	for ring in range(fractions.size() - 1):
+		for segment in range(segments):
+			var next := (segment + 1) % segments
+			for vertex in [vertices[ring * segments + segment], vertices[(ring + 1) * segments + segment], vertices[(ring + 1) * segments + next], vertices[ring * segments + segment], vertices[(ring + 1) * segments + next], vertices[ring * segments + next]]:
+				surface.add_vertex(vertex)
+	surface.generate_normals()
+	surface.set_material(material)
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.name = "TerracedBluff"
+	mesh_instance.mesh = surface.commit()
+	mesh_instance.visibility_range_end = 3200.0
+	root.add_child(mesh_instance)
 
 
 func _add_multi_peak_landform(root: Node3D, radii: Vector2, peaks: Array[Dictionary], material: Material, seed: int) -> void:
@@ -293,6 +401,54 @@ func _add_rock(root: Node3D, position: Vector3, size: float, variant: int) -> vo
 	root.add_child(mesh_instance)
 
 
+func _add_arch_rock(root: Node3D, position: Vector3, size: float, variant: int) -> void:
+	var rock := MeshInstance3D.new()
+	rock.name = "LimestoneArchRock"
+	var mesh := SphereMesh.new()
+	mesh.radius = 1.0
+	mesh.height = 2.0
+	mesh.radial_segments = 10
+	mesh.rings = 5
+	mesh.material = _materials.limestone
+	rock.mesh = mesh
+	rock.position = position
+	rock.scale = Vector3(size * 1.35, size, size * 1.15)
+	rock.rotation = Vector3(float(variant % 2) * 0.08, float(variant) * 0.37, float(variant - 5) * 0.025)
+	rock.visibility_range_end = 2800.0
+	root.add_child(rock)
+
+
+func _add_mangrove(root: Node3D, position: Vector3, variant: int) -> void:
+	var trunk_height := 4.0 + float(variant % 4) * 0.65
+	for stem_index in range(3):
+		var stem := MeshInstance3D.new()
+		stem.name = "MangroveStem"
+		var mesh := CylinderMesh.new()
+		mesh.top_radius = 0.14
+		mesh.bottom_radius = 0.24
+		mesh.height = trunk_height
+		mesh.radial_segments = 7
+		mesh.material = _materials.trunk
+		stem.mesh = mesh
+		stem.position = position + Vector3(float(stem_index - 1) * 0.42, trunk_height * 0.5, float((stem_index + variant) % 2) * 0.36)
+		stem.rotation.z = float(stem_index - 1) * 0.10
+		stem.visibility_range_end = 2400.0
+		root.add_child(stem)
+	var crown := MeshInstance3D.new()
+	crown.name = "MangroveCrown"
+	var crown_mesh := SphereMesh.new()
+	crown_mesh.radius = 1.0
+	crown_mesh.height = 1.8
+	crown_mesh.radial_segments = 10
+	crown_mesh.rings = 5
+	crown_mesh.material = _materials.leaves_dark if variant % 2 else _materials.leaves
+	crown.mesh = crown_mesh
+	crown.position = position + Vector3(0, trunk_height + 0.4, 0)
+	crown.scale = Vector3(2.8, 1.35, 2.25)
+	crown.visibility_range_end = 2400.0
+	root.add_child(crown)
+
+
 func _add_palms(root: Node3D, radius: float, count: int) -> void:
 	for index in range(count):
 		var angle := TAU * float(index) / float(count) + 0.83
@@ -337,12 +493,19 @@ func _add_shrub(root: Node3D, position: Vector3, variant: int) -> void:
 	root.add_child(shrub)
 
 
+func _add_shrubs_ring(root: Node3D, radius: float, count: int) -> void:
+	for index in range(count):
+		var angle := TAU * float(index) / float(count) + 0.31
+		_add_shrub(root, Vector3(cos(angle) * radius, 0, sin(angle) * radius * 0.76), index)
+
+
 func _build_materials() -> void:
 	_materials = {
 		"sand_light": _material(Color("efb884"), 0.95),
 		"sand_shadow": _material(Color("c77d68"), 0.92),
 		"rock": _material(Color("6c5473"), 0.9),
 		"rock_warm": _material(Color("9a5f68"), 0.88),
+		"limestone": _material(Color("d8b58d"), 0.93),
 		"trunk": _material(Color("6f3d48"), 0.92),
 		"leaves": _material(Color("20a779"), 0.84),
 		"leaves_dark": _material(Color("116553"), 0.9),
