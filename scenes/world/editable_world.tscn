@@ -6043,62 +6043,6 @@ size = Vector3(20, 3, 4)
 material = SubResource("StandardMaterial3D_vqt80")
 size = Vector3(5, 0.16, 14)
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_lyprf"]
-material = SubResource("StandardMaterial3D_xn3dr")
-top_radius = 8.5
-bottom_radius = 8.5
-height = 0.45
-radial_segments = 18
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_xp6bm"]
-material = SubResource("StandardMaterial3D_wiuhp")
-top_radius = 4.5
-bottom_radius = 4.5
-height = 1.0
-radial_segments = 16
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_s5ndg"]
-material = SubResource("StandardMaterial3D_tluu3")
-top_radius = 0.45
-bottom_radius = 1.5
-height = 14.0
-radial_segments = 10
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_jpa7o"]
-material = SubResource("StandardMaterial3D_hi4r8")
-top_radius = 0.6
-bottom_radius = 2.6
-height = 0.8
-radial_segments = 12
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_pix2v"]
-material = SubResource("StandardMaterial3D_agplc")
-top_radius = 0.62
-bottom_radius = 0.9
-height = 1.35
-radial_segments = 8
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_jdmop"]
-material = SubResource("StandardMaterial3D_agplc")
-top_radius = 0.62
-bottom_radius = 0.9
-height = 1.35
-radial_segments = 8
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_mmo0h"]
-material = SubResource("StandardMaterial3D_7nbt5")
-top_radius = 0.62
-bottom_radius = 0.9
-height = 1.35
-radial_segments = 8
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_hncpl"]
-material = SubResource("StandardMaterial3D_7nbt5")
-top_radius = 0.62
-bottom_radius = 0.9
-height = 1.35
-radial_segments = 8
-
 [sub_resource type="BoxMesh" id="BoxMesh_cobyt"]
 material = SubResource("StandardMaterial3D_wiuhp")
 size = Vector3(5.2211795, 7.1, 0.35)
@@ -6978,46 +6922,6 @@ size = Vector3(2.2, 0.18, 0.18)
 material = SubResource("StandardMaterial3D_hi4r8")
 size = Vector3(0.6, 0.35, 0.45)
 
-[sub_resource type="BoxMesh" id="BoxMesh_ety54"]
-material = SubResource("StandardMaterial3D_vqt80")
-size = Vector3(30, 0.2, 24)
-
-[sub_resource type="BoxMesh" id="BoxMesh_8x58p"]
-material = SubResource("StandardMaterial3D_wiuhp")
-size = Vector3(24, 12, 0.8)
-
-[sub_resource type="BoxMesh" id="BoxMesh_vuqtf"]
-material = SubResource("StandardMaterial3D_tluu3")
-size = Vector3(21.5, 9.5, 0.25)
-
-[sub_resource type="BoxMesh" id="BoxMesh_ylkjk"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.4, 4, 0.4)
-
-[sub_resource type="BoxMesh" id="BoxMesh_pby3q"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.4, 4, 0.4)
-
-[sub_resource type="BoxMesh" id="BoxMesh_jculh"]
-material = SubResource("StandardMaterial3D_st765")
-size = Vector3(0.4, 4, 0.4)
-
-[sub_resource type="BoxMesh" id="BoxMesh_wgxv0"]
-material = SubResource("StandardMaterial3D_4caq3")
-size = Vector3(3.4, 1, 2)
-
-[sub_resource type="BoxMesh" id="BoxMesh_ln35x"]
-material = SubResource("StandardMaterial3D_4caq3")
-size = Vector3(3.4, 1, 2)
-
-[sub_resource type="BoxMesh" id="BoxMesh_sjnop"]
-material = SubResource("StandardMaterial3D_4caq3")
-size = Vector3(3.4, 1, 2)
-
-[sub_resource type="BoxMesh" id="BoxMesh_agoka"]
-material = SubResource("StandardMaterial3D_4caq3")
-size = Vector3(3.4, 1, 2)
-
 [sub_resource type="CylinderMesh" id="CylinderMesh_li35w"]
 material = SubResource("StandardMaterial3D_wng8f")
 top_radius = 11.0
@@ -7067,37 +6971,6 @@ bottom_radius = 2.2
 height = 0.8
 radial_segments = 14
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_6iho2"]
-material = SubResource("StandardMaterial3D_1aiff")
-top_radius = 0.1296
-bottom_radius = 0.2304
-height = 5.04
-radial_segments = 10
-
-[sub_resource type="BoxMesh" id="BoxMesh_em62n"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.324, 0.10080001, 3.4560003)
-
-[sub_resource type="BoxMesh" id="BoxMesh_q4uad"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.324, 0.10080001, 3.4560003)
-
-[sub_resource type="BoxMesh" id="BoxMesh_l53pn"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.324, 0.10080001, 3.4560003)
-
-[sub_resource type="BoxMesh" id="BoxMesh_6i7w3"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.324, 0.10080001, 3.4560003)
-
-[sub_resource type="BoxMesh" id="BoxMesh_ochpr"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.324, 0.10080001, 3.4560003)
-
-[sub_resource type="BoxMesh" id="BoxMesh_bu1ij"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.324, 0.10080001, 3.4560003)
-
 [sub_resource type="CylinderMesh" id="CylinderMesh_xsex3"]
 material = SubResource("StandardMaterial3D_1aiff")
 top_radius = 0.1296
@@ -7141,37 +7014,6 @@ size = Vector3(2.2, 0.18, 0.18)
 material = SubResource("StandardMaterial3D_hi4r8")
 size = Vector3(0.6, 0.35, 0.45)
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_6gfr8"]
-material = SubResource("StandardMaterial3D_1aiff")
-top_radius = 0.1494
-bottom_radius = 0.2656
-height = 5.81
-radial_segments = 10
-
-[sub_resource type="BoxMesh" id="BoxMesh_8yivt"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.3735, 0.1162, 3.984)
-
-[sub_resource type="BoxMesh" id="BoxMesh_diqt1"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.3735, 0.1162, 3.984)
-
-[sub_resource type="BoxMesh" id="BoxMesh_06q56"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.3735, 0.1162, 3.984)
-
-[sub_resource type="BoxMesh" id="BoxMesh_eqe8y"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.3735, 0.1162, 3.984)
-
-[sub_resource type="BoxMesh" id="BoxMesh_ffod0"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.3735, 0.1162, 3.984)
-
-[sub_resource type="BoxMesh" id="BoxMesh_xhloa"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.3735, 0.1162, 3.984)
-
 [sub_resource type="CylinderMesh" id="CylinderMesh_ssrrc"]
 material = SubResource("StandardMaterial3D_1aiff")
 top_radius = 0.1494
@@ -7202,37 +7044,6 @@ size = Vector3(0.3735, 0.1162, 3.984)
 [sub_resource type="BoxMesh" id="BoxMesh_f72jo"]
 material = SubResource("StandardMaterial3D_7nbt5")
 size = Vector3(0.3735, 0.1162, 3.984)
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_eih7m"]
-material = SubResource("StandardMaterial3D_1aiff")
-top_radius = 0.1692
-bottom_radius = 0.3008
-height = 6.58
-radial_segments = 10
-
-[sub_resource type="BoxMesh" id="BoxMesh_12ugl"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.42299998, 0.1316, 4.512)
-
-[sub_resource type="BoxMesh" id="BoxMesh_hcgh8"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.42299998, 0.1316, 4.512)
-
-[sub_resource type="BoxMesh" id="BoxMesh_5kow4"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.42299998, 0.1316, 4.512)
-
-[sub_resource type="BoxMesh" id="BoxMesh_yof0n"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.42299998, 0.1316, 4.512)
-
-[sub_resource type="BoxMesh" id="BoxMesh_r7pj8"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.42299998, 0.1316, 4.512)
-
-[sub_resource type="BoxMesh" id="BoxMesh_fduu6"]
-material = SubResource("StandardMaterial3D_7nbt5")
-size = Vector3(0.42299998, 0.1316, 4.512)
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_1x2dp"]
 material = SubResource("StandardMaterial3D_1aiff")
@@ -23553,108 +23364,6 @@ visibility_range_end = 1450.0
 visibility_range_fade_mode = 1
 mesh = SubResource("CylinderMesh_m36ex")
 
-[node name="LoopOne_BeachMotel" type="Node3D" parent="LoopOne" unique_id=1985775716 groups=["building_scenery", "district_landmark", "editable_scenery", "grounded_scenery", "loop_landmark", "unique_landmark"]]
-transform = Transform3D(-0.73461705, 0, 0.67848194, 0, 1, 0, -0.67848194, 0, -0.73461705, -731.5096, 1.381828, -282.97296)
-metadata/ground_y = 1.381828
-metadata/course_offset = 1134.4
-metadata/scenery_radius = 17.0
-metadata/unique_landmark_id = "loop_one_beach_motel_annex"
-metadata/bake_id = "LoopOne/LoopOne_BeachMotelAnnex/000"
-metadata/_edit_group_ = true
-
-[node name="@MeshInstance3D@318" type="MeshInstance3D" parent="LoopOne/LoopOne_BeachMotel" unique_id=825853139]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
-visibility_range_end = 2610.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_p082q")
-
-[node name="@MeshInstance3D@319" type="MeshInstance3D" parent="LoopOne/LoopOne_BeachMotel" unique_id=1079809051]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.5, 0)
-visibility_range_end = 2610.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_rpxtr")
-
-[node name="@MeshInstance3D@320" type="MeshInstance3D" parent="LoopOne/LoopOne_BeachMotel" unique_id=1561110649]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3, -8.1)
-cast_shadow = 0
-visibility_range_end = 2610.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_2f00o")
-
-[node name="@MeshInstance3D@321" type="MeshInstance3D" parent="LoopOne/LoopOne_BeachMotel" unique_id=1372825181]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 4.9, -7.58)
-visibility_range_end = 2610.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_ltl8h")
-
-[node name="@MeshInstance3D@322" type="MeshInstance3D" parent="LoopOne/LoopOne_BeachMotel" unique_id=1638166829]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 4.9, -7.58)
-visibility_range_end = 2610.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_uh7bq")
-
-[node name="@MeshInstance3D@323" type="MeshInstance3D" parent="LoopOne/LoopOne_BeachMotel" unique_id=267062193]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.9, -7.58)
-visibility_range_end = 2610.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_uply2")
-
-[node name="@MeshInstance3D@324" type="MeshInstance3D" parent="LoopOne/LoopOne_BeachMotel" unique_id=361253073]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 4.9, -7.58)
-visibility_range_end = 2610.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_gap0k")
-
-[node name="@MeshInstance3D@325" type="MeshInstance3D" parent="LoopOne/LoopOne_BeachMotel" unique_id=561652734]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 4.9, -7.58)
-visibility_range_end = 2610.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_riqwo")
-
-[node name="@MeshInstance3D@326" type="MeshInstance3D" parent="LoopOne/LoopOne_BeachMotel" unique_id=516200258]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.4, -8.1)
-cast_shadow = 0
-visibility_range_end = 2610.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_6tx51")
-
-[node name="@MeshInstance3D@327" type="MeshInstance3D" parent="LoopOne/LoopOne_BeachMotel" unique_id=1407085159]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 10, -7.58)
-visibility_range_end = 2610.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_tnw8b")
-
-[node name="@MeshInstance3D@328" type="MeshInstance3D" parent="LoopOne/LoopOne_BeachMotel" unique_id=530204999]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 10, -7.58)
-visibility_range_end = 2610.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_1lgei")
-
-[node name="@MeshInstance3D@329" type="MeshInstance3D" parent="LoopOne/LoopOne_BeachMotel" unique_id=586879120]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, -7.58)
-visibility_range_end = 2610.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_5wm8h")
-
-[node name="@MeshInstance3D@330" type="MeshInstance3D" parent="LoopOne/LoopOne_BeachMotel" unique_id=1880101274]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 10, -7.58)
-visibility_range_end = 2610.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_0swb0")
-
-[node name="@MeshInstance3D@331" type="MeshInstance3D" parent="LoopOne/LoopOne_BeachMotel" unique_id=1403360749]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 10, -7.58)
-visibility_range_end = 2610.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_ddq2a")
-
-[node name="@MeshInstance3D@332" type="MeshInstance3D" parent="LoopOne/LoopOne_BeachMotel" unique_id=203393830]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, -14)
-cast_shadow = 0
-visibility_range_end = 2465.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_6y8ky")
-
 [node name="LoopOne_BeachMotel3" type="Node3D" parent="LoopOne" unique_id=351888465 groups=["building_scenery", "district_landmark", "editable_scenery", "grounded_scenery", "loop_landmark", "unique_landmark"]]
 transform = Transform3D(0.73461705, 0, -0.67848194, 0, 1, 0, 0.67848194, 0, 0.73461705, -828.5328, 0.737393, -199.547)
 metadata/ground_y = 0.737393
@@ -31167,7 +30876,7 @@ mesh = SubResource("BoxMesh_7fjdj")
 [node name="CityCentre" type="Node3D" parent="." unique_id=768350550 groups=["editable_district"]]
 
 [node name="CityCentre_Plaza" type="Node3D" parent="CityCentre" unique_id=324721883 groups=["city_centre_scenery", "editable_scenery", "grounded_scenery"]]
-transform = Transform3D(-0.9088186, 0, 0.4171915, 0, 1, 0, -0.4171915, 0, -0.9088186, 280.70584, 1.3853067, 415.63733)
+transform = Transform3D(-0.9088186, 0, 0.4171915, 0, 1, 0, -0.4171915, 0, -0.9088186, 287.19595, 1.5151228, 416.1177)
 metadata/ground_y = 1.3853067
 metadata/course_offset = 5923.471923828125
 metadata/scenery_radius = 14.035147
@@ -31285,63 +30994,6 @@ cast_shadow = 0
 visibility_range_end = 2610.0
 visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_gtvpw")
-
-[node name="CityCentre_Monument" type="Node3D" parent="CityCentre" unique_id=979475640 groups=["city_centre_scenery", "district_landmark", "editable_scenery", "grounded_scenery", "unique_landmark"]]
-transform = Transform3D(0.863578, 0, -0.50421524, 0, 1, 0, 0.50421524, 0, 0.863578, 73.18714, 1.3543179, 382.85858)
-metadata/ground_y = 1.3543179
-metadata/course_offset = 6122.38994140625
-metadata/scenery_radius = 10.0
-metadata/unique_landmark_id = "city_centre_monument"
-metadata/bake_id = "CityCentre/CityCentre_Monument/000"
-metadata/_edit_group_ = true
-
-[node name="@MeshInstance3D@253" type="MeshInstance3D" parent="CityCentre/CityCentre_Monument" unique_id=1355077676]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.23, 0)
-visibility_range_end = 2175.0
-visibility_range_fade_mode = 1
-mesh = SubResource("CylinderMesh_lyprf")
-
-[node name="@MeshInstance3D@254" type="MeshInstance3D" parent="CityCentre/CityCentre_Monument" unique_id=2078597259]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
-visibility_range_end = 2175.0
-visibility_range_fade_mode = 1
-mesh = SubResource("CylinderMesh_xp6bm")
-
-[node name="@MeshInstance3D@255" type="MeshInstance3D" parent="CityCentre/CityCentre_Monument" unique_id=1861286213]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.8, 0)
-visibility_range_end = 2465.0
-visibility_range_fade_mode = 1
-mesh = SubResource("CylinderMesh_s5ndg")
-
-[node name="@MeshInstance3D@256" type="MeshInstance3D" parent="CityCentre/CityCentre_Monument" unique_id=1607179820]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15.2, 0)
-visibility_range_end = 2465.0
-visibility_range_fade_mode = 1
-mesh = SubResource("CylinderMesh_jpa7o")
-
-[node name="@MeshInstance3D@257" type="MeshInstance3D" parent="CityCentre/CityCentre_Monument" unique_id=919255871 groups=["plant_scenery"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.2, 0.68, 0)
-visibility_range_end = 1450.0
-visibility_range_fade_mode = 1
-mesh = SubResource("CylinderMesh_pix2v")
-
-[node name="@MeshInstance3D@258" type="MeshInstance3D" parent="CityCentre/CityCentre_Monument" unique_id=2113573654 groups=["plant_scenery"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.7962796e-16, 0.68, 6.2)
-visibility_range_end = 1450.0
-visibility_range_fade_mode = 1
-mesh = SubResource("CylinderMesh_jdmop")
-
-[node name="@MeshInstance3D@259" type="MeshInstance3D" parent="CityCentre/CityCentre_Monument" unique_id=368706043 groups=["plant_scenery"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.2, 0.68, 7.5925593e-16)
-visibility_range_end = 1450.0
-visibility_range_fade_mode = 1
-mesh = SubResource("CylinderMesh_mmo0h")
-
-[node name="@MeshInstance3D@260" type="MeshInstance3D" parent="CityCentre/CityCentre_Monument" unique_id=1003147966 groups=["plant_scenery"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1388839e-15, 0.68, -6.2)
-visibility_range_end = 1450.0
-visibility_range_fade_mode = 1
-mesh = SubResource("CylinderMesh_hncpl")
 
 [node name="CityEngineerPortrait" type="Node3D" parent="CityCentre" unique_id=232783864 groups=["editable_scenery", "grounded_scenery", "portrait_scenery", "poster_scenery"]]
 transform = Transform3D(0.9031727, 0, -0.42927742, 0, 1, 0, 0.42927742, 0, 0.9031727, 379.44348, 1.311938, 517.3874)
@@ -32924,78 +32576,8 @@ mesh = SubResource("BoxMesh_t48ad")
 
 [node name="LoopThree" type="Node3D" parent="." unique_id=2040534021 groups=["editable_district"]]
 
-[node name="LoopThree_DriveIn" type="Node3D" parent="LoopThree" unique_id=1678510250 groups=["building_scenery", "district_landmark", "editable_scenery", "grounded_scenery", "loop_landmark", "unique_landmark"]]
-transform = Transform3D(-0.77229065, 0, -0.63526934, 0, 1, 0, 0.63526934, 0, -0.77229065, -187.84161, -0.36011556, 166.97281)
-metadata/ground_y = -0.36011556
-metadata/course_offset = 6408.1
-metadata/scenery_radius = 16.0
-metadata/unique_landmark_id = "loop_three_drive_in"
-metadata/bake_id = "LoopThree/LoopThree_DriveIn/000"
-metadata/_edit_group_ = true
-
-[node name="@MeshInstance3D@358" type="MeshInstance3D" parent="LoopThree/LoopThree_DriveIn" unique_id=1463038999]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
-cast_shadow = 0
-visibility_range_end = 2175.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_ety54")
-
-[node name="@MeshInstance3D@359" type="MeshInstance3D" parent="LoopThree/LoopThree_DriveIn" unique_id=1555020630]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7, 7.5)
-visibility_range_end = 2610.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_8x58p")
-
-[node name="@MeshInstance3D@360" type="MeshInstance3D" parent="LoopThree/LoopThree_DriveIn" unique_id=643386064]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7, 7.02)
-visibility_range_end = 2610.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_vuqtf")
-
-[node name="@MeshInstance3D@361" type="MeshInstance3D" parent="LoopThree/LoopThree_DriveIn" unique_id=1925717027]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 2, 8)
-visibility_range_end = 2465.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_ylkjk")
-
-[node name="@MeshInstance3D@362" type="MeshInstance3D" parent="LoopThree/LoopThree_DriveIn" unique_id=704513157]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 8)
-visibility_range_end = 2465.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_pby3q")
-
-[node name="@MeshInstance3D@363" type="MeshInstance3D" parent="LoopThree/LoopThree_DriveIn" unique_id=1358890620]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2, 8)
-visibility_range_end = 2465.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_jculh")
-
-[node name="@MeshInstance3D@364" type="MeshInstance3D" parent="LoopThree/LoopThree_DriveIn" unique_id=1933356939]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0.65, -5)
-visibility_range_end = 1885.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_wgxv0")
-
-[node name="@MeshInstance3D@365" type="MeshInstance3D" parent="LoopThree/LoopThree_DriveIn" unique_id=592719513]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.65, -5)
-visibility_range_end = 1885.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_ln35x")
-
-[node name="@MeshInstance3D@366" type="MeshInstance3D" parent="LoopThree/LoopThree_DriveIn" unique_id=2061105178]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.65, -5)
-visibility_range_end = 1885.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_sjnop")
-
-[node name="@MeshInstance3D@367" type="MeshInstance3D" parent="LoopThree/LoopThree_DriveIn" unique_id=1040263669]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0.65, -5)
-visibility_range_end = 1885.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_agoka")
-
 [node name="LoopThree_SunsetPavilion" type="Node3D" parent="LoopThree" unique_id=808349366 groups=["building_scenery", "district_landmark", "editable_scenery", "grounded_scenery", "loop_landmark", "unique_landmark"]]
-transform = Transform3D(0.62543255, 0, -0.7802782, 0, 1, 0, 0.7802782, 0, 0.62543255, -19.451332, 1.3301717, 306.20108)
+transform = Transform3D(0.62543255, 0, -0.7802782, 0, 1, 0, 0.7802782, 0, 0.62543255, -101.218094, 1.5623665, 237.08682)
 metadata/ground_y = 1.3301717
 metadata/course_offset = 6871.5
 metadata/scenery_radius = 15.0
@@ -33044,62 +32626,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 visibility_range_end = 2175.0
 visibility_range_fade_mode = 1
 mesh = SubResource("CylinderMesh_hs53i")
-
-[node name="Palm" type="Node3D" parent="LoopThree" unique_id=1695344192 groups=["editable_scenery", "grounded_scenery", "palm_scenery"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -77.34167, 1.4078593, 262.32224)
-metadata/ground_y = 1.4078593
-metadata/course_offset = 6310.0
-metadata/scenery_radius = 3.0
-metadata/bake_id = "LoopThree/Palm/000"
-metadata/_edit_group_ = true
-
-[node name="@MeshInstance3D@3754" type="MeshInstance3D" parent="LoopThree/Palm" unique_id=129859832]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.52, 0)
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("CylinderMesh_6iho2")
-
-[node name="@MeshInstance3D@3755" type="MeshInstance3D" parent="LoopThree/Palm" unique_id=1495318722]
-transform = Transform3D(1, 0, 0, 0, 0.98722726, -0.15931821, 0, 0.15931821, 0.98722726, 1.08, 4.878, 0)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_em62n")
-
-[node name="@MeshInstance3D@3756" type="MeshInstance3D" parent="LoopThree/Palm" unique_id=940802436]
-transform = Transform3D(0.49999997, -0.13797362, -0.85496396, 0, 0.98722726, -0.15931821, 0.86602545, 0.0796591, 0.4936136, 0.54, 4.878, 0.93530744)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_q4uad")
-
-[node name="@MeshInstance3D@3757" type="MeshInstance3D" parent="LoopThree/Palm" unique_id=1286016491]
-transform = Transform3D(-0.50000006, -0.1379736, -0.8549639, 0, 0.98722726, -0.15931821, 0.8660254, -0.07965911, -0.4936137, -0.54, 4.878, 0.93530744)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_l53pn")
-
-[node name="@MeshInstance3D@3758" type="MeshInstance3D" parent="LoopThree/Palm" unique_id=456722518]
-transform = Transform3D(-1, 1.392804e-08, 8.630615e-08, 0, 0.98722726, -0.15931821, -8.742278e-08, -0.15931821, -0.98722726, -1.08, 4.878, 1.322575e-16)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_6i7w3")
-
-[node name="@MeshInstance3D@3759" type="MeshInstance3D" parent="LoopThree/Palm" unique_id=660114536]
-transform = Transform3D(-0.4999999, 0.13797362, 0.85496396, 0, 0.98722726, -0.15931821, -0.86602545, -0.07965909, -0.49361354, -0.54, 4.878, -0.93530744)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_ochpr")
-
-[node name="@MeshInstance3D@3760" type="MeshInstance3D" parent="LoopThree/Palm" unique_id=781556303]
-transform = Transform3D(0.4999999, 0.13797362, 0.85496396, 0, 0.98722726, -0.15931821, -0.86602545, 0.07965909, 0.49361354, 0.54, 4.878, -0.93530744)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_bu1ij")
 
 [node name="Palm2" type="Node3D" parent="LoopThree" unique_id=804653211 groups=["editable_scenery", "grounded_scenery", "palm_scenery"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34.436813, 1.2904955, 209.56645)
@@ -33186,62 +32712,6 @@ visibility_range_end = 1200.0
 visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_5nx51")
 
-[node name="Palm3" type="Node3D" parent="LoopThree" unique_id=1269964517 groups=["editable_scenery", "grounded_scenery", "palm_scenery"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -168.39774, 1.312866, 307.24484)
-metadata/ground_y = 1.312866
-metadata/course_offset = 6505.0
-metadata/scenery_radius = 3.0
-metadata/bake_id = "LoopThree/Palm3/000"
-metadata/_edit_group_ = true
-
-[node name="@MeshInstance3D@3774" type="MeshInstance3D" parent="LoopThree/Palm3" unique_id=347712315]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.905, 0)
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("CylinderMesh_6gfr8")
-
-[node name="@MeshInstance3D@3775" type="MeshInstance3D" parent="LoopThree/Palm3" unique_id=439683775]
-transform = Transform3D(1, 0, 0, 0, 0.98722726, -0.15931821, 0, 0.15931821, 0.98722726, 1.245, 5.62325, 0)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_8yivt")
-
-[node name="@MeshInstance3D@3776" type="MeshInstance3D" parent="LoopThree/Palm3" unique_id=2061163206]
-transform = Transform3D(0.49999997, -0.13797362, -0.85496396, 0, 0.98722726, -0.15931821, 0.86602545, 0.0796591, 0.4936136, 0.6225, 5.62325, 1.0782015)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_diqt1")
-
-[node name="@MeshInstance3D@3777" type="MeshInstance3D" parent="LoopThree/Palm3" unique_id=1886890522]
-transform = Transform3D(-0.50000006, -0.1379736, -0.8549639, 0, 0.98722726, -0.15931821, 0.8660254, -0.07965911, -0.4936137, -0.6225, 5.62325, 1.0782015)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_06q56")
-
-[node name="@MeshInstance3D@3778" type="MeshInstance3D" parent="LoopThree/Palm3" unique_id=1492720818]
-transform = Transform3D(-1, 1.392804e-08, 8.630615e-08, 0, 0.98722726, -0.15931821, -8.742278e-08, -0.15931821, -0.98722726, -1.245, 5.62325, 1.5246348e-16)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_eqe8y")
-
-[node name="@MeshInstance3D@3779" type="MeshInstance3D" parent="LoopThree/Palm3" unique_id=964077036]
-transform = Transform3D(-0.4999999, 0.13797362, 0.85496396, 0, 0.98722726, -0.15931821, -0.86602545, -0.07965909, -0.49361354, -0.6225, 5.62325, -1.0782015)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_ffod0")
-
-[node name="@MeshInstance3D@3780" type="MeshInstance3D" parent="LoopThree/Palm3" unique_id=1906461500]
-transform = Transform3D(0.4999999, 0.13797362, 0.85496396, 0, 0.98722726, -0.15931821, -0.86602545, 0.07965909, 0.49361354, 0.6225, 5.62325, -1.0782015)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_xhloa")
-
 [node name="Palm4" type="Node3D" parent="LoopThree" unique_id=1498143023 groups=["editable_scenery", "grounded_scenery", "palm_scenery"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -215.79398, 1.3127874, 299.65567)
 metadata/ground_y = 1.3127874
@@ -33297,62 +32767,6 @@ cast_shadow = 0
 visibility_range_end = 1200.0
 visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_f72jo")
-
-[node name="Palm5" type="Node3D" parent="LoopThree" unique_id=1811007658 groups=["editable_scenery", "grounded_scenery", "palm_scenery"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -107.249664, 1.3506501, 340.72406)
-metadata/ground_y = 1.3506501
-metadata/course_offset = 6700.0
-metadata/scenery_radius = 3.0
-metadata/bake_id = "LoopThree/Palm5/000"
-metadata/_edit_group_ = true
-
-[node name="@MeshInstance3D@3790" type="MeshInstance3D" parent="LoopThree/Palm5" unique_id=1723522672]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.29, 0)
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("CylinderMesh_eih7m")
-
-[node name="@MeshInstance3D@3791" type="MeshInstance3D" parent="LoopThree/Palm5" unique_id=1080090798]
-transform = Transform3D(1, 0, 0, 0, 0.98722726, -0.15931821, 0, 0.15931821, 0.98722726, 1.41, 6.3684998, 0)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_12ugl")
-
-[node name="@MeshInstance3D@3792" type="MeshInstance3D" parent="LoopThree/Palm5" unique_id=1279316758]
-transform = Transform3D(0.49999997, -0.13797362, -0.85496396, 0, 0.98722726, -0.15931821, 0.86602545, 0.0796591, 0.4936136, 0.705, 6.3684998, 1.2210958)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_hcgh8")
-
-[node name="@MeshInstance3D@3793" type="MeshInstance3D" parent="LoopThree/Palm5" unique_id=1935842657]
-transform = Transform3D(-0.50000006, -0.1379736, -0.8549639, 0, 0.98722726, -0.15931821, 0.8660254, -0.07965911, -0.4936137, -0.705, 6.3684998, 1.2210958)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_5kow4")
-
-[node name="@MeshInstance3D@3794" type="MeshInstance3D" parent="LoopThree/Palm5" unique_id=815119170]
-transform = Transform3D(-1, 1.392804e-08, 8.630615e-08, 0, 0.98722726, -0.15931821, -8.742278e-08, -0.15931821, -0.98722726, -1.41, 6.3684998, 1.7266949e-16)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_yof0n")
-
-[node name="@MeshInstance3D@3795" type="MeshInstance3D" parent="LoopThree/Palm5" unique_id=861023562]
-transform = Transform3D(-0.4999999, 0.13797362, 0.85496396, 0, 0.98722726, -0.15931821, -0.86602545, -0.07965909, -0.49361354, -0.705, 6.3684998, -1.2210958)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_r7pj8")
-
-[node name="@MeshInstance3D@3796" type="MeshInstance3D" parent="LoopThree/Palm5" unique_id=1417317667]
-transform = Transform3D(0.4999999, 0.13797362, 0.85496396, 0, 0.98722726, -0.15931821, -0.86602545, 0.07965909, 0.49361354, 0.705, 6.3684998, -1.2210958)
-cast_shadow = 0
-visibility_range_end = 1200.0
-visibility_range_fade_mode = 1
-mesh = SubResource("BoxMesh_fduu6")
 
 [node name="Palm6" type="Node3D" parent="LoopThree" unique_id=1017542196 groups=["editable_scenery", "grounded_scenery", "palm_scenery"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -66.13081, 1.2591401, 381.62933)
@@ -49786,7 +49200,7 @@ mesh = SubResource("BoxMesh_n2rj4")
 [node name="Waterfront" type="Node3D" parent="." unique_id=897934310 groups=["editable_district"]]
 
 [node name="LoopOneSailboat" type="Node3D" parent="Waterfront" unique_id=1629270796 groups=["boat_scenery", "editable_scenery", "water_scenery"]]
-transform = Transform3D(0.9648513, 0, -0.2627963, 0, 1, 0, 0.2627963, 0, 0.9648513, -1007.9748, -3.6464205, -344.44623)
+transform = Transform3D(0.9648513, 0, -0.2627963, 0, 1, 0, 0.2627963, 0, 0.9648513, -1007.9748, -0.649271, -344.44623)
 metadata/course_offset = 1178.3
 metadata/scenery_radius = 8.0
 metadata/water_y = -1.12
@@ -50405,29 +49819,44 @@ texture = ExtResource("4_1d6aq")
 [node name="ManualScenery" type="Node3D" parent="." unique_id=381846563 groups=["manual_scenery_root"]]
 script = ExtResource("13_rwujd")
 
-[node name="NaturalLandscapes" type="Node3D" parent="." groups=["natural_landscapes_root"]]
+[node name="NaturalLandscapes" type="Node3D" parent="." unique_id=1147866424 groups=["natural_landscapes_root"]]
 
-[node name="BridgeEastDunes" parent="NaturalLandscapes" instance=ExtResource("31_nat_bridge_e")]
+[node name="BridgeEastDunes" parent="NaturalLandscapes" unique_id=924484231 instance=ExtResource("31_nat_bridge_e")]
 
-[node name="BridgeWestDunes" parent="NaturalLandscapes" instance=ExtResource("32_nat_bridge_w")]
+[node name="BridgeWestDunes" parent="NaturalLandscapes" unique_id=936667361 instance=ExtResource("32_nat_bridge_w")]
 
-[node name="CityCoastalBluff" parent="NaturalLandscapes" instance=ExtResource("33_nat_bluff")]
+[node name="CityCoastalBluff" parent="NaturalLandscapes" unique_id=1267342792 instance=ExtResource("33_nat_bluff")]
+transform = Transform3D(0.9351858, 0, -0.35415775, 0, 1, 0, 0.35415775, 0, 0.9351858, 219.48763, 1.6559767, 551.702)
 
-[node name="EastCoastalRockGarden" parent="NaturalLandscapes" instance=ExtResource("34_nat_rocks")]
+[node name="CityCoastalBluff2" parent="NaturalLandscapes" unique_id=1464839145 instance=ExtResource("33_nat_bluff")]
+transform = Transform3D(1.4929525, 0, -0.5288241, 0, 2.8940508, 0, 0.5653857, 0, 1.3964081, 114.65445, -2.1313462, 489.6719)
 
-[node name="LoopOneOasis" parent="NaturalLandscapes" instance=ExtResource("35_nat_oasis")]
+[node name="EastCoastalRockGarden" parent="NaturalLandscapes" unique_id=2056246418 instance=ExtResource("34_nat_rocks")]
 
-[node name="LoopTwoHighlands" parent="NaturalLandscapes" instance=ExtResource("36_nat_highlands")]
+[node name="LoopOneOasis" parent="NaturalLandscapes" unique_id=1709424541 instance=ExtResource("35_nat_oasis")]
+transform = Transform3D(-0.07655985, 0, -2.5079567, 0, 1.7443116, 0, 2.299697, 0, -0.08349307, -692.782, 1.181211, -274.50684)
 
-[node name="NorthMangroveLagoon" parent="NaturalLandscapes" instance=ExtResource("37_nat_mangrove")]
+[node name="LoopTwoHighlands" parent="NaturalLandscapes" unique_id=2033192811 instance=ExtResource("36_nat_highlands")]
+transform = Transform3D(1.8987627, 0, 0, 0, 1.8205755, 0, 0, 0, 1.5184104, -1013.86554, 0.07525468, 829.03516)
 
-[node name="SouthLimestoneCliffs" parent="NaturalLandscapes" instance=ExtResource("38_nat_cliffs")]
+[node name="NorthMangroveLagoon" parent="NaturalLandscapes" unique_id=717061663 instance=ExtResource("37_nat_mangrove")]
 
-[node name="SouthNaturalArch" parent="NaturalLandscapes" instance=ExtResource("39_nat_arch")]
+[node name="SouthLimestoneCliffs" parent="NaturalLandscapes" unique_id=1238375119 instance=ExtResource("38_nat_cliffs")]
 
-[node name="StartInteriorDunes" parent="NaturalLandscapes" instance=ExtResource("40_nat_start_dunes")]
+[node name="SouthNaturalArch" parent="NaturalLandscapes" unique_id=2057168417 instance=ExtResource("39_nat_arch")]
 
-[node name="StartWestHeadland" parent="NaturalLandscapes" instance=ExtResource("41_nat_headland")]
+[node name="StartInteriorDunes" parent="NaturalLandscapes" unique_id=1199679127 instance=ExtResource("40_nat_start_dunes")]
+
+[node name="StartWestHeadland" parent="NaturalLandscapes" unique_id=1827874811 instance=ExtResource("41_nat_headland")]
+
+[node name="SouthNaturalArch2" parent="NaturalLandscapes" unique_id=681885454 instance=ExtResource("39_nat_arch")]
+transform = Transform3D(1.5706203, 0, 0, 0, 1.4867845, 0, 0, 0, 1.7485332, -123.25324, 1.6563072, 298.11484)
+
+[node name="StartInteriorDunes2" parent="NaturalLandscapes" unique_id=1892238015 instance=ExtResource("40_nat_start_dunes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 221.81627, 2.057766, 470.85648)
+
+[node name="StartInteriorDunes3" parent="NaturalLandscapes" unique_id=346240074 instance=ExtResource("40_nat_start_dunes")]
+transform = Transform3D(-0.31769317, 0, -0.94819355, 0, 1, 0, 0.94819355, 0, -0.31769317, 87.27346, 2.057766, 405.05328)
 
 [node name="EditorPlacementGuide" type="Node3D" parent="." unique_id=861885390 groups=["editor_placement_guide"]]
 script = ExtResource("14_6axof")
@@ -50566,13 +49995,13 @@ metadata/scenery_radius = 13.0
 metadata/manual_surface = 1
 
 [node name="Sailboat" parent="." unique_id=589373153 groups=["manual_water_scenery", "water_scenery"] instance=ExtResource("25_rmi3b")]
-transform = Transform3D(0.83905554, 0, -0.5440458, 0, 1, 0, 0.5440458, 0, 0.83905554, -1202.401, -3.2257957, -719.28455)
+transform = Transform3D(0.83905554, 0, -0.5440458, 0, 1, 0, 0.5440458, 0, 0.83905554, -1202.401, -0.4934101, -719.28455)
 metadata/catalog_id = "sailboat"
 metadata/scenery_radius = 8.0
 metadata/manual_surface = 1
 
 [node name="MarinaDocks" parent="." unique_id=1302197810 groups=["manual_water_scenery", "water_scenery"] instance=ExtResource("26_wng8f")]
-transform = Transform3D(0.706418, 0, 0.7077949, 0, 1, 0, -0.7077949, 0, 0.706418, -1125.1599, -2.4379425, -703.7325)
+transform = Transform3D(0.706418, 0, 0.7077949, 0, 1, 0, -0.7077949, 0, 0.706418, -1125.1599, -1.1843104, -703.7325)
 metadata/catalog_id = "marina_docks"
 metadata/scenery_radius = 20.0
 metadata/manual_surface = 1
@@ -51026,3 +50455,18 @@ transform = Transform3D(0.9599451, 0, -0.28018823, 0, 1, 0, 0.28018823, 0, 0.959
 metadata/catalog_id = "palm_wide"
 metadata/scenery_radius = 6.0
 metadata/manual_surface = 0
+
+[node name="EastCoastalRockGarden" parent="." unique_id=2129855956 instance=ExtResource("34_nat_rocks")]
+transform = Transform3D(1.6531043, 0, 0, 0, 1.3900384, 0, 0, 0, 1.4790744, 206.7484, 1.0517349, 350.73575)
+
+[node name="SouthLimestoneCliffs" parent="." unique_id=360131872 instance=ExtResource("38_nat_cliffs")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1157.7422, 1.1775551, 883.28394)
+
+[node name="SouthLimestoneCliffs4" parent="." unique_id=21742608 instance=ExtResource("38_nat_cliffs")]
+transform = Transform3D(0.34968576, 0, -1.6737826, 0, 1.7596493, 0, 1.0057884, 0, 0.5819295, -1133.8729, -1.6161308, 746.8549)
+
+[node name="SouthLimestoneCliffs3" parent="." unique_id=977913640 instance=ExtResource("38_nat_cliffs")]
+transform = Transform3D(-0.008113577, 0, -0.9999671, 0, 1, 0, 0.9999671, 0, -0.008113577, -1192.6781, -12.888889, 863.9142)
+
+[node name="SouthLimestoneCliffs2" parent="." unique_id=1769898561 instance=ExtResource("38_nat_cliffs")]
+transform = Transform3D(0.03330363, 0, 1.2300936, 0, 1.528866, 0, -1.3590549, 0, 0.030143434, -1175.2234, -0.572834, 817.2504)
