@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_mfhgo"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/dcef144c-5e9b-44e2-9521-1a934432861a.jpg" id="2_hptq3"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tqv86"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_dg3uq"]
+material = SubResource("StandardMaterial3D_tqv86")
+size = Vector3(5.3717237, 5.65, 0.24)
+
+[node name="BeachBodybuilderWallPoster" type="Node3D" unique_id=1285201953 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_mfhgo")
+catalog_id = "art_beach_bodybuilder__wall_poster"
+display_name = "Beach Bodybuilder Wall Poster"
+category = "Friend Media"
+surface = 3
+footprint_radius = 5.0
+object_height = 6.0
+poster_texture = ExtResource("2_hptq3")
+
+[node name="@MeshInstance3D@86" type="MeshInstance3D" parent="." unique_id=988810088]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_dg3uq")
+
+[node name="PosterFaceFront" type="Sprite3D" parent="." unique_id=1862558300]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.008976661
+texture = ExtResource("2_hptq3")
+
+[node name="PosterFaceBack" type="Sprite3D" parent="." unique_id=1315844453]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 2.5, 0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.008976661
+texture = ExtResource("2_hptq3")

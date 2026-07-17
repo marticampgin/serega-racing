@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_e0vxv"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/billy.png" id="2_q7vps"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tqv86"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_scqm0"]
+material = SubResource("StandardMaterial3D_tqv86")
+size = Vector3(3.70773, 5.65, 0.24)
+
+[node name="BillyWallPoster" type="Node3D" unique_id=1755486490 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_e0vxv")
+catalog_id = "art_billy__wall_poster"
+display_name = "Billy Wall Poster"
+category = "Friend Media"
+surface = 3
+footprint_radius = 5.0
+object_height = 6.0
+poster_texture = ExtResource("2_q7vps")
+
+[node name="@MeshInstance3D@102" type="MeshInstance3D" parent="." unique_id=23638341]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_scqm0")
+
+[node name="PosterFaceFront" type="Sprite3D" parent="." unique_id=85957117]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.004892368
+texture = ExtResource("2_q7vps")
+
+[node name="PosterFaceBack" type="Sprite3D" parent="." unique_id=1101621262]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 2.5, 0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.004892368
+texture = ExtResource("2_q7vps")

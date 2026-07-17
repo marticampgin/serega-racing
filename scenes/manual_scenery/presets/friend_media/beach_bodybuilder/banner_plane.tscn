@@ -1,0 +1,100 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_6v0ac"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/dcef144c-5e9b-44e2-9521-1a934432861a.jpg" id="2_8ti24"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fcljd"]
+albedo_color = Color(0.96862745, 0.9411765, 0.8666667, 1)
+roughness = 0.78
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_kgtgr"]
+material = SubResource("StandardMaterial3D_fcljd")
+radius = 1.35
+height = 13.0
+radial_segments = 16
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5cinp"]
+albedo_color = Color(1, 0.5019608, 0.4, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_n213e"]
+material = SubResource("StandardMaterial3D_5cinp")
+size = Vector3(4, 0.35, 17)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1qa3x"]
+albedo_color = Color(1, 0.24705882, 0.8117647, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.24705882, 0.8117647, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_os1pd"]
+material = SubResource("StandardMaterial3D_1qa3x")
+size = Vector3(3.2, 0.3, 7)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xt74c"]
+albedo_color = Color(0.07058824, 0.22745098, 0.40784314, 1)
+metallic = 0.35
+roughness = 0.16
+
+[sub_resource type="BoxMesh" id="BoxMesh_400f2"]
+material = SubResource("StandardMaterial3D_xt74c")
+size = Vector3(3, 1.8, 2.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mc4ij"]
+material = SubResource("StandardMaterial3D_1qa3x")
+size = Vector3(13.443447, 10.8, 0.25)
+
+[node name="BeachBodybuilderBannerPlane" type="Node3D" unique_id=1954300682 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_6v0ac")
+catalog_id = "art_beach_bodybuilder__banner_plane"
+display_name = "Beach Bodybuilder Banner Plane"
+category = "Friend Media"
+surface = 2
+footprint_radius = 28.0
+object_height = 13.0
+poster_texture = ExtResource("2_8ti24")
+
+[node name="@MeshInstance3D@92" type="MeshInstance3D" parent="." unique_id=1318792923]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 0, 0, 0)
+visibility_range_end = 2900.0
+mesh = SubResource("CapsuleMesh_kgtgr")
+
+[node name="@MeshInstance3D@93" type="MeshInstance3D" parent="." unique_id=78355521]
+cast_shadow = 0
+visibility_range_end = 2900.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_n213e")
+
+[node name="@MeshInstance3D@94" type="MeshInstance3D" parent="." unique_id=1275488651]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2, 1.1, 0)
+cast_shadow = 0
+visibility_range_end = 2900.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_os1pd")
+
+[node name="@MeshInstance3D@95" type="MeshInstance3D" parent="." unique_id=754665225]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 1.2, 0)
+visibility_range_end = 2900.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_400f2")
+
+[node name="@MeshInstance3D@96" type="MeshInstance3D" parent="." unique_id=1108664000]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, -3, 0)
+cast_shadow = 0
+visibility_range_end = 3000.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_mc4ij")
+
+[node name="PosterFace_Front" type="Sprite3D" parent="." unique_id=1237928314]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, -3, -0.38)
+visibility_range_end = 2800.0
+pixel_size = 0.017953321
+texture = ExtResource("2_8ti24")
+
+[node name="PosterFace_Back" type="Sprite3D" parent="." unique_id=615242062]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -27, -3, 0.38)
+visibility_range_end = 2800.0
+pixel_size = 0.017953321
+texture = ExtResource("2_8ti24")

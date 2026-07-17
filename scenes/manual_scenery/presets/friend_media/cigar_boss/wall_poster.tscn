@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_q5cf7"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/182991a9-abfe-4c84-98e0-69e9a7b9600f.jpg" id="2_7wqv1"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tqv86"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_4uohd"]
+material = SubResource("StandardMaterial3D_tqv86")
+size = Vector3(7.5121975, 5.65, 0.24)
+
+[node name="CigarBossWallPoster" type="Node3D" unique_id=1400881653 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_q5cf7")
+catalog_id = "art_cigar_boss__wall_poster"
+display_name = "Cigar Boss Wall Poster"
+category = "Friend Media"
+surface = 3
+footprint_radius = 5.0
+object_height = 6.0
+poster_texture = ExtResource("2_7wqv1")
+
+[node name="@MeshInstance3D@38" type="MeshInstance3D" parent="." unique_id=1183367446]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_4uohd")
+
+[node name="PosterFaceFront" type="Sprite3D" parent="." unique_id=1654700925]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.009310987
+texture = ExtResource("2_7wqv1")
+
+[node name="PosterFaceBack" type="Sprite3D" parent="." unique_id=254570727]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 2.5, 0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.009310987
+texture = ExtResource("2_7wqv1")

@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_bthfb"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/14533278-64f2-42dc-b9c1-c60966ffbde0.jpg" id="2_cit84"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1qa3x"]
+albedo_color = Color(1, 0.24705882, 0.8117647, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.24705882, 0.8117647, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_yaci1"]
+material = SubResource("StandardMaterial3D_1qa3x")
+size = Vector3(13.652015, 10.8, 0.25)
+
+[node name="DrinkingFriendAirBanner" type="Node3D" unique_id=314290154 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_bthfb")
+catalog_id = "art_drinking_friend__air_banner"
+display_name = "Drinking Friend Air Banner"
+category = "Friend Media"
+surface = 2
+footprint_radius = 12.0
+object_height = 11.0
+poster_texture = ExtResource("2_cit84")
+
+[node name="@MeshInstance3D@33" type="MeshInstance3D" parent="." unique_id=790572200]
+cast_shadow = 0
+visibility_range_end = 3000.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_yaci1")
+
+[node name="PosterFace_Front" type="Sprite3D" parent="." unique_id=6565080]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.38)
+visibility_range_end = 2800.0
+pixel_size = 0.01831502
+texture = ExtResource("2_cit84")
+
+[node name="PosterFace_Back" type="Sprite3D" parent="." unique_id=708702741]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0.38)
+visibility_range_end = 2800.0
+pixel_size = 0.01831502
+texture = ExtResource("2_cit84")

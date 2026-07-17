@@ -19,7 +19,7 @@ func check(condition: bool, message: String) -> void:
 
 func _run() -> void:
 	var entries := CatalogScript.entries()
-	check(entries.size() == 164, "catalog exposes 57 originals, 52 small props and 55 friend-media variants")
+	check(entries.size() == 204, "catalog exposes 57 originals, 52 small props and 95 friend-media variants")
 	check(CatalogScript.SMALL_PROP_ENTRIES.size() == 52, "small-prop expansion has the complete 52-piece set")
 	var required_ids := ["flowering_bush_pink", "hedge_long", "agave", "traffic_cone", "road_barricade", "white_picket_fence", "trash_bin", "fire_hydrant", "bus_stop", "side_road_straight", "side_road_corner", "crosswalk", "dock_corner", "surfboard_rack"]
 	for id: String in required_ids:
@@ -55,7 +55,7 @@ func _run() -> void:
 			check((value as Sprite3D).texture != null and (value as Sprite3D).texture.resource_path == expected_texture, "%s uses the requested friend image" % key)
 		check(instance.find_children("*", "CollisionObject3D", true, false).is_empty(), "%s remains visual-only" % key)
 		instance.free()
-	check(matrix_count == CatalogScript.FRIEND_ART.size() * CatalogScript.ART_CARRIERS.size(), "matrix contains every 11 friends x 5 carriers")
+	check(matrix_count == CatalogScript.FRIEND_ART.size() * CatalogScript.ART_CARRIERS.size(), "matrix contains every 19 friends x 5 carriers")
 	for artwork: Dictionary in CatalogScript.FRIEND_ART:
 		for carrier: Dictionary in CatalogScript.ART_CARRIERS:
 			check(matrix.has("%s/%s" % [artwork.id, carrier.id]), "%s is available as %s" % [artwork.name, carrier.name])

@@ -156,6 +156,14 @@ const FRIEND_ART: Array[Dictionary] = [
 	{"id":"danik","name":"Danik","texture":"res://assets/generated/friends/71b38443-851b-401f-a174-0b72d699a284.jpg"},
 	{"id":"motorcycle_rider","name":"Motorcycle Rider","texture":"res://assets/generated/friends/8608460d-bd44-4e25-b2dc-ccf8a5003e87.jpg"},
 	{"id":"milk_racer","name":"Milk Racer","texture":"res://assets/generated/friends/882a2791-af8b-4378-b3b7-a05b4cf0dd08.jpg"},
+	{"id":"cool_emoji","name":"Cool Emoji","texture":"res://assets/generated/friends/0bab236a-1f26-4f5d-8918-7df346912646.jpg"},
+	{"id":"drinking_friend","name":"Drinking Friend","texture":"res://assets/generated/friends/14533278-64f2-42dc-b9c1-c60966ffbde0.jpg"},
+	{"id":"cigar_boss","name":"Cigar Boss","texture":"res://assets/generated/friends/182991a9-abfe-4c84-98e0-69e9a7b9600f.jpg"},
+	{"id":"chips_champion","name":"Chips Champion","texture":"res://assets/generated/friends/43a4fe7a-243e-4b1b-8a23-3ba7d9a17259.jpg"},
+	{"id":"sodium_athlete","name":"Sodium Athlete","texture":"res://assets/generated/friends/84567686-564d-4096-9794-5c2cb853603f.jpg"},
+	{"id":"beach_bodybuilder","name":"Beach Bodybuilder","texture":"res://assets/generated/friends/dcef144c-5e9b-44e2-9521-1a934432861a.jpg"},
+	{"id":"billy","name":"Billy","texture":"res://assets/generated/friends/billy.png"},
+	{"id":"kizaru","name":"Kizaru","texture":"res://assets/generated/friends/kizaru.png"},
 ]
 
 const ART_CARRIERS: Array[Dictionary] = [

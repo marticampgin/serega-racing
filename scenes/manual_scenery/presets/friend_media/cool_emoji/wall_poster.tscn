@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_8o46g"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/0bab236a-1f26-4f5d-8918-7df346912646.jpg" id="2_x520v"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tqv86"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_yi4st"]
+material = SubResource("StandardMaterial3D_tqv86")
+size = Vector3(8.192017, 5.65, 0.24)
+
+[node name="CoolEmojiWallPoster" type="Node3D" unique_id=475998850 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_8o46g")
+catalog_id = "art_cool_emoji__wall_poster"
+display_name = "Cool Emoji Wall Poster"
+category = "Friend Media"
+surface = 3
+footprint_radius = 5.0
+object_height = 6.0
+poster_texture = ExtResource("2_x520v")
+
+[node name="@MeshInstance3D@6" type="MeshInstance3D" parent="." unique_id=1963325005]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_yi4st")
+
+[node name="PosterFaceFront" type="Sprite3D" parent="." unique_id=2026049227]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.010504202
+texture = ExtResource("2_x520v")
+
+[node name="PosterFaceBack" type="Sprite3D" parent="." unique_id=149139993]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 2.5, 0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.010504202
+texture = ExtResource("2_x520v")

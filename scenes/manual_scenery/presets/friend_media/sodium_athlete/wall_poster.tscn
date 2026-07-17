@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_m6vk8"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/84567686-564d-4096-9794-5c2cb853603f.jpg" id="2_iotwb"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tqv86"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_p0nky"]
+material = SubResource("StandardMaterial3D_tqv86")
+size = Vector3(8.508546, 5.65, 0.24)
+
+[node name="SodiumAthleteWallPoster" type="Node3D" unique_id=2116630492 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_m6vk8")
+catalog_id = "art_sodium_athlete__wall_poster"
+display_name = "Sodium Athlete Wall Poster"
+category = "Friend Media"
+surface = 3
+footprint_radius = 5.0
+object_height = 6.0
+poster_texture = ExtResource("2_iotwb")
+
+[node name="@MeshInstance3D@70" type="MeshInstance3D" parent="." unique_id=1971390698]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_p0nky")
+
+[node name="PosterFaceFront" type="Sprite3D" parent="." unique_id=406530214]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.009823183
+texture = ExtResource("2_iotwb")
+
+[node name="PosterFaceBack" type="Sprite3D" parent="." unique_id=589356042]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 2.5, 0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.009823183
+texture = ExtResource("2_iotwb")

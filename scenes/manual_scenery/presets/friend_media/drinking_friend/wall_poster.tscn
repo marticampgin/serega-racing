@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_t3gbj"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/14533278-64f2-42dc-b9c1-c60966ffbde0.jpg" id="2_fnlt5"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tqv86"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_36l66"]
+material = SubResource("StandardMaterial3D_tqv86")
+size = Vector3(5.4760075, 5.65, 0.24)
+
+[node name="DrinkingFriendWallPoster" type="Node3D" unique_id=1214349909 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_t3gbj")
+catalog_id = "art_drinking_friend__wall_poster"
+display_name = "Drinking Friend Wall Poster"
+category = "Friend Media"
+surface = 3
+footprint_radius = 5.0
+object_height = 6.0
+poster_texture = ExtResource("2_fnlt5")
+
+[node name="@MeshInstance3D@22" type="MeshInstance3D" parent="." unique_id=450847004]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+visibility_range_end = 1800.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_36l66")
+
+[node name="PosterFaceFront" type="Sprite3D" parent="." unique_id=1805878384]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.00915751
+texture = ExtResource("2_fnlt5")
+
+[node name="PosterFaceBack" type="Sprite3D" parent="." unique_id=783189629]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 2.5, 0.28)
+visibility_range_end = 2800.0
+pixel_size = 0.00915751
+texture = ExtResource("2_fnlt5")

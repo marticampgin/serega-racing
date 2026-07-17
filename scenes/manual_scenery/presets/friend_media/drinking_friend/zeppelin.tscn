@@ -1,0 +1,94 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/editor/manual_scenery_item.gd" id="1_r5nh5"]
+[ext_resource type="Texture2D" path="res://assets/generated/friends/14533278-64f2-42dc-b9c1-c60966ffbde0.jpg" id="2_sjw5i"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_avwns"]
+albedo_color = Color(0.60784316, 0.47058824, 0.8117647, 1)
+roughness = 0.78
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_trjxl"]
+material = SubResource("StandardMaterial3D_avwns")
+radius = 6.5
+height = 30.0
+radial_segments = 16
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tqv86"]
+albedo_color = Color(0.20392157, 0.1254902, 0.30980393, 1)
+roughness = 0.78
+
+[sub_resource type="BoxMesh" id="BoxMesh_k4m6a"]
+material = SubResource("StandardMaterial3D_tqv86")
+size = Vector3(10, 3, 4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1qa3x"]
+albedo_color = Color(1, 0.24705882, 0.8117647, 1)
+metallic = 0.1
+roughness = 0.32
+emission_enabled = true
+emission = Color(1, 0.24705882, 0.8117647, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_seq7g"]
+material = SubResource("StandardMaterial3D_1qa3x")
+size = Vector3(5, 0.4, 6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4byp2"]
+material = SubResource("StandardMaterial3D_1qa3x")
+size = Vector3(5, 0.4, 6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8ll53"]
+material = SubResource("StandardMaterial3D_1qa3x")
+size = Vector3(14.617216, 11.8, 0.25)
+
+[node name="DrinkingFriendZeppelin" type="Node3D" unique_id=405316 groups=["manual_scenery", "manual_scenery_preset"]]
+script = ExtResource("1_r5nh5")
+catalog_id = "art_drinking_friend__zeppelin"
+display_name = "Drinking Friend Zeppelin"
+category = "Friend Media"
+surface = 2
+footprint_radius = 26.0
+object_height = 18.0
+poster_texture = ExtResource("2_sjw5i")
+
+[node name="@MeshInstance3D@23" type="MeshInstance3D" parent="." unique_id=1348618473]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 0, 0, 0)
+visibility_range_end = 3200.0
+mesh = SubResource("CapsuleMesh_trjxl")
+
+[node name="@MeshInstance3D@24" type="MeshInstance3D" parent="." unique_id=803728485]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -7, 0)
+visibility_range_end = 3200.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_k4m6a")
+
+[node name="@MeshInstance3D@25" type="MeshInstance3D" parent="." unique_id=452952166]
+transform = Transform3D(1, 0, 0, 0, 0.99280864, 0.119712204, 0, -0.119712204, 0.99280864, -14, 0, -2.7)
+visibility_range_end = 3200.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_seq7g")
+
+[node name="@MeshInstance3D@26" type="MeshInstance3D" parent="." unique_id=1712729561]
+transform = Transform3D(1, 0, 0, 0, 0.99280864, -0.119712204, 0, 0.119712204, 0.99280864, -14, 0, 2.7)
+visibility_range_end = 3200.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_4byp2")
+
+[node name="@MeshInstance3D@27" type="MeshInstance3D" parent="." unique_id=94668853]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, -7, 0)
+cast_shadow = 0
+visibility_range_end = 3000.0
+visibility_range_fade_mode = 1
+mesh = SubResource("BoxMesh_8ll53")
+
+[node name="PosterFace_Front" type="Sprite3D" parent="." unique_id=1061547351]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, -7, -0.38)
+visibility_range_end = 2800.0
+pixel_size = 0.02014652
+texture = ExtResource("2_sjw5i")
+
+[node name="PosterFace_Back" type="Sprite3D" parent="." unique_id=63783310]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -30, -7, 0.38)
+visibility_range_end = 2800.0
+pixel_size = 0.02014652
+texture = ExtResource("2_sjw5i")

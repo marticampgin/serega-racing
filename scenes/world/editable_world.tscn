@@ -1,11 +1,11 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cpbes2ki64orm"]
 
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/landmarks/city_monument.tscn" id="4_4caq3"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/buildings/beach_bar.tscn" id="5_tr8o0"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/buildings/bungalow.tscn" id="6_rg52d"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/buildings/coastal_apartment.tscn" id="7_xccvu"]
-[ext_resource type="Script" path="res://scripts/editor/manual_scenery_root.gd" id="13_rwujd"]
-[ext_resource type="Script" path="res://scripts/editor/editor_placement_guide.gd" id="14_6axof"]
+[ext_resource type="Script" uid="uid://dlkcboonoeynn" path="res://scripts/editor/manual_scenery_root.gd" id="13_rwujd"]
+[ext_resource type="Script" uid="uid://dwpd4lkl8qwhl" path="res://scripts/editor/editor_placement_guide.gd" id="14_6axof"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/friend_media/bralis/billboard.tscn" id="14_r3qow"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/buildings/art_deco_tower.tscn" id="15_82tlm"]
 [ext_resource type="PackedScene" path="res://scenes/manual_scenery/presets/friend_media/milk_racer/wall_poster.tscn" id="16_h4vj1"]
@@ -23160,7 +23160,7 @@ visibility_range_fade_mode = 1
 mesh = SubResource("BoxMesh_3h36c")
 
 [node name="RoadsideLamp2" type="Node3D" parent="LoopOne" unique_id=78055463 groups=["editable_scenery", "grounded_scenery", "lamp_scenery"]]
-transform = Transform3D(0.7912676, 0, 0.6114701, 0, 1, 0, -0.6114701, 0, 0.7912676, -754.38525, -1.2895962, -327.29947)
+transform = Transform3D(0.7912676, 0, 0.6114701, 0, 1, 0, -0.6114701, 0, 0.7912676, -747.8443, -1.2895962, -360.54636)
 metadata/ground_y = 1.2368244
 metadata/course_offset = 1240.0
 metadata/scenery_radius = 3.0
@@ -53170,10 +53170,10 @@ transform = Transform3D(-0.008113577, 0, -0.9999671, 0, 1, 0, 0.9999671, 0, -0.0
 transform = Transform3D(0.03330363, 0, 1.2300936, 0, 1.528866, 0, -1.3590549, 0, 0.030143434, -1175.2234, -0.572834, 817.2504)
 
 [node name="StartInteriorDunes" parent="." unique_id=1121662036 instance=ExtResource("40_nat_start_dunes")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1164.0356, 1.0181179, -995.15796)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1164.0356, 0.74204636, -995.15796)
 
 [node name="StartInteriorDunes2" parent="." unique_id=408023523 instance=ExtResource("40_nat_start_dunes")]
-transform = Transform3D(-0.9154436, 0, -0.55467284, 0, 2.3662333, 0, 0.40244633, 0, -1.2617129, -1220.8324, 0.20700073, -947.8375)
+transform = Transform3D(-0.9154436, 0, -0.55467284, 0, 2.3662333, 0, 0.40244633, 0, -1.2617129, -1220.8324, 0.013469696, -947.8375)
 
 [node name="LoopTwoHighlands" parent="." unique_id=29722444 instance=ExtResource("36_nat_highlands")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -894.8862, 0.17261124, -831.17035)
@@ -53185,10 +53185,10 @@ metadata/scenery_radius = 12.0
 metadata/manual_surface = 1
 
 [node name="EastCoastalRockGarden2" parent="." unique_id=875755800 instance=ExtResource("34_nat_rocks")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -591.4719, 0.359787, -415.66943)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -591.4719, 1.4150429, -415.66943)
 
 [node name="EastCoastalRockGarden3" parent="." unique_id=1702342646 instance=ExtResource("34_nat_rocks")]
-transform = Transform3D(0.10402257, 0, -1.1486508, 0, 1.4230326, 0, 1.2017909, 0, 0.09942294, -554.428, -0.20322037, -355.3469)
+transform = Transform3D(0.10402257, 0, -1.1486508, 0, 1.4230326, 0, 1.2017909, 0, 0.09942294, -554.428, 0.6258869, -355.3469)
 
 [node name="LifeguardChair" parent="." unique_id=1631769103 groups=["grounded_scenery", "manual_grounded_scenery"] instance=ExtResource("41_wak7r")]
 transform = Transform3D(0.4146502, 0, 1.0584745, 0, 1.6001973, 0, -1.5005959, 0, 0.2924816, -860.57764, -0.58718395, -318.66953)
