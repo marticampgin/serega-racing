@@ -50,8 +50,11 @@ func _run() -> void:
 	check(int(selector.get("selected_car")) == 1, "selection arrows change the car")
 	selector.call("_select_color", 3)
 	check(int(selector.get("selected_color")) == 3, "color swatches change the body color")
+	check(not selector.get("unlock_row").visible, "secret code field is hidden for regular bolids")
 	selector.set("selected_car", 5)
 	selector.call("_refresh_selection")
+	check(selector.get("unlock_row").visible, "secret code field appears only on the Cadillac-style SUV")
+	check(is_equal_approx(float(CarFactory.PROFILES[5].max_speed_kmh), 800.0), "secret SUV reaches the 800 km/h maximum")
 	check(selector.get("confirm_button").disabled, "secret SUV starts locked")
 	selector.get("code_edit").text = "wrong"
 	selector.call("_try_unlock")

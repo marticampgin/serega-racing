@@ -24,6 +24,7 @@ Thumbs.db
 build/
 artifacts/
 /qa/screenshots/
+/qa/*.log
 
 # Private source photos; only approved/stylized derivatives are committed.
 /assets/source/

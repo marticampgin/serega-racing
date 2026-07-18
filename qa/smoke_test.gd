@@ -120,11 +120,14 @@ func _run() -> void:
 		accelerating_speed = float(race.call("compute_drive_speed", accelerating_speed, 1.0, false, false, 0.5, 0.1))
 	check(accelerating_speed > 65.0, "forward acceleration continues beyond the old speed cap")
 	race.set("shield_hits", 0)
+	race.set("ghost_time", 0.0)
 	race.set("collision_cooldown", 0.0)
+	race.set("durability", 100.0)
 	race.set("speed", 100.0)
 	car.velocity = Vector3(25.0, 0.0, -100.0)
 	race.call("handle_obstacle_hit")
-	check(is_zero_approx(float(race.get("speed"))) and car.velocity.is_zero_approx(), "obstacle collision forces a complete stop")
+	check(float(race.get("speed")) < 100.0 and float(race.get("speed")) > 0.0, "obstacle collision slows according to tolerance")
+	check(float(race.get("durability")) < 100.0, "obstacle collision causes real durability damage")
 	check(float(race.get("collision_stop_time")) > 0.0, "collision lockout prevents steering catapult")
 	var head_on := race.call("project_motion_along_obstacle", Vector3(0, 0, -20), Vector3(0, 0, 1)) as Vector3
 	var glancing := race.call("project_motion_along_obstacle", Vector3(10, 0, -20), Vector3(0, 0, 1)) as Vector3

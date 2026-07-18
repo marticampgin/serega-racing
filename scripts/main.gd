@@ -7,6 +7,7 @@ const TrackMinimapScene := preload("res://scenes/ui/track_minimap.tscn")
 const CarSelectionScene := preload("res://scenes/ui/car_selection_overlay.tscn")
 const CarFactory := preload("res://scripts/cars/car_visual_factory.gd")
 const PauseMenuScript := preload("res://scripts/ui/pause_menu_overlay.gd")
+const GameModeScript := preload("res://scripts/ui/game_mode_overlay.gd")
 const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
 const RUNTIME_WORLD_PATH := "res://scenes/world/runtime_world_optimized.scn"
 const MENU_BACKGROUND_PATH := "res://assets/generated/ui/main-menu-synthwave-v1.png"
@@ -30,7 +31,7 @@ var elapsed := 0.0
 var distance := 0.0
 var course_offset := 0.0
 var race_active := true
-var shield_hits := 1
+var shield_hits := 0
 var collision_cooldown := 0.0
 var collision_stop_time := 0.0
 var obstacle_slide_time := 0.0
@@ -48,6 +49,8 @@ var timer_label: Label
 var distance_label: Label
 var status_label: Label
 var fuel_bar: ProgressBar
+var durability_bar: ProgressBar
+var game_over_label: Label
 var finish_portrait: TextureRect
 var start_position := Vector3.ZERO
 var countdown_label: Label
@@ -60,6 +63,7 @@ var game_started := false
 var minimap: Control
 var main_menu: CanvasLayer
 var car_selector: CanvasLayer
+var mode_selector: CanvasLayer
 var pause_menu: CanvasLayer
 var car_visual: Node3D
 var car_collider: CollisionShape3D
@@ -70,6 +74,11 @@ var car_acceleration_mult := 1.0
 var car_fuel_mult := 1.0
 var car_damage_mult := 1.0
 var car_max_speed_mps := 500.0 / 3.6
+var durability := 100.0
+var selected_game_mode := "free_run"
+var powerups_enabled := true
+var gameplay_content: Node3D
+var obstacle_materials: Dictionary = {}
 
 
 func _ready() -> void:
@@ -85,12 +94,13 @@ func _ready() -> void:
 	build_hud()
 	build_game_ui()
 	build_refuel_client()
-	print("Serega Racing: map course initialized (%.1f m, no obstacles)" % TRACK_LENGTH)
+	print("Serega Racing: map course initialized (%.1f m)" % TRACK_LENGTH)
 	var capture_distance := -1.0
 	var capture_path := ""
 	var menu_capture_path := ""
 	var cars_capture_path := ""
 	var pause_capture_path := ""
+	var mode_capture_path := ""
 	var capture_car_index := 0
 	var capture_color_index := 0
 	for argument in OS.get_cmdline_user_args():
@@ -106,6 +116,10 @@ func _ready() -> void:
 			cars_capture_path = argument.trim_prefix("--screenshot-cars=")
 		elif argument.begins_with("--screenshot-pause="):
 			pause_capture_path = argument.trim_prefix("--screenshot-pause=")
+		elif argument.begins_with("--screenshot-mode="):
+			mode_capture_path = argument.trim_prefix("--screenshot-mode=")
+		elif argument.begins_with("--game-mode="):
+			selected_game_mode = argument.trim_prefix("--game-mode=")
 		elif argument.begins_with("--car-index="):
 			capture_car_index = int(argument.trim_prefix("--car-index="))
 		elif argument.begins_with("--car-color="):
@@ -115,6 +129,9 @@ func _ready() -> void:
 		car_selector.call("_change_car", capture_car_index)
 		car_selector.call("_select_color", capture_color_index)
 		capture_qa_screenshot.call_deferred(cars_capture_path)
+	elif not mode_capture_path.is_empty():
+		_open_mode_selection()
+		capture_qa_screenshot.call_deferred(mode_capture_path)
 	elif not pause_capture_path.is_empty():
 		_start_game()
 		_pause_game()
@@ -765,36 +782,161 @@ func build_car() -> void:
 	chase_camera.look_at(car.global_position - start_frame.basis.z * 5.0 + start_frame.basis.y * 0.5, start_frame.basis.y)
 
 
+func build_gameplay_mode() -> void:
+	if is_instance_valid(gameplay_content): gameplay_content.free()
+	gameplay_content = Node3D.new()
+	gameplay_content.name = "GameplayModeContent"
+	add_child(gameplay_content)
+	obstacle_materials = {
+		"dark": make_material(Color("10131d"), 0.25, 0.32),
+		"glass": make_material(Color("183451"), 0.45, 0.18),
+		"yellow": make_material(Color("f4c542"), 0.18, 0.38),
+		"orange": make_material(Color("ef6b2e"), 0.12, 0.46),
+		"cyan": make_material(Color("29cbe8"), 0.2, 0.32),
+		"white": make_material(Color("e8e6df"), 0.1, 0.55),
+	}
+	rng.seed = 8675309
+	if selected_game_mode == "obstacle_course": build_obstacles()
+	if powerups_enabled: build_powerups()
+
+
 func build_obstacles() -> void:
-	var obstacle_materials := [
-		make_material(Color("ef6b2e"), 0.05, 0.65),
-		make_material(Color("f1cb39"), 0.05, 0.65),
-		make_material(Color("3e85d8"), 0.1, 0.55)
-	]
-	var lane_offsets := [-5.2, 0.0, 5.2]
+	var lane_offsets := [-5.1, 0.0, 5.1]
+	var kinds := ["cone", "taxi", "car", "truck", "bulldozer", "wrecked_bolid"]
+	var offset := 150.0
 	var row := 0
-	var z := -105.0
-	while z > -TRACK_LENGTH + 50:
-		var progress := absf(z) / TRACK_LENGTH
-		var blocked_count := 1 if progress < 0.28 else (2 if rng.randf() < 0.52 + progress * 0.28 else 1)
+	while offset < TRACK_LENGTH - 80.0:
+		var progress := offset / TRACK_LENGTH
 		var safe_lane := rng.randi_range(0, 2)
-		var lanes: Array[int] = []
-		for lane in range(3):
-			if lane != safe_lane:
-				lanes.append(lane)
-		lanes.shuffle()
-		for index in range(blocked_count):
-			var lane := lanes[index]
-			var heading := track_heading(z)
-			var lateral := Vector3(cos(heading), 0.0, -sin(heading))
-			var obstacle_position := Vector3(center_x(z), track_y(z), z) + lateral * float(lane_offsets[lane])
-			var size := Vector3(2.2, 1.65, 2.2) if row % 3 else Vector3(2.8, 1.25, 1.7)
-			obstacle_position.y += size.y * 0.5
-			var obstacle := add_box(self, size, obstacle_position, obstacle_materials[row % obstacle_materials.size()], true, heading)
-			obstacle.add_to_group("obstacle")
+		var available := [0, 1, 2]
+		available.erase(safe_lane)
+		available.shuffle()
+		var count := 2 if progress > 0.22 and rng.randf() < lerpf(0.18, 0.42, progress) else 1
+		for index in range(count):
+			var kind: String = kinds[(row + index + rng.randi_range(0, kinds.size() - 1)) % kinds.size()]
+			if course.zone_at(offset) == "underwater_tunnel" and kind in ["truck", "bulldozer"]: kind = "cone"
+			_create_road_obstacle(kind, offset, lane_offsets[available[index]])
 		row += 1
-		# Spacing narrows gradually, while every row still has a guaranteed open lane.
-		z -= lerpf(43.0, 27.0, progress) + rng.randf_range(-3.0, 5.0)
+		offset += lerpf(108.0, 76.0, progress) + rng.randf_range(-8.0, 10.0)
+
+
+func _create_road_obstacle(kind: String, offset: float, lateral: float) -> void:
+	var frame := course.sample_course(offset)
+	var body := StaticBody3D.new()
+	body.name = "Obstacle_%s_%d" % [kind, int(offset)]
+	body.transform = Transform3D(frame.basis, frame.origin + frame.basis.x * lateral + frame.basis.y * 0.05)
+	body.collision_layer = 1
+	body.collision_mask = 0
+	body.add_to_group("obstacle")
+	gameplay_content.add_child(body)
+	var size := Vector3(1.25, 1.7, 1.25)
+	match kind:
+		"taxi", "car": size = Vector3(2.25, 1.45, 4.3)
+		"truck": size = Vector3(2.7, 3.0, 6.5)
+		"bulldozer": size = Vector3(3.0, 2.4, 4.8)
+		"wrecked_bolid": size = Vector3(2.8, 0.8, 4.5)
+	var collider := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = size
+	collider.shape = shape
+	collider.position.y = size.y * 0.5
+	body.add_child(collider)
+	var dark: Material = obstacle_materials.dark
+	var glass: Material = obstacle_materials.glass
+	var yellow: Material = obstacle_materials.yellow
+	var orange: Material = obstacle_materials.orange
+	var cyan: Material = obstacle_materials.cyan
+	match kind:
+		"cone":
+			add_cylinder(body, 0.62, 1.6, Vector3(0, 0.8, 0), orange, 0.12)
+			add_box(body, Vector3(1.45, 0.12, 1.45), Vector3(0, 0.06, 0), dark)
+		"taxi", "car":
+			var paint := yellow if kind == "taxi" else cyan
+			add_box(body, Vector3(2.15, 0.65, 4.05), Vector3(0, 0.5, 0), paint)
+			add_box(body, Vector3(1.82, 0.62, 1.95), Vector3(0, 1.08, 0.15), glass)
+			if kind == "taxi": add_box(body, Vector3(0.62, 0.22, 0.35), Vector3(0, 1.51, 0), yellow)
+			_obstacle_wheels(body, 1.12, [-1.25, 1.25], dark)
+		"truck":
+			add_box(body, Vector3(2.6, 2.75, 3.8), Vector3(0, 1.4, 1.15), obstacle_materials.white)
+			add_box(body, Vector3(2.55, 2.1, 2.25), Vector3(0, 1.05, -2.05), orange)
+			add_box(body, Vector3(2.2, 0.65, 0.08), Vector3(0, 1.48, -3.2), glass)
+			_obstacle_wheels(body, 1.35, [-2.0, 1.8], dark)
+		"bulldozer":
+			add_box(body, Vector3(2.75, 0.75, 3.8), Vector3(0, 0.5, 0.3), yellow)
+			add_box(body, Vector3(1.8, 1.45, 1.6), Vector3(0, 1.45, 0.5), glass)
+			add_box(body, Vector3(3.5, 1.25, 0.28), Vector3(0, 0.72, -2.5), orange)
+			for x in [-1.42, 1.42]: add_box(body, Vector3(0.42, 0.72, 4.0), Vector3(x, 0.38, 0.25), dark)
+		"wrecked_bolid":
+			var wreck := Node3D.new()
+			wreck.position.y = 0.42
+			wreck.rotation.y = 0.22
+			body.add_child(wreck)
+			add_box(wreck, Vector3(1.7, 0.32, 3.7), Vector3.ZERO, obstacle_materials.white)
+			add_box(wreck, Vector3(0.5, 0.22, 1.55), Vector3(0, 0.18, -2.1), obstacle_materials.white)
+			add_box(wreck, Vector3(2.7, 0.12, 0.55), Vector3(0, 0.02, -2.38), orange)
+			add_box(wreck, Vector3(2.3, 0.16, 0.38), Vector3(0, 0.52, 1.6), dark)
+			_obstacle_wheels(wreck, 1.1, [-1.2, 1.25], dark)
+
+
+func _obstacle_wheels(parent: Node3D, x: float, z_values: Array, material: Material) -> void:
+	for side in [-1.0, 1.0]:
+		for z in z_values: add_box(parent, Vector3(0.38, 0.65, 0.75), Vector3(side * x, 0.28, float(z)), material)
+
+
+func build_powerups() -> void:
+	var types := ["boost", "repair", "shield", "ghost"]
+	var lanes := [-4.9, 0.0, 4.9]
+	var offset := 330.0
+	var index := 0
+	while offset < TRACK_LENGTH - 100.0:
+		_create_powerup(types[index % types.size()], offset, lanes[rng.randi_range(0, 2)])
+		index += 1
+		offset += rng.randf_range(360.0, 520.0)
+
+
+func _create_powerup(type: String, offset: float, lateral: float) -> void:
+	var frame := course.sample_course(offset)
+	var pickup := Area3D.new()
+	pickup.name = "Powerup_%s_%d" % [type, int(offset)]
+	pickup.transform = Transform3D(frame.basis, frame.origin + frame.basis.x * lateral + frame.basis.y * 1.35)
+	pickup.collision_layer = 2
+	pickup.collision_mask = 1
+	pickup.set_meta("powerup_type", type)
+	pickup.add_to_group("powerup")
+	gameplay_content.add_child(pickup)
+	var shape_node := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = 1.25
+	shape_node.shape = sphere
+	pickup.add_child(shape_node)
+	var colors := {"boost": Color("ff5c3d"), "repair": Color("5df07e"), "shield": Color("45dcff"), "ghost": Color("c96cff")}
+	var material := make_material(colors[type], 0.28, 0.18)
+	add_cylinder(pickup, 0.78, 0.22, Vector3.ZERO, material)
+	add_box(pickup, Vector3(0.22, 1.35, 0.22), Vector3.ZERO, material)
+	add_box(pickup, Vector3(1.35, 0.22, 0.22), Vector3.ZERO, material)
+	pickup.body_entered.connect(_on_powerup_body_entered.bind(pickup, type))
+
+
+func _on_powerup_body_entered(body: Node3D, pickup: Area3D, type: String) -> void:
+	if body != car or not is_instance_valid(pickup): return
+	collect_powerup(type)
+	pickup.queue_free()
+
+
+func collect_powerup(type: String) -> void:
+	match type:
+		"boost":
+			boost_time = maxf(boost_time, 10.0)
+			status_label.text = "УСИЛЕНИЕ | ТУРБО НА 10 СЕКУНД"
+		"repair":
+			durability = minf(100.0, durability + 32.0)
+			status_label.text = "УСИЛЕНИЕ | ПРОЧНОСТЬ ВОССТАНОВЛЕНА"
+		"shield":
+			shield_hits += 1
+			status_label.text = "УСИЛЕНИЕ | ЩИТ ОТ СЛЕДУЮЩЕГО УДАРА"
+		"ghost":
+			ghost_time = maxf(ghost_time, 8.0)
+			status_label.text = "УСИЛЕНИЕ | РЕЖИМ ПРИЗРАКА НА 8 СЕКУНД"
 
 
 func make_label(text_value: String, size: int, color: Color) -> Label:
@@ -836,6 +978,14 @@ func build_hud() -> void:
 	fuel_bar.value = fuel
 	fuel_bar.show_percentage = true
 	column.add_child(fuel_bar)
+	var durability_title := make_label("ПРОЧНОСТЬ", 14, Color("b8c4cf"))
+	column.add_child(durability_title)
+	durability_bar = ProgressBar.new()
+	durability_bar.custom_minimum_size = Vector2(285, 22)
+	durability_bar.max_value = 100
+	durability_bar.value = durability
+	durability_bar.show_percentage = true
+	column.add_child(durability_bar)
 	status_label = make_label("WASD — ЕЗДА | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | ESC — ПАУЗА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС", 16, Color("f2f4f6"))
 	status_label.anchor_right = 1.0
 	status_label.anchor_top = 1.0
@@ -866,6 +1016,12 @@ func build_hud() -> void:
 	countdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	countdown_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	layer.add_child(countdown_label)
+	game_over_label = make_label("", 46, Color("ff526e"))
+	game_over_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	game_over_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	game_over_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	game_over_label.visible = false
+	layer.add_child(game_over_label)
 
 
 func build_game_ui() -> void:
@@ -881,8 +1037,13 @@ func build_game_ui() -> void:
 	main_menu = MainMenuScene.instantiate() as CanvasLayer
 	add_child(main_menu)
 	main_menu.call("set_background_path", MENU_BACKGROUND_PATH)
-	main_menu.connect("start_requested", Callable(self, "_open_car_selection"))
+	main_menu.connect("start_requested", Callable(self, "_open_mode_selection"))
 	main_menu.call_deferred("focus_start_button")
+	mode_selector = GameModeScript.new()
+	add_child(mode_selector)
+	mode_selector.call("set_background_path", MENU_BACKGROUND_PATH)
+	mode_selector.connect("mode_confirmed", Callable(self, "_on_mode_confirmed"))
+	mode_selector.connect("back_requested", Callable(self, "_return_to_main_menu"))
 	car_selector = CarSelectionScene.instantiate() as CanvasLayer
 	add_child(car_selector)
 	car_selector.call("set_background_path", MENU_BACKGROUND_PATH)
@@ -901,9 +1062,27 @@ func _open_car_selection() -> void:
 		car_selector.call("show_selector")
 
 
+func _open_mode_selection() -> void:
+	if is_instance_valid(main_menu): main_menu.hide()
+	if is_instance_valid(mode_selector): mode_selector.call("show_selector")
+
+
+func _on_mode_confirmed(mode: String, enable_powerups: bool) -> void:
+	selected_game_mode = mode
+	powerups_enabled = enable_powerups
+	if is_instance_valid(mode_selector): mode_selector.hide()
+	_open_car_selection()
+
+
 func _back_to_main_menu() -> void:
 	if is_instance_valid(car_selector):
 		car_selector.hide()
+	if is_instance_valid(mode_selector):
+		mode_selector.call("show_selector")
+
+
+func _return_to_main_menu() -> void:
+	if is_instance_valid(mode_selector): mode_selector.hide()
 	if is_instance_valid(main_menu):
 		main_menu.show()
 		main_menu.call_deferred("focus_start_button")
@@ -939,6 +1118,8 @@ func _start_game() -> void:
 		main_menu.hide()
 	if is_instance_valid(car_selector):
 		car_selector.hide()
+	if is_instance_valid(mode_selector): mode_selector.hide()
+	build_gameplay_mode()
 	reset_car()
 	minimap.visible = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -986,6 +1167,8 @@ func _physics_process(delta: float) -> void:
 	boost_time = maxf(0.0, boost_time - delta)
 	ghost_time = maxf(0.0, ghost_time - delta)
 	refuel_cooldown = maxf(0.0, refuel_cooldown - delta)
+	for pickup in get_tree().get_nodes_in_group("powerup"):
+		if pickup is Node3D: (pickup as Node3D).rotate_y(delta * 1.8)
 	car.collision_mask = 0 if ghost_time > 0.0 else 1
 	var refuel_pressed := Input.is_key_pressed(KEY_F)
 	if refuel_pressed and not refuel_key_down:
@@ -1041,7 +1224,9 @@ func update_car(delta: float) -> void:
 	var progress := clampf(distance / TRACK_LENGTH, 0.0, 1.0)
 	speed = compute_drive_speed(speed, throttle, reverse_pressed, hard_braking, progress, delta)
 	var speed_ratio := clampf(absf(speed) / 110.0, 0.0, 1.0)
-	var steering_rate := lerpf(2.35, 0.78, speed_ratio) * car_steering_mult
+	var condition_ratio := clampf(durability / 100.0, 0.0, 1.0)
+	var steering_condition := lerpf(0.62, 1.0, condition_ratio)
+	var steering_rate := lerpf(2.35, 0.78, speed_ratio) * car_steering_mult * steering_condition
 	if absf(steer) > 0.01 and (absf(speed) > 0.6 or (obstacle_slide_time > 0.0 and throttle > 0.0)):
 		var reverse_steering := -1.0 if speed < 0.0 else 1.0
 		car.rotate_y(-steer * reverse_steering * steering_rate * delta)
@@ -1069,6 +1254,9 @@ func update_car(delta: float) -> void:
 			if step_collision.get_collider() is Node and step_collision.get_collider().is_in_group("obstacle"):
 				handle_obstacle_hit(step_collision.get_normal(), intended_motion)
 				break
+			elif absf(step_collision.get_normal().y) < 0.55 and Vector2(step_collision.get_normal().x, step_collision.get_normal().z).length() > 0.35:
+				handle_wall_hit(step_collision.get_normal())
+				break
 	enforce_track_safety(delta)
 
 
@@ -1093,13 +1281,12 @@ func enforce_track_safety(delta: float) -> void:
 		# Local-offset recovery cannot jump to the wrong branch at Loop 3's crossing.
 		car.global_position = center
 		car.global_transform.basis = frame.basis
-		var retained_speed := lerpf(0.24, 0.58, clampf((1.25 - car_damage_mult) / 0.95, 0.0, 1.0))
+		var retained_speed := lerpf(0.2, 0.56, clampf((1.25 - car_damage_mult) / 0.95, 0.0, 1.0))
 		speed *= retained_speed
 		if collision_cooldown <= 0.0:
-			fuel = maxf(0.0, fuel - 2.0 * car_damage_mult)
-			elapsed += 0.4 * car_damage_mult
+			apply_vehicle_damage(7.0, "СТЕНА")
 			collision_cooldown = 0.65
-		status_label.text = "ВОЗВРАТ НА ТРАССУ | МАШИНА ВЕРНУТА НА ГОНОЧНУЮ ЛИНИЮ"
+		if race_active: status_label.text = "УДАР О СТЕНУ | ВОЗВРАТ НА ГОНОЧНУЮ ЛИНИЮ"
 	elif absf(lateral_distance) > soft_edge:
 		var clamped_lateral := clampf(lateral_distance, -soft_edge, soft_edge)
 		car.global_position -= lateral_axis * (lateral_distance - clamped_lateral)
@@ -1116,13 +1303,16 @@ func enforce_track_safety(delta: float) -> void:
 
 func compute_drive_speed(current_speed: float, throttle: float, reverse_pressed: bool, hard_braking: bool, progress: float, delta: float) -> float:
 	# Acceleration controls time-to-cap; max speed is a genuine per-car limit.
-	var acceleration := (18.0 + progress * 3.0) * car_acceleration_mult
+	var condition_ratio := clampf(durability / 100.0, 0.0, 1.0)
+	var active_max_speed := car_max_speed_mps * lerpf(0.58, 1.0, condition_ratio)
+	var acceleration := (18.0 + progress * 3.0) * car_acceleration_mult * lerpf(0.72, 1.0, condition_ratio)
 	if boost_time > 0.0:
 		acceleration *= 1.75
+		active_max_speed *= 1.16
 	if fuel <= 0.0:
 		throttle = minf(throttle, 0.35)
 	if throttle > 0.0:
-		current_speed = move_toward(current_speed, 0.0, 34.0 * delta) if current_speed < 0.0 else move_toward(current_speed, car_max_speed_mps, acceleration * delta)
+		current_speed = move_toward(current_speed, 0.0, 34.0 * delta) if current_speed < 0.0 else move_toward(current_speed, active_max_speed, acceleration * delta)
 	elif reverse_pressed:
 		# S brakes forward motion first and only selects reverse near a standstill.
 		current_speed = move_toward(current_speed, 0.0, 42.0 * delta) if current_speed > 0.5 else move_toward(current_speed, -15.0, 11.0 * delta)
@@ -1130,7 +1320,7 @@ func compute_drive_speed(current_speed: float, throttle: float, reverse_pressed:
 		current_speed = move_toward(current_speed, 0.0, 5.5 * delta)
 	if hard_braking:
 		current_speed = move_toward(current_speed, 0.0, 55.0 * delta)
-	return clampf(current_speed, -15.0, car_max_speed_mps)
+	return clampf(current_speed, -15.0, active_max_speed)
 
 
 func handle_obstacle_hit(normal := Vector3.ZERO, _incoming := Vector3.ZERO) -> void:
@@ -1141,19 +1331,49 @@ func handle_obstacle_hit(normal := Vector3.ZERO, _incoming := Vector3.ZERO) -> v
 		obstacle_slide_time = maxf(obstacle_slide_time, 0.25)
 		return
 	collision_cooldown = 0.55 + 0.35 * car_damage_mult
-	collision_stop_time = 0.06 + 0.08 * car_damage_mult
 	obstacle_slide_time = 0.72 + 0.18 * car_damage_mult
-	speed = 0.0
-	car.velocity = Vector3.ZERO
+	var damaged := apply_vehicle_damage(15.0, "ПРЕПЯТСТВИЕ")
+	if damaged:
+		collision_stop_time = 0.04 + 0.07 * car_damage_mult
+		speed *= lerpf(0.06, 0.46, clampf((1.25 - car_damage_mult) / 0.95, 0.0, 1.0))
+		car.velocity = Vector3.ZERO
+		if race_active: status_label.text = "СТОЛКНОВЕНИЕ | ПРОЧНОСТЬ %d%%" % int(durability)
+	else:
+		speed *= 0.78
+
+
+func handle_wall_hit(normal := Vector3.ZERO) -> void:
+	if collision_cooldown > 0.0: return
+	var flat_normal := Vector3(normal.x, 0.0, normal.z)
+	if flat_normal.length_squared() > 0.01: obstacle_block_normal = flat_normal.normalized()
+	collision_cooldown = 0.6
+	obstacle_slide_time = 0.42
+	if apply_vehicle_damage(7.0, "СТЕНА"):
+		speed *= lerpf(0.48, 0.78, clampf((1.25 - car_damage_mult) / 0.95, 0.0, 1.0))
+		if race_active: status_label.text = "КАСАНИЕ СТЕНЫ | ПРОЧНОСТЬ %d%%" % int(durability)
+
+
+func apply_vehicle_damage(base_damage: float, source: String) -> bool:
+	if ghost_time > 0.0:
+		status_label.text = "%s | РЕЖИМ ПРИЗРАКА" % source
+		return false
 	if shield_hits > 0:
 		shield_hits -= 1
-		status_label.text = "ЩИТ ПОГЛОТИЛ УДАР | МАШИНА ОСТАНОВЛЕНА"
-	else:
-		var fuel_penalty := 8.0 * car_damage_mult
-		var time_penalty := 2.0 * car_damage_mult
-		fuel = maxf(0.0, fuel - fuel_penalty)
-		elapsed += time_penalty
-		status_label.text = "СТОЛКНОВЕНИЕ | ПОЛНАЯ ОСТАНОВКА | +%.1f СЕК" % time_penalty
+		status_label.text = "%s | ЩИТ ПОГЛОТИЛ УДАР" % source
+		return false
+	durability = maxf(0.0, durability - base_damage * car_damage_mult)
+	if durability <= 0.0:
+		wreck_car()
+	return true
+
+
+func wreck_car() -> void:
+	race_active = false
+	speed = 0.0
+	car.velocity = Vector3.ZERO
+	game_over_label.text = "МАШИНА РАЗБИТА\nR — ПОВТОРИТЬ ГОНКУ"
+	game_over_label.visible = true
+	status_label.text = "ГОНКА ОКОНЧЕНА | ПРОЧНОСТЬ 0%"
 
 
 func update_progress(delta: float) -> void:
@@ -1199,6 +1419,7 @@ func update_hud() -> void:
 	timer_label.text = format_time(elapsed)
 	distance_label.text = "%04d / %d М" % [int(distance), int(TRACK_LENGTH)]
 	fuel_bar.value = fuel
+	durability_bar.value = durability
 	if is_instance_valid(minimap):
 		minimap.call("set_player_distance", course_offset, TRACK_LENGTH)
 	if fuel < 22.0:
@@ -1207,6 +1428,12 @@ func update_hud() -> void:
 		fuel_bar.modulate = Color("ffd45a")
 	else:
 		fuel_bar.modulate = Color("67ef9a")
+	if durability < 25.0:
+		durability_bar.modulate = Color("ff405c")
+	elif durability < 55.0:
+		durability_bar.modulate = Color("ffb84d")
+	else:
+		durability_bar.modulate = Color("59e7ff")
 
 
 func format_time(value: float) -> String:
@@ -1223,10 +1450,11 @@ func reset_car() -> void:
 	car.velocity = Vector3.ZERO
 	speed = 0.0
 	fuel = 100.0
+	durability = 100.0
 	elapsed = 0.0
 	distance = 0.0
 	course_offset = 0.0
-	shield_hits = 1
+	shield_hits = 0
 	boost_time = 0.0
 	ghost_time = 0.0
 	collision_cooldown = 0.0
@@ -1234,6 +1462,7 @@ func reset_car() -> void:
 	obstacle_slide_time = 0.0
 	obstacle_block_normal = Vector3.ZERO
 	race_active = true
+	game_over_label.visible = false
 	finish_portrait.visible = false
 	status_label.text = "WASD — ЕЗДА | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | ESC — ПАУЗА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС"
 	refuel_in_progress = false

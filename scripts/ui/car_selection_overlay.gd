@@ -22,6 +22,7 @@ var lock_label: Label
 var code_edit: LineEdit
 var code_status: Label
 var confirm_button: Button
+var unlock_row: HBoxContainer
 var unlocked_cars := {}
 
 
@@ -126,7 +127,7 @@ func _build_interface() -> void:
 		button.pressed.connect(_select_color.bind(index))
 		colors.add_child(button)
 		color_buttons.append(button)
-	var unlock_row := HBoxContainer.new()
+	unlock_row = HBoxContainer.new()
 	unlock_row.add_theme_constant_override("separation", 8)
 	info.add_child(unlock_row)
 	code_edit = LineEdit.new()
@@ -266,6 +267,9 @@ func _refresh_selection() -> void:
 	stat_labels[1].text = "МАКС. СКОРОСТЬ — %d КМ/Ч" % int(profile.max_speed_kmh)
 	position_label.text = "%d / %d" % [selected_car + 1, CarFactory.PROFILES.size()]
 	var locked := bool(profile.get("locked", false)) and not unlocked_cars.has(str(profile.id))
+	var is_secret_car := str(profile.id) == "lilpoc"
+	unlock_row.visible = is_secret_car
+	code_status.visible = is_secret_car
 	lock_label.text = "ЗАБЛОКИРОВАНО — НУЖЕН КОД" if locked else ""
 	confirm_button.disabled = locked
 	confirm_button.text = "ЗАБЛОКИРОВАНО" if locked else "ВЫБРАТЬ И НАЧАТЬ"
@@ -286,6 +290,8 @@ func _on_confirm() -> void:
 
 
 func _try_unlock() -> void:
+	if str(CarFactory.PROFILES[selected_car].id) != "lilpoc":
+		return
 	if code_edit.text == "LILPOC_":
 		unlocked_cars["lilpoc"] = true
 		code_status.text = "LILPOC РАЗБЛОКИРОВАН"

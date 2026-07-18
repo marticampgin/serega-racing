@@ -30,8 +30,10 @@ func _run() -> void:
 
 	game.get("main_menu").call("_on_start_pressed")
 	check(not bool(game.get("game_started")), "opening car selection does not start the race")
-	check(game.get("car_selector").visible, "Start opens the animated car selector")
-	check(not game.get("main_menu").visible, "car selector replaces the main menu")
+	check(game.get("mode_selector").visible, "Start opens game-mode selection")
+	check(not game.get("main_menu").visible, "mode selection replaces the main menu")
+	game.call("_on_mode_confirmed", "free_run", true)
+	check(game.get("car_selector").visible, "confirming a mode opens the animated car selector")
 	game.call("_on_car_confirmed", "molniya", Color("20c9e8"))
 	check(bool(game.get("game_started")), "Start begins the race")
 	check(not game.get("main_menu").visible, "Start hides the menu")
