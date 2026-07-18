@@ -795,7 +795,7 @@ func build_gameplay_mode() -> void:
 		"cyan": make_material(Color("29cbe8"), 0.2, 0.32),
 		"white": make_material(Color("e8e6df"), 0.1, 0.55),
 	}
-	rng.seed = 8675309
+	rng.randomize()
 	if selected_game_mode == "obstacle_course": build_obstacles()
 	if powerups_enabled: build_powerups()
 
@@ -813,7 +813,7 @@ func build_obstacles() -> void:
 		available.shuffle()
 		var count := 2 if progress > 0.22 and rng.randf() < lerpf(0.18, 0.42, progress) else 1
 		for index in range(count):
-			var kind: String = kinds[(row + index + rng.randi_range(0, kinds.size() - 1)) % kinds.size()]
+			var kind: String = kinds[row] if row < kinds.size() and index == 0 else kinds[rng.randi_range(0, kinds.size() - 1)]
 			if course.zone_at(offset) == "underwater_tunnel" and kind in ["truck", "bulldozer"]: kind = "cone"
 			_create_road_obstacle(kind, offset, lane_offsets[available[index]])
 		row += 1
