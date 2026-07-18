@@ -69,32 +69,42 @@ func _run() -> void:
 		_fail("Editor preview must be ownerless and marked editor-only")
 		return
 	var overlay_root := preview.get_node_or_null("GeneratedSceneryOverlays") as Node3D
-	if overlay_root == null or not bool(overlay_root.get_meta("_edit_lock_", false)):
-		_fail("Generated scenery overlays must be present in a locked preview root")
-		return
-	for overlay_name in ["NeighborhoodDetails"]:
-		var overlay := overlay_root.get_node_or_null(overlay_name) as Node3D
-		if overlay == null or not overlay.transform.is_equal_approx(Transform3D.IDENTITY):
-			_fail("Preview overlay %s must load once at identity" % overlay_name)
-			return
-		for value in overlay.find_children("*", "GeometryInstance3D", true, false):
-			var geometry := value as GeometryInstance3D
-			if geometry.visibility_range_end < 99999.0:
-				_fail("Preview overlay %s still has runtime distance culling" % overlay_name)
-				return
-	if overlay_root.get_node_or_null("NaturalLandscapes") != null:
-		_fail("Editable natural landscapes must not be duplicated as a generated overlay")
+	if overlay_root != null:
+		_fail("Locked generated decor must not cover the local editable blocks")
 		return
 	var saved_world := preview.get_node_or_null("SavedEditableSceneryPreview") as Node3D
 	var saved_landscapes := saved_world.get_node_or_null("NaturalLandscapes") if saved_world != null else null
 	if saved_landscapes == null or saved_landscapes.get_child_count() < 11:
 		_fail("Saved editable preview must include every authored natural landscape")
 		return
+	if saved_world == null or saved_world.get_node_or_null("EditableBlocks") == null:
+		_fail("Saved editable preview must include the local neighborhood blocks")
+		return
 	if not capture_path.is_empty():
 		await _capture_preview(race, capture_path)
 
 	host.remove_child(race)
 	race.free()
+	# Opening editable_world.tscn directly must show only locked infrastructure
+	# in the guide. The real local blocks stay as selectable scene siblings and
+	# must not be covered by a second locked copy.
+	var editable := (load("res://scenes/world/editable_world.tscn") as PackedScene).instantiate() as Node3D
+	host.add_child(editable)
+	for frame in range(8):
+		await process_frame
+	var editable_guide := editable.get_node_or_null("EditorPlacementGuide") as Node3D
+	var editable_preview := editable_guide.get_node_or_null("GeneratedWorldPreview") if editable_guide != null else null
+	if editable.get_node_or_null("EditableBlocks") == null:
+		_fail("Direct editable-world view is missing local blocks")
+		return
+	if editable_preview == null:
+		_fail("Direct editable-world view is missing its locked infrastructure preview")
+		return
+	if editable_preview.get_node_or_null("GeneratedSceneryOverlays") != null or editable_preview.get_node_or_null("SavedEditableSceneryPreview") != null:
+		_fail("Direct editable-world view contains locked duplicate scenery")
+		return
+	host.remove_child(editable)
+	editable.free()
 	if capture_viewport != null:
 		root.remove_child(capture_viewport)
 		capture_viewport.free()

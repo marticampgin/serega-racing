@@ -35,23 +35,23 @@ func _run() -> void:
 	root.add_child(race)
 	await process_frame
 	await process_frame
-	var details_root := race.get_node_or_null("EditableWorld/NeighborhoodDetails") as Node3D
-	check(details_root != null, "one additive neighborhood detail layer loads with the edited world")
+	var details_root := race.get_node_or_null("EditableWorld/EditableBlocks") as Node3D
+	check(details_root != null, "fully editable neighborhood blocks load with the edited world")
 	if details_root == null:
 		_finish()
 		return
 	check(get_nodes_in_group("neighborhood_details_root").size() == 1, "neighborhood detail layer is instantiated exactly once")
-	check(details_root.transform.is_equal_approx(Transform3D.IDENTITY), "runtime neighborhood details always load at identity")
+	check(details_root.transform.is_equal_approx(Transform3D.IDENTITY), "runtime editable blocks retain their authored root transform")
 	check(details_root.find_children("*", "CollisionObject3D", true, false).is_empty(), "neighborhood details remain visual-only")
 	var detail_meshes := details_root.find_children("*", "MeshInstance3D", true, false).size()
-	check(detail_meshes <= 1200, "compacted neighborhood layer stays below 1200 mesh nodes")
+	check(detail_meshes >= 2500 and detail_meshes <= 10000, "individual editable details remain complete without runaway duplication")
 
 	var detail_roots: Array[Node3D] = []
 	var kind_counts: Dictionary = {}
 	var kind_blocks: Dictionary = {}
 	var district_counts: Dictionary = {}
 	var metadata_complete := true
-	var compact_networks_valid := true
+	var all_details_individual := true
 	for value in get_nodes_in_group("neighborhood_detail_scenery"):
 		if not value is Node3D or not details_root.is_ancestor_of(value):
 			continue
@@ -67,12 +67,10 @@ func _run() -> void:
 		if not kind_blocks.has(kind):
 			kind_blocks[kind] = {}
 		(kind_blocks[kind] as Dictionary)[block_id] = true
-		if detail.has_meta("detail_count"):
-			compact_networks_valid = compact_networks_valid and int(detail.get_meta("detail_count")) >= 2
-			compact_networks_valid = compact_networks_valid and not detail.find_children("*", "MeshInstance3D", true, false).is_empty()
+		all_details_individual = all_details_individual and not detail.has_meta("detail_count")
 	check(metadata_complete, "every detail root carries kind, district, block and side metadata")
-	check(compact_networks_valid, "compacted networks retain useful counts and visible geometry")
-	check(detail_roots.size() <= 500, "detail roots remain editor-manageable after compaction")
+	check(all_details_individual, "fences, paths, plants and lamps remain individual editor objects")
+	check(detail_roots.size() >= 2500, "the complete uncombined detail layer remains editable")
 	for kind: String in MINIMUM_KIND_COUNTS:
 		check(int(kind_counts.get(kind, 0)) >= int(MINIMUM_KIND_COUNTS[kind]), "%s details meet the planned minimum" % kind)
 	var expected_blocks := _expected_layout_blocks()
@@ -151,7 +149,8 @@ func _check_land_and_water_details(details_root: Node3D, terrain: Object) -> voi
 
 func _check_catalog_preservation(race: Node) -> void:
 	var editable := (load(EDITABLE_WORLD_PATH) as PackedScene).instantiate() as Node3D
-	check(editable.get_node_or_null("NeighborhoodDetails") == null, "editable world stores no movable neighborhood overlay instance")
+	check(editable.get_node_or_null("NeighborhoodDetails") == null, "legacy generated neighborhood overlay stays absent")
+	check(editable.get_node_or_null("EditableBlocks") != null, "editable world stores local duplicable neighborhood blocks")
 	var landscapes := editable.get_node_or_null("NaturalLandscapes") as Node3D
 	check(landscapes != null and landscapes.get_child_count() >= 11, "editable world stores individually movable natural landscape instances")
 	var expected := _catalog_counts(editable)

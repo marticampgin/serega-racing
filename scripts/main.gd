@@ -403,6 +403,10 @@ func build_scenery() -> void:
 
 
 func _load_generated_scenery_overlays(editable_world: Node3D) -> void:
+	# Fully editable worlds carry their connective scenery as local block
+	# children. The compact overlay remains only as a legacy/runtime fallback.
+	if editable_world.get_node_or_null("EditableBlocks") != null:
+		return
 	# Older editable scenes may contain a moved or overridden external instance.
 	# Always replace it with the canonical generated scene at identity so authored
 	# edits and generated connective scenery cannot accidentally move each other.

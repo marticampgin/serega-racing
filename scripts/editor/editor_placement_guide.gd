@@ -87,9 +87,15 @@ func _build_detailed_preview(course: CourseLayout) -> void:
 	# The Race parent is the reservation scope, so procedural preview scenery
 	# respects real ManualScenery siblings while remaining under this internal root.
 	builder.build_infrastructure(preview, course, get_parent() as Node3D)
-	_load_generated_overlays(preview)
+	# When editable_world.tscn itself is open, its saved scenery and editable
+	# blocks already exist beside this guide. Preview only locked infrastructure
+	# there, otherwise duplicated locked decorations sit directly over the real
+	# selectable objects. main.tscn still receives the complete saved preview.
+	var editing_saved_world := get_parent() != null and get_parent().is_in_group("editable_world")
+	if not editing_saved_world and not _saved_world_has_editable_blocks():
+		_load_generated_overlays(preview)
 	var saved_meshes := 0
-	if show_saved_scenery and ResourceLoader.exists(EDITABLE_WORLD_PATH):
+	if show_saved_scenery and not editing_saved_world and ResourceLoader.exists(EDITABLE_WORLD_PATH):
 		var packed := load(EDITABLE_WORLD_PATH) as PackedScene
 		if packed != null:
 			var saved_world := packed.instantiate() as Node3D
@@ -107,6 +113,17 @@ func _build_detailed_preview(course: CourseLayout) -> void:
 			preview.add_child(saved_world)
 			saved_meshes = saved_world.find_children("*", "MeshInstance3D", true, false).size()
 	print("Editor world preview: complete road, %d infrastructure meshes and %d saved scenery meshes" % [builder.mesh_instance_count, saved_meshes])
+
+
+func _saved_world_has_editable_blocks() -> bool:
+	var packed := load(EDITABLE_WORLD_PATH) as PackedScene
+	if packed == null:
+		return false
+	var state := packed.get_state()
+	for index in range(state.get_node_count()):
+		if state.get_node_name(index) == &"EditableBlocks":
+			return true
+	return false
 
 
 func _load_generated_overlays(preview: Node3D) -> void:

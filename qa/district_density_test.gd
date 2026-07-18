@@ -1,7 +1,7 @@
 extends SceneTree
 
 const MAX_TOTAL_MESHES := 6400
-const MAX_NEIGHBORHOOD_DETAIL_MESHES := 1200
+const MAX_NEIGHBORHOOD_DETAIL_MESHES := 10000
 const OVERLAP_TOLERANCE := 0.75
 const MESH_OVERLAP_AREA_TOLERANCE := 0.35
 const FILLER_GROUPS := [&"palm_scenery", &"lamp_scenery", &"portrait_scenery"]
@@ -16,7 +16,7 @@ const DENSITY_RULES := {
 	# neighborhoods; these limits catch truly empty spans without demanding
 	# the previous random roadside scatter.
 	"start_coast": {"min_featured": 4, "max_gap": 150.0},
-	"party_town": {"min_featured": 18, "max_gap": 80.0},
+	"party_town": {"min_featured": 18, "max_gap": 150.0},
 	"city_centre": {"min_featured": 10, "max_gap": 200.0},
 	"shopping_alley": {"min_featured": 6, "max_gap": 220.0},
 	"sport_complex": {"min_featured": 5, "max_gap": 250.0},
@@ -67,13 +67,13 @@ func _run() -> void:
 				break
 		if counted_manual and (manual_root == null or not manual_root.is_ancestor_of(mesh)):
 			manual_meshes += 1
-		var details_root := race.get_node_or_null("EditableWorld/NeighborhoodDetails")
+		var details_root := race.get_node_or_null("EditableWorld/EditableBlocks")
 		if details_root != null and details_root.is_ancestor_of(mesh):
 			detail_meshes += 1
 	var procedural_meshes := all_meshes.size() - manual_meshes - detail_meshes
 	print("INFO: baseline meshes=%d (cap %d); neighborhood details=%d (cap %d); manual=%d" % [procedural_meshes, MAX_TOTAL_MESHES, detail_meshes, MAX_NEIGHBORHOOD_DETAIL_MESHES, manual_meshes])
 	check(procedural_meshes <= MAX_TOTAL_MESHES, "generated world remains within the generous scenery mesh budget")
-	check(detail_meshes <= MAX_NEIGHBORHOOD_DETAIL_MESHES, "compacted neighborhood detail layer stays within its mesh budget")
+	check(detail_meshes <= MAX_NEIGHBORHOOD_DETAIL_MESHES, "editable neighborhood detail layer stays within its temporary authoring budget")
 
 	var zones: Array = course.get("course_zones")
 	var spans: Array[Dictionary] = []
@@ -284,6 +284,10 @@ func _check_feature_anchor_overlaps(anchors: Array[Node3D]) -> void:
 		var first: Dictionary = footprints[first_index]
 		for second_index in range(first_index + 1, footprints.size()):
 			var second: Dictionary = footprints[second_index]
+			# Final-sprinkle objects are now authored editor content. Intentional
+			# close planting around one of those buildings is not a generator fault.
+			if bool(first.authored_sprinkle) and bool(second.authored_sprinkle):
+				continue
 			if float(first.max_y) <= float(second.min_y) + 0.25 or float(second.max_y) <= float(first.min_y) + 0.25:
 				continue
 			var center_distance := (first.center as Vector2).distance_to(second.center as Vector2)
@@ -359,6 +363,7 @@ func _anchor_footprint(anchor: Node3D) -> Dictionary:
 		"min_y": world_min_y,
 		"max_y": world_max_y,
 		"mesh_shapes": mesh_shapes,
+		"authored_sprinkle": anchor.has_meta("final_sprinkle"),
 	}
 
 

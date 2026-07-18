@@ -83,6 +83,10 @@ func _run() -> void:
 	var world := packed.instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
 	root.add_child(world)
 	await process_frame
+	if world.get_node_or_null("EditableBlocks") != null:
+		push_error("FINAL WORLD POLISH: legacy one-time tool is disabled after editable blocks are authored")
+		quit(2)
+		return
 	var removed_friend := _remove_generated_friend_media(world)
 	var removed_palms := _remove_duplicate_palms(world)
 	var fixed_surfaces := _repair_floating_surfaces(world)
