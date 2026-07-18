@@ -2,7 +2,10 @@ extends Node3D
 
 const CourseLayoutScript := preload("res://scripts/course_layout.gd")
 const WorldBuilderScript := preload("res://scripts/world_builder.gd")
+const MainMenuScene := preload("res://scenes/ui/main_menu_overlay.tscn")
+const TrackMinimapScene := preload("res://scenes/ui/track_minimap.tscn")
 const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
+const MENU_BACKGROUND_PATH := "res://assets/generated/ui/main-menu-synthwave-v1.png"
 const GENERATED_SCENERY_PATHS := [
 	"res://scenes/world/neighborhood_details.tscn",
 ]
@@ -46,6 +49,12 @@ var start_position := Vector3.ZERO
 var countdown_label: Label
 var countdown_time := 3.2
 var go_flash_time := 0.0
+var camera_orbit_yaw := 0.0
+var camera_extra_height := 0.0
+var camera_dragging := false
+var game_started := false
+var minimap: Control
+var main_menu: CanvasLayer
 
 
 func _ready() -> void:
@@ -59,23 +68,34 @@ func _ready() -> void:
 	build_scenery()
 	build_car()
 	build_hud()
+	build_game_ui()
 	build_refuel_client()
 	print("Serega Racing: map course initialized (%.1f m, no obstacles)" % TRACK_LENGTH)
+	var capture_distance := -1.0
+	var capture_path := ""
+	var menu_capture_path := ""
 	for argument in OS.get_cmdline_user_args():
-		var capture_distance := -1.0
 		if argument.begins_with("--screenshot-distance="):
 			capture_distance = float(argument.trim_prefix("--screenshot-distance="))
 		elif argument.begins_with("--screenshot-z="):
 			capture_distance = -float(argument.trim_prefix("--screenshot-z="))
+		elif argument.begins_with("--screenshot="):
+			capture_path = argument.trim_prefix("--screenshot=")
+		elif argument.begins_with("--screenshot-menu="):
+			menu_capture_path = argument.trim_prefix("--screenshot-menu=")
+	if not menu_capture_path.is_empty():
+		capture_qa_screenshot.call_deferred(menu_capture_path)
+	elif not capture_path.is_empty():
+		_start_game()
 		if capture_distance >= 0.0:
 			course_offset = fposmod(capture_distance, TRACK_LENGTH)
+			distance = course_offset
 			var capture_transform := sample_course(course_offset)
 			car.global_position = capture_transform.origin + capture_transform.basis.y * 0.55
 			car.global_transform.basis = capture_transform.basis
 			chase_camera.global_position = car.global_position + capture_transform.basis.z * 10.5 + capture_transform.basis.y * 5.2
 			chase_camera.look_at(car.global_position - capture_transform.basis.z * 5.0 + capture_transform.basis.y * 0.55, capture_transform.basis.y)
-		if argument.begins_with("--screenshot="):
-			capture_qa_screenshot.call_deferred(argument.trim_prefix("--screenshot="))
+		capture_qa_screenshot.call_deferred(capture_path)
 
 
 func capture_qa_screenshot(path: String) -> void:
@@ -86,6 +106,20 @@ func capture_qa_screenshot(path: String) -> void:
 	var error := image.save_png(path)
 	print("QA screenshot: %s (%s)" % [path, error_string(error)])
 	get_tree().quit(0 if error == OK else 1)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not game_started:
+		return
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
+		camera_dragging = event.pressed
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if camera_dragging else Input.MOUSE_MODE_VISIBLE
+		get_viewport().set_input_as_handled()
+	elif event is InputEventMouseMotion and camera_dragging:
+		camera_orbit_yaw = wrapf(camera_orbit_yaw - event.relative.x * 0.006, -PI, PI)
+		# Vertical dragging can return to the standard chase height, but never lower.
+		camera_extra_height = clampf(camera_extra_height - event.relative.y * 0.035, 0.0, 14.0)
+		get_viewport().set_input_as_handled()
 
 
 func sector_window(distance: float, start: float, finish: float, fade: float) -> float:
@@ -398,8 +432,41 @@ func build_scenery() -> void:
 	editable_world.name = "EditableWorld"
 	editable_world.add_to_group("editable_world")
 	add_child(editable_world)
+	_configure_authored_runtime_scenery(editable_world)
 	_load_generated_scenery_overlays(editable_world)
 	_apply_manual_scenery_reservations(editable_world)
+
+
+func _configure_authored_runtime_scenery(editable_world: Node3D) -> void:
+	for vehicle_node in editable_world.find_children("*", "ManualSceneryItem", true, false):
+		var vehicle := vehicle_node as Node3D
+		var catalog_id := str(vehicle.get("catalog_id"))
+		if catalog_id.ends_with("__banner_plane"):
+			vehicle.set("movement_axis", vehicle.transform.basis.x.normalized())
+			vehicle.set("movement_span", 650.0)
+			vehicle.set("movement_speed", 13.0)
+			vehicle.set("movement_bob", 0.6)
+			vehicle.set("movement_enabled", true)
+		elif catalog_id.ends_with("__zeppelin"):
+			vehicle.set("movement_axis", vehicle.transform.basis.x.normalized())
+			vehicle.set("movement_span", 400.0)
+			vehicle.set("movement_speed", 4.0)
+			vehicle.set("movement_bob", 1.2)
+			vehicle.set("movement_enabled", true)
+
+	var motorcycle_carrier := editable_world.get_node_or_null("MotorcycleRiderBillboard") as Node3D
+	if motorcycle_carrier != null:
+		# The editor-saved carrier has a reflected, highly non-uniform basis. Its
+		# poster is two-sided, while the support meshes otherwise disappear due to
+		# reversed triangle winding at runtime.
+		if motorcycle_carrier.transform.basis.determinant() < 0.0:
+			var repaired := motorcycle_carrier.transform
+			repaired.basis.z = -repaired.basis.z
+			motorcycle_carrier.transform = repaired
+		for geometry_node in motorcycle_carrier.find_children("*", "GeometryInstance3D", true, false):
+			var geometry := geometry_node as GeometryInstance3D
+			geometry.visibility_range_end = maxf(geometry.visibility_range_end, 3200.0)
+			geometry.visibility_range_end_margin = maxf(geometry.visibility_range_end_margin, 250.0)
 
 
 func _load_generated_scenery_overlays(editable_world: Node3D) -> void:
@@ -710,15 +777,13 @@ func build_hud() -> void:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 4)
 	margin.add_child(column)
-	var title := make_label("SEREGA GRAND PRIX", 18, Color("ffdf55"))
-	column.add_child(title)
 	timer_label = make_label("00:00.000", 32, Color.WHITE)
 	column.add_child(timer_label)
-	speed_label = make_label("0 KM/H", 48, Color("67e7ff"))
+	speed_label = make_label("0 КМ/Ч", 48, Color("67e7ff"))
 	column.add_child(speed_label)
-	distance_label = make_label("0 / %d M" % int(TRACK_LENGTH), 17, Color("dce5ed"))
+	distance_label = make_label("0 / %d М" % int(TRACK_LENGTH), 17, Color("dce5ed"))
 	column.add_child(distance_label)
-	var fuel_title := make_label("FUEL", 14, Color("b8c4cf"))
+	var fuel_title := make_label("ТОПЛИВО", 14, Color("b8c4cf"))
 	column.add_child(fuel_title)
 	fuel_bar = ProgressBar.new()
 	fuel_bar.custom_minimum_size = Vector2(285, 22)
@@ -726,7 +791,7 @@ func build_hud() -> void:
 	fuel_bar.value = fuel
 	fuel_bar.show_percentage = true
 	column.add_child(fuel_bar)
-	status_label = make_label("WASD DRIVE (S BRAKE/REVERSE) | SPACE BRAKE | F CAMERA FUEL | G DEBUG FILL | R RESET", 16, Color("f2f4f6"))
+	status_label = make_label("WASD — ЕЗДА (S — ТОРМОЗ/ЗАДНИЙ ХОД) | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС", 16, Color("f2f4f6"))
 	status_label.anchor_right = 1.0
 	status_label.anchor_top = 1.0
 	status_label.anchor_bottom = 1.0
@@ -758,6 +823,34 @@ func build_hud() -> void:
 	layer.add_child(countdown_label)
 
 
+func build_game_ui() -> void:
+	var map_layer := CanvasLayer.new()
+	map_layer.name = "MinimapLayer"
+	map_layer.layer = 20
+	add_child(map_layer)
+	minimap = TrackMinimapScene.instantiate() as Control
+	map_layer.add_child(minimap)
+	minimap.call("set_course", course)
+	minimap.visible = false
+
+	main_menu = MainMenuScene.instantiate() as CanvasLayer
+	add_child(main_menu)
+	main_menu.call("set_background_path", MENU_BACKGROUND_PATH)
+	main_menu.connect("start_requested", Callable(self, "_start_game"))
+	main_menu.call_deferred("focus_start_button")
+
+
+func _start_game() -> void:
+	if game_started:
+		return
+	game_started = true
+	if is_instance_valid(main_menu):
+		main_menu.hide()
+	reset_car()
+	minimap.visible = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+
 func build_refuel_client() -> void:
 	refuel_request = HTTPRequest.new()
 	refuel_request.timeout = 75.0
@@ -767,6 +860,12 @@ func build_refuel_client() -> void:
 
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(car):
+		return
+	if not game_started:
+		speed = 0.0
+		car.velocity = Vector3.ZERO
+		update_camera(delta)
+		update_hud()
 		return
 	collision_cooldown = maxf(0.0, collision_cooldown - delta)
 	collision_stop_time = maxf(0.0, collision_stop_time - delta)
@@ -792,7 +891,7 @@ func _physics_process(delta: float) -> void:
 		car.velocity = Vector3.ZERO
 		if countdown_time <= 0.0:
 			go_flash_time = 0.8
-			countdown_label.text = "GO!"
+			countdown_label.text = "СТАРТ!"
 	elif go_flash_time > 0.0:
 		go_flash_time = maxf(0.0, go_flash_time - delta)
 		countdown_label.modulate.a = clampf(go_flash_time * 2.0, 0.0, 1.0)
@@ -882,7 +981,7 @@ func enforce_track_safety(delta: float) -> void:
 		car.global_position = center
 		car.global_transform.basis = frame.basis
 		speed *= 0.35
-		status_label.text = "TRACK RECOVERY | CAR RETURNED TO RACING LINE"
+		status_label.text = "ВОЗВРАТ НА ТРАССУ | МАШИНА ВЕРНУТА НА ГОНОЧНУЮ ЛИНИЮ"
 	elif absf(lateral_distance) > soft_edge:
 		var clamped_lateral := clampf(lateral_distance, -soft_edge, soft_edge)
 		car.global_position -= lateral_axis * (lateral_distance - clamped_lateral)
@@ -931,11 +1030,11 @@ func handle_obstacle_hit(normal := Vector3.ZERO, _incoming := Vector3.ZERO) -> v
 	car.velocity = Vector3.ZERO
 	if shield_hits > 0:
 		shield_hits -= 1
-		status_label.text = "SHIELD ABSORBED DAMAGE | CAR STOPPED"
+		status_label.text = "ЩИТ ПОГЛОТИЛ УДАР | МАШИНА ОСТАНОВЛЕНА"
 	else:
 		fuel = maxf(0.0, fuel - 8.0)
 		elapsed += 2.0
-		status_label.text = "COLLISION | FULL STOP | +2.0 SEC"
+		status_label.text = "СТОЛКНОВЕНИЕ | ПОЛНАЯ ОСТАНОВКА | +2,0 СЕК"
 
 
 func update_progress(delta: float) -> void:
@@ -953,7 +1052,7 @@ func update_progress(delta: float) -> void:
 		race_active = false
 		speed = 0.0
 		finish_portrait.visible = finish_portrait.texture != null
-		status_label.text = "FINISH!  %s  |  PRESS R TO RACE AGAIN" % format_time(elapsed)
+		status_label.text = "ФИНИШ!  %s  |  НАЖМИТЕ R, ЧТОБЫ НАЧАТЬ ЗАНОВО" % format_time(elapsed)
 
 
 func update_camera(delta: float) -> void:
@@ -963,10 +1062,12 @@ func update_camera(delta: float) -> void:
 	# on the entrance grades. Use a closer, lower rig for the complete tunnel zone.
 	var in_tunnel := course.zone_at(course_offset) == "underwater_tunnel"
 	var camera_distance := 8.4 if in_tunnel else 10.5
-	var camera_height := 4.15 if in_tunnel else 5.2
-	var target_position := car.global_position + basis.z * camera_distance + Vector3.UP * camera_height
+	var base_height := 4.15 if in_tunnel else 5.2
+	var allowed_extra_height := 0.0 if in_tunnel else camera_extra_height
+	var orbit_back := basis.z.rotated(Vector3.UP, camera_orbit_yaw)
+	var target_position := car.global_position + orbit_back * camera_distance + Vector3.UP * (base_height + allowed_extra_height)
 	chase_camera.global_position = chase_camera.global_position.lerp(target_position, 1.0 - exp(-delta * 7.0))
-	var look_target := car.global_position - basis.z * 5.0 + Vector3.UP * 0.55
+	var look_target := car.global_position - orbit_back * 3.2 + Vector3.UP * (0.55 + allowed_extra_height * 0.18)
 	chase_camera.look_at(look_target, Vector3.UP)
 	var before := course.tangent_at(course_offset - 8.0)
 	var after := course.tangent_at(course_offset + 8.0)
@@ -975,10 +1076,12 @@ func update_camera(delta: float) -> void:
 
 
 func update_hud() -> void:
-	speed_label.text = ("REV %03d KM/H" % int(absf(speed) * 3.6)) if speed < -0.5 else ("%03d KM/H" % int(speed * 3.6))
+	speed_label.text = ("ЗАД %03d КМ/Ч" % int(absf(speed) * 3.6)) if speed < -0.5 else ("%03d КМ/Ч" % int(speed * 3.6))
 	timer_label.text = format_time(elapsed)
-	distance_label.text = "%04d / %d M" % [int(distance), int(TRACK_LENGTH)]
+	distance_label.text = "%04d / %d М" % [int(distance), int(TRACK_LENGTH)]
 	fuel_bar.value = fuel
+	if is_instance_valid(minimap):
+		minimap.call("set_player_distance", course_offset, TRACK_LENGTH)
 	if fuel < 22.0:
 		fuel_bar.modulate = Color("ff5a5f")
 	elif fuel < 50.0:
@@ -1013,7 +1116,7 @@ func reset_car() -> void:
 	obstacle_block_normal = Vector3.ZERO
 	race_active = true
 	finish_portrait.visible = false
-	status_label.text = "WASD DRIVE (S BRAKE/REVERSE) | SPACE BRAKE | F CAMERA FUEL | G DEBUG FILL | R RESET"
+	status_label.text = "WASD — ЕЗДА (S — ТОРМОЗ/ЗАДНИЙ ХОД) | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС"
 	refuel_in_progress = false
 	refuel_cooldown = 0.0
 	countdown_time = 3.2
@@ -1030,34 +1133,34 @@ func apply_drink_result(color_name: String) -> void:
 	match normalized:
 		"blue", "cyan":
 			shield_hits += 1
-			status_label.text = "BLUE FUEL  |  SHIELD CHARGED"
+			status_label.text = "СИНЕЕ ТОПЛИВО | ЩИТ ЗАРЯЖЕН"
 		"red", "orange":
 			boost_time = 12.0
-			status_label.text = "RED FUEL  |  TURBO BOOST"
+			status_label.text = "КРАСНОЕ ТОПЛИВО | ТУРБОУСКОРЕНИЕ"
 		"purple", "violet":
 			ghost_time = 12.0
-			status_label.text = "PURPLE FUEL  |  GHOST MODE"
+			status_label.text = "ФИОЛЕТОВОЕ ТОПЛИВО | РЕЖИМ ПРИЗРАКА"
 		"green":
 			fuel = minf(100.0, fuel + 20.0)
-			status_label.text = "GREEN FUEL  |  EXTRA REFILL"
+			status_label.text = "ЗЕЛЁНОЕ ТОПЛИВО | ДОПОЛНИТЕЛЬНАЯ ЗАПРАВКА"
 		_:
-			status_label.text = "FUEL ADDED"
+			status_label.text = "ТОПЛИВО ДОБАВЛЕНО"
 
 
 func debug_refill() -> void:
 	fuel = 100.0
-	status_label.text = "DEBUG REFILL | FUEL 100%"
+	status_label.text = "ТЕСТОВАЯ ЗАПРАВКА | ТОПЛИВО 100%"
 
 
 func request_refuel() -> void:
 	if refuel_in_progress:
-		status_label.text = "RACE CONTROL IS ALREADY ANALYZING..."
+		status_label.text = "ГОНОЧНЫЙ ЦЕНТР УЖЕ АНАЛИЗИРУЕТ ВИДЕО..."
 		return
 	if refuel_cooldown > 0.0:
-		status_label.text = "REFUEL SYSTEM COOLING DOWN"
+		status_label.text = "СИСТЕМА ЗАПРАВКИ ОХЛАЖДАЕТСЯ"
 		return
 	refuel_in_progress = true
-	status_label.text = "PIT LIMITER | DRINK NOW | RECORDING 5 SECONDS..."
+	status_label.text = "ПИТ-ЛИМИТЕР | ПЕЙТЕ СЕЙЧАС | ЗАПИСЬ 5 СЕКУНД..."
 	var error := refuel_request.request(
 		"http://127.0.0.1:8765/analyze-drink",
 		PackedStringArray(["Accept: application/json"]),
@@ -1066,7 +1169,7 @@ func request_refuel() -> void:
 	)
 	if error != OK:
 		refuel_in_progress = false
-		status_label.text = "REFUEL SERVICE OFFLINE | START THE PYTHON SERVICE"
+		status_label.text = "СЕРВИС ЗАПРАВКИ НЕДОСТУПЕН | ЗАПУСТИТЕ PYTHON-СЕРВИС"
 
 
 func _on_refuel_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
@@ -1074,14 +1177,14 @@ func _on_refuel_request_completed(result: int, response_code: int, _headers: Pac
 	refuel_cooldown = 8.0
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
 		fuel = minf(100.0, fuel + 10.0)
-		status_label.text = "RACE CONTROL ERROR | EMERGENCY FUEL +10"
+		status_label.text = "ОШИБКА ГОНОЧНОГО ЦЕНТРА | АВАРИЙНОЕ ТОПЛИВО +10"
 		return
 	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
 	if not parsed is Dictionary:
-		status_label.text = "INVALID FUEL REPORT | TRY AGAIN"
+		status_label.text = "НЕВЕРНЫЙ ОТЧЁТ О ТОПЛИВЕ | ПОПРОБУЙТЕ ЕЩЁ РАЗ"
 		return
 	var report: Dictionary = parsed
 	if not bool(report.get("drinking_detected", false)):
-		status_label.text = "NO DRINK DETECTED | TRY AGAIN"
+		status_label.text = "НАПИТОК НЕ ОБНАРУЖЕН | ПОПРОБУЙТЕ ЕЩЁ РАЗ"
 		return
 	apply_drink_result(str(report.get("selected_color", "unknown")))

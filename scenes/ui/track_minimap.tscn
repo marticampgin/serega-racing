@@ -1,0 +1,28 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/track_minimap.gd" id="1_map"]
+
+[node name="TrackMinimap" type="Control"]
+custom_minimum_size = Vector2(310, 230)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -334.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 254.0
+grow_horizontal = 0
+mouse_filter = 2
+script = ExtResource("1_map")
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 0
+offset_left = 18.0
+offset_top = 7.0
+offset_right = 112.0
+offset_bottom = 31.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.75, 0.96, 1, 0.9)
+theme_override_font_sizes/font_size = 14
+text = "КАРТА ТРАССЫ"
