@@ -28,10 +28,19 @@ func _run() -> void:
 	check(not game.get("minimap").visible, "minimap waits for the race")
 	check(game.get("minimap").call("track_point_count") >= 300, "minimap contains the complete sampled track")
 
-	game.call("_start_game")
+	game.get("main_menu").call("_on_start_pressed")
+	check(not bool(game.get("game_started")), "opening car selection does not start the race")
+	check(game.get("car_selector").visible, "Start opens the animated car selector")
+	check(not game.get("main_menu").visible, "car selector replaces the main menu")
+	game.call("_on_car_confirmed", "molniya", Color("20c9e8"))
 	check(bool(game.get("game_started")), "Start begins the race")
 	check(not game.get("main_menu").visible, "Start hides the menu")
+	check(not game.get("car_selector").visible, "confirming a car hides the selector")
 	check(game.get("minimap").visible, "Start reveals the minimap")
+	check(str(game.get("selected_car_id")) == "molniya", "selected car profile reaches gameplay")
+	check(is_equal_approx(float(game.get("car_acceleration_mult")), 1.28), "speed stat changes acceleration")
+	check(is_equal_approx(float(game.get("car_steering_mult")), 0.82), "control stat changes steering")
+	check(is_equal_approx(float(game.get("car_fuel_mult")), 1.22), "efficiency stat changes fuel consumption")
 
 	var plane := world.get_node_or_null("FriendDarkHairBannerPlane") as Node3D
 	var zeppelin := world.get_node_or_null("FriendBeardZeppelin") as Node3D
@@ -62,7 +71,7 @@ func _run() -> void:
 	check(float(game.get("camera_extra_height")) > 0.0, "right-drag can raise the chase camera")
 	motion.relative = Vector2(0.0, 10000.0)
 	game.call("_unhandled_input", motion)
-	check(is_zero_approx(float(game.get("camera_extra_height"))), "camera cannot move below its standard chase height")
+	check(is_equal_approx(float(game.get("camera_extra_height")), -1.4), "camera can move slightly lower but respects its safety limit")
 
 	print("GAMEPLAY FEATURES QA: %d failures" % failures.size())
 	quit(0 if failures.is_empty() else 1)

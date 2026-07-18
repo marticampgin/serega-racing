@@ -4,6 +4,8 @@ const CourseLayoutScript := preload("res://scripts/course_layout.gd")
 const WorldBuilderScript := preload("res://scripts/world_builder.gd")
 const MainMenuScene := preload("res://scenes/ui/main_menu_overlay.tscn")
 const TrackMinimapScene := preload("res://scenes/ui/track_minimap.tscn")
+const CarSelectionScene := preload("res://scenes/ui/car_selection_overlay.tscn")
+const CarFactory := preload("res://scripts/cars/car_visual_factory.gd")
 const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
 const RUNTIME_WORLD_PATH := "res://scenes/world/runtime_world_optimized.scn"
 const MENU_BACKGROUND_PATH := "res://assets/generated/ui/main-menu-synthwave-v1.png"
@@ -56,6 +58,13 @@ var camera_dragging := false
 var game_started := false
 var minimap: Control
 var main_menu: CanvasLayer
+var car_selector: CanvasLayer
+var car_visual: Node3D
+var selected_car_id := "iskra"
+var selected_car_color := Color("e9234f")
+var car_steering_mult := 1.08
+var car_acceleration_mult := 1.0
+var car_fuel_mult := 1.0
 
 
 func _ready() -> void:
@@ -75,6 +84,9 @@ func _ready() -> void:
 	var capture_distance := -1.0
 	var capture_path := ""
 	var menu_capture_path := ""
+	var cars_capture_path := ""
+	var capture_car_index := 0
+	var capture_color_index := 0
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--screenshot-distance="):
 			capture_distance = float(argument.trim_prefix("--screenshot-distance="))
@@ -84,7 +96,18 @@ func _ready() -> void:
 			capture_path = argument.trim_prefix("--screenshot=")
 		elif argument.begins_with("--screenshot-menu="):
 			menu_capture_path = argument.trim_prefix("--screenshot-menu=")
-	if not menu_capture_path.is_empty():
+		elif argument.begins_with("--screenshot-cars="):
+			cars_capture_path = argument.trim_prefix("--screenshot-cars=")
+		elif argument.begins_with("--car-index="):
+			capture_car_index = int(argument.trim_prefix("--car-index="))
+		elif argument.begins_with("--car-color="):
+			capture_color_index = int(argument.trim_prefix("--car-color="))
+	if not cars_capture_path.is_empty():
+		_open_car_selection()
+		car_selector.call("_change_car", capture_car_index)
+		car_selector.call("_select_color", capture_color_index)
+		capture_qa_screenshot.call_deferred(cars_capture_path)
+	elif not menu_capture_path.is_empty():
 		capture_qa_screenshot.call_deferred(menu_capture_path)
 	elif not capture_path.is_empty():
 		_start_game()
@@ -117,9 +140,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if camera_dragging else Input.MOUSE_MODE_VISIBLE
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseMotion and camera_dragging:
-		camera_orbit_yaw = wrapf(camera_orbit_yaw - event.relative.x * 0.006, -PI, PI)
+		camera_orbit_yaw = wrapf(camera_orbit_yaw - event.relative.x * 0.009, -PI, PI)
 		# Vertical dragging can return to the standard chase height, but never lower.
-		camera_extra_height = clampf(camera_extra_height - event.relative.y * 0.035, 0.0, 14.0)
+		camera_extra_height = clampf(camera_extra_height - event.relative.y * 0.055, -1.4, 14.0)
 		get_viewport().set_input_as_handled()
 
 
@@ -717,16 +740,7 @@ func build_car() -> void:
 	body_shape.size = Vector3(1.8, 0.7, 4.1)
 	collider.shape = body_shape
 	car.add_child(collider)
-	var red := make_material(Color("e21f2f"), 0.65, 0.2)
-	var dark := make_material(Color("11151d"), 0.25, 0.28)
-	var accent := make_material(Color("f7d23e"), 0.25, 0.35)
-	add_box(car, Vector3(1.65, 0.5, 3.8), Vector3(0, 0, 0), red)
-	add_box(car, Vector3(0.75, 0.35, 2.0), Vector3(0, 0.35, -0.15), dark)
-	add_box(car, Vector3(2.7, 0.12, 0.55), Vector3(0, 0.02, -2.05), accent)
-	add_box(car, Vector3(2.35, 0.5, 0.2), Vector3(0, 0.55, 1.65), dark)
-	for x in [-1.05, 1.05]:
-		for z in [-1.15, 1.2]:
-			add_box(car, Vector3(0.46, 0.62, 0.85), Vector3(x, -0.05, z), dark)
+	apply_car_selection(selected_car_id, selected_car_color)
 	chase_camera = Camera3D.new()
 	chase_camera.current = true
 	chase_camera.fov = 70.0
@@ -852,8 +866,45 @@ func build_game_ui() -> void:
 	main_menu = MainMenuScene.instantiate() as CanvasLayer
 	add_child(main_menu)
 	main_menu.call("set_background_path", MENU_BACKGROUND_PATH)
-	main_menu.connect("start_requested", Callable(self, "_start_game"))
+	main_menu.connect("start_requested", Callable(self, "_open_car_selection"))
 	main_menu.call_deferred("focus_start_button")
+	car_selector = CarSelectionScene.instantiate() as CanvasLayer
+	add_child(car_selector)
+	car_selector.call("set_background_path", MENU_BACKGROUND_PATH)
+	car_selector.connect("car_confirmed", Callable(self, "_on_car_confirmed"))
+	car_selector.connect("back_requested", Callable(self, "_back_to_main_menu"))
+
+
+func _open_car_selection() -> void:
+	if is_instance_valid(main_menu):
+		main_menu.hide()
+	if is_instance_valid(car_selector):
+		car_selector.call("show_selector")
+
+
+func _back_to_main_menu() -> void:
+	if is_instance_valid(car_selector):
+		car_selector.hide()
+	if is_instance_valid(main_menu):
+		main_menu.show()
+		main_menu.call_deferred("focus_start_button")
+
+
+func _on_car_confirmed(profile_id: String, color: Color) -> void:
+	apply_car_selection(profile_id, color)
+	_start_game()
+
+
+func apply_car_selection(profile_id: String, color: Color) -> void:
+	selected_car_id = profile_id
+	selected_car_color = color
+	var profile: Dictionary = CarFactory.profile(profile_id)
+	car_steering_mult = float(profile.steering_mult)
+	car_acceleration_mult = float(profile.acceleration_mult)
+	car_fuel_mult = float(profile.fuel_mult)
+	if is_instance_valid(car_visual):
+		car_visual.queue_free()
+	car_visual = CarFactory.build(car, selected_car_id, selected_car_color)
 
 
 func _start_game() -> void:
@@ -862,6 +913,8 @@ func _start_game() -> void:
 	game_started = true
 	if is_instance_valid(main_menu):
 		main_menu.hide()
+	if is_instance_valid(car_selector):
+		car_selector.hide()
 	reset_car()
 	minimap.visible = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -944,7 +997,7 @@ func update_car(delta: float) -> void:
 	var progress := clampf(distance / TRACK_LENGTH, 0.0, 1.0)
 	speed = compute_drive_speed(speed, throttle, reverse_pressed, hard_braking, progress, delta)
 	var speed_ratio := clampf(absf(speed) / 110.0, 0.0, 1.0)
-	var steering_rate := lerpf(2.35, 0.78, speed_ratio)
+	var steering_rate := lerpf(2.35, 0.78, speed_ratio) * car_steering_mult
 	if absf(steer) > 0.01 and (absf(speed) > 0.6 or (obstacle_slide_time > 0.0 and throttle > 0.0)):
 		var reverse_steering := -1.0 if speed < 0.0 else 1.0
 		car.rotate_y(-steer * reverse_steering * steering_rate * delta)
@@ -1014,7 +1067,7 @@ func enforce_track_safety(delta: float) -> void:
 
 func compute_drive_speed(current_speed: float, throttle: float, reverse_pressed: bool, hard_braking: bool, progress: float, delta: float) -> float:
 	# Holding W continues to accelerate; tapering keeps extreme speeds controllable.
-	var acceleration := (18.0 + progress * 3.0) / (1.0 + maxf(current_speed, 0.0) / 105.0)
+	var acceleration := ((18.0 + progress * 3.0) * car_acceleration_mult) / (1.0 + maxf(current_speed, 0.0) / 105.0)
 	if boost_time > 0.0:
 		acceleration *= 1.75
 	if fuel <= 0.0:
@@ -1063,7 +1116,7 @@ func update_progress(delta: float) -> void:
 		offset_delta += TRACK_LENGTH
 	course_offset = next_offset
 	distance = clampf(distance + offset_delta, 0.0, TRACK_LENGTH)
-	fuel = maxf(0.0, fuel - delta * (1.0 + distance / TRACK_LENGTH * 0.5))
+	fuel = maxf(0.0, fuel - delta * (1.0 + distance / TRACK_LENGTH * 0.5) * car_fuel_mult)
 	if distance >= TRACK_LENGTH - 2.0:
 		race_active = false
 		speed = 0.0
@@ -1079,10 +1132,10 @@ func update_camera(delta: float) -> void:
 	var in_tunnel := course.zone_at(course_offset) == "underwater_tunnel"
 	var camera_distance := 8.4 if in_tunnel else 10.5
 	var base_height := 4.15 if in_tunnel else 5.2
-	var allowed_extra_height := 0.0 if in_tunnel else camera_extra_height
+	var allowed_extra_height := clampf(camera_extra_height, -0.8, 0.0) if in_tunnel else camera_extra_height
 	var orbit_back := basis.z.rotated(Vector3.UP, camera_orbit_yaw)
 	var target_position := car.global_position + orbit_back * camera_distance + Vector3.UP * (base_height + allowed_extra_height)
-	chase_camera.global_position = chase_camera.global_position.lerp(target_position, 1.0 - exp(-delta * 7.0))
+	chase_camera.global_position = chase_camera.global_position.lerp(target_position, 1.0 - exp(-delta * 11.0))
 	var look_target := car.global_position - orbit_back * 3.2 + Vector3.UP * (0.55 + allowed_extra_height * 0.18)
 	chase_camera.look_at(look_target, Vector3.UP)
 	var before := course.tangent_at(course_offset - 8.0)
