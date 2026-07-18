@@ -21,6 +21,10 @@ func _migrate() -> void:
 	var world := packed.instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE) as Node3D
 	root.add_child(world)
 	if world.get_node_or_null("EditableBlocks") != null:
+		if "--repair-selection" in OS.get_cmdline_user_args():
+			_repair_block_selection(world)
+			quit(0)
+			return
 		push_error("FULLY EDITABLE WORLD: EditableBlocks already exists; refusing to overwrite authored block edits")
 		quit(2)
 		return
@@ -120,7 +124,6 @@ func _migrate() -> void:
 		block.position = _centre_of(combined)
 		block.add_to_group("editable_neighborhood_block", true)
 		block.set_meta("copy_as_unit", true)
-		block.set_meta("_edit_group_", false)
 		blocks_root.add_child(block)
 		block.owner = world
 		var buildings_folder := Node3D.new()
@@ -179,6 +182,27 @@ func _centre_of(nodes: Array[Node3D]) -> Vector3:
 func _safe_block_name(block_id: String) -> String:
 	var result := block_id.to_pascal_case()
 	return result if not result.is_empty() else "EditableBlock"
+
+
+func _repair_block_selection(world: Node3D) -> void:
+	var repaired := 0
+	for value in world.find_children("*", "Node3D", true, false):
+		var node := value as Node3D
+		if not node.is_in_group("editable_neighborhood_block"):
+			continue
+		if node.has_meta("_edit_group_"):
+			node.remove_meta("_edit_group_")
+			repaired += 1
+	var output := PackedScene.new()
+	var pack_error := output.pack(world)
+	if pack_error != OK:
+		push_error("FULLY EDITABLE WORLD: selection repair pack failed: %s" % error_string(pack_error))
+		return
+	var save_error := ResourceSaver.save(output, WORLD_PATH)
+	if save_error != OK:
+		push_error("FULLY EDITABLE WORLD: selection repair save failed: %s" % error_string(save_error))
+		return
+	print("FULLY EDITABLE WORLD: removed parent-selection metadata from %d block roots" % repaired)
 
 
 func _set_owned(node: Node, scene_owner: Node) -> void:

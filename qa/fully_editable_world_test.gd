@@ -49,7 +49,7 @@ func _run() -> void:
 		var block := value as Node3D
 		hierarchy_valid = hierarchy_valid and block.get_node_or_null("Buildings") != null and block.get_node_or_null("Decor") != null
 		hierarchy_valid = hierarchy_valid and bool(block.get_meta("copy_as_unit", false))
-		hierarchy_valid = hierarchy_valid and not bool(block.get_meta("_edit_group_", true))
+		hierarchy_valid = hierarchy_valid and not block.has_meta("_edit_group_")
 	for detail in detail_roots:
 		details_editable = details_editable and bool(detail.get_meta("_edit_group_", false))
 		details_editable = details_editable and detail.owner == world
