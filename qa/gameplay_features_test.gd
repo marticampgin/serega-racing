@@ -38,9 +38,17 @@ func _run() -> void:
 	check(not game.get("car_selector").visible, "confirming a car hides the selector")
 	check(game.get("minimap").visible, "Start reveals the minimap")
 	check(str(game.get("selected_car_id")) == "molniya", "selected car profile reaches gameplay")
-	check(is_equal_approx(float(game.get("car_acceleration_mult")), 1.28), "speed stat changes acceleration")
+	check(is_equal_approx(float(game.get("car_acceleration_mult")), 1.34), "acceleration stat changes acceleration")
 	check(is_equal_approx(float(game.get("car_steering_mult")), 0.82), "control stat changes steering")
 	check(is_equal_approx(float(game.get("car_fuel_mult")), 1.22), "efficiency stat changes fuel consumption")
+	check(is_equal_approx(float(game.get("car_damage_mult")), 1.18), "tolerance stat changes collision penalties")
+	check(is_equal_approx(float(game.get("car_max_speed_mps")) * 3.6, 650.0), "maximum-speed stat reaches gameplay")
+	var capped := float(game.call("compute_drive_speed", 999.0, 1.0, false, false, 0.5, 0.1))
+	check(capped <= float(game.get("car_max_speed_mps")), "drive speed respects the selected car cap")
+	game.call("_pause_game")
+	check(paused and game.get("pause_menu").visible, "Escape pause stops the race and shows its menu")
+	game.call("_resume_game")
+	check(not paused and not game.get("pause_menu").visible, "Continue returns to the race")
 
 	var plane := world.get_node_or_null("FriendDarkHairBannerPlane") as Node3D
 	var zeppelin := world.get_node_or_null("FriendBeardZeppelin") as Node3D

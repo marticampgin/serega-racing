@@ -11,10 +11,8 @@ signal exit_requested
 @export_file("*.png", "*.jpg", "*.jpeg", "*.webp") var background_texture_path := ""
 @export var hide_on_start := true
 @export var exit_quits_tree := true
-@export_range(0.0, 24.0, 0.1) var background_drift_pixels := 9.0
-@export_range(0.0, 2.0, 0.01) var background_drift_speed := 0.18
-
 @onready var _backdrop: TextureRect = %Backdrop
+@onready var _sun_glow: ColorRect = %SunGlow
 @onready var _start_button: Button = %StartButton
 @onready var _exit_button: Button = %ExitButton
 
@@ -29,13 +27,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_elapsed += delta
-	if not is_instance_valid(_backdrop):
-		return
-	var drift := Vector2(
-		sin(_elapsed * background_drift_speed) * background_drift_pixels,
-		cos(_elapsed * background_drift_speed * 0.73) * background_drift_pixels * 0.45
-	)
-	_backdrop.position = Vector2(-background_drift_pixels, -background_drift_pixels) + drift
+	if is_instance_valid(_sun_glow) and _sun_glow.material is ShaderMaterial:
+		var pulse := 0.5 + 0.5 * sin(_elapsed * 1.15)
+		(_sun_glow.material as ShaderMaterial).set_shader_parameter("strength", lerpf(0.16, 0.34, pulse))
 
 
 func set_background_texture(texture: Texture2D) -> void:

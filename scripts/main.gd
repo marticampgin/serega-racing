@@ -6,6 +6,7 @@ const MainMenuScene := preload("res://scenes/ui/main_menu_overlay.tscn")
 const TrackMinimapScene := preload("res://scenes/ui/track_minimap.tscn")
 const CarSelectionScene := preload("res://scenes/ui/car_selection_overlay.tscn")
 const CarFactory := preload("res://scripts/cars/car_visual_factory.gd")
+const PauseMenuScript := preload("res://scripts/ui/pause_menu_overlay.gd")
 const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
 const RUNTIME_WORLD_PATH := "res://scenes/world/runtime_world_optimized.scn"
 const MENU_BACKGROUND_PATH := "res://assets/generated/ui/main-menu-synthwave-v1.png"
@@ -23,7 +24,7 @@ var TRACK_LENGTH := 0.0
 var car: CharacterBody3D
 var chase_camera: Camera3D
 var speed := 0.0
-var base_max_speed := 43.0 # Retained for QA/API compatibility; forward speed has no hard cap.
+var base_max_speed := 500.0 / 3.6 # Selected profile's real forward-speed cap.
 var fuel := 100.0
 var elapsed := 0.0
 var distance := 0.0
@@ -59,12 +60,16 @@ var game_started := false
 var minimap: Control
 var main_menu: CanvasLayer
 var car_selector: CanvasLayer
+var pause_menu: CanvasLayer
 var car_visual: Node3D
+var car_collider: CollisionShape3D
 var selected_car_id := "iskra"
 var selected_car_color := Color("e9234f")
 var car_steering_mult := 1.08
 var car_acceleration_mult := 1.0
 var car_fuel_mult := 1.0
+var car_damage_mult := 1.0
+var car_max_speed_mps := 500.0 / 3.6
 
 
 func _ready() -> void:
@@ -85,6 +90,7 @@ func _ready() -> void:
 	var capture_path := ""
 	var menu_capture_path := ""
 	var cars_capture_path := ""
+	var pause_capture_path := ""
 	var capture_car_index := 0
 	var capture_color_index := 0
 	for argument in OS.get_cmdline_user_args():
@@ -98,6 +104,8 @@ func _ready() -> void:
 			menu_capture_path = argument.trim_prefix("--screenshot-menu=")
 		elif argument.begins_with("--screenshot-cars="):
 			cars_capture_path = argument.trim_prefix("--screenshot-cars=")
+		elif argument.begins_with("--screenshot-pause="):
+			pause_capture_path = argument.trim_prefix("--screenshot-pause=")
 		elif argument.begins_with("--car-index="):
 			capture_car_index = int(argument.trim_prefix("--car-index="))
 		elif argument.begins_with("--car-color="):
@@ -107,6 +115,10 @@ func _ready() -> void:
 		car_selector.call("_change_car", capture_car_index)
 		car_selector.call("_select_color", capture_color_index)
 		capture_qa_screenshot.call_deferred(cars_capture_path)
+	elif not pause_capture_path.is_empty():
+		_start_game()
+		_pause_game()
+		capture_qa_screenshot.call_deferred(pause_capture_path)
 	elif not menu_capture_path.is_empty():
 		capture_qa_screenshot.call_deferred(menu_capture_path)
 	elif not capture_path.is_empty():
@@ -135,7 +147,10 @@ func capture_qa_screenshot(path: String) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not game_started:
 		return
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
+	if event.is_action_pressed("ui_cancel"):
+		_pause_game()
+		get_viewport().set_input_as_handled()
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
 		camera_dragging = event.pressed
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if camera_dragging else Input.MOUSE_MODE_VISIBLE
 		get_viewport().set_input_as_handled()
@@ -735,11 +750,11 @@ func build_car() -> void:
 	start_position = start_frame.origin + start_frame.basis.y * 0.55
 	car.transform = Transform3D(start_frame.basis, start_position)
 	add_child(car)
-	var collider := CollisionShape3D.new()
+	car_collider = CollisionShape3D.new()
 	var body_shape := BoxShape3D.new()
 	body_shape.size = Vector3(1.8, 0.7, 4.1)
-	collider.shape = body_shape
-	car.add_child(collider)
+	car_collider.shape = body_shape
+	car.add_child(car_collider)
 	apply_car_selection(selected_car_id, selected_car_color)
 	chase_camera = Camera3D.new()
 	chase_camera.current = true
@@ -821,7 +836,7 @@ func build_hud() -> void:
 	fuel_bar.value = fuel
 	fuel_bar.show_percentage = true
 	column.add_child(fuel_bar)
-	status_label = make_label("WASD — ЕЗДА | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС", 16, Color("f2f4f6"))
+	status_label = make_label("WASD — ЕЗДА | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | ESC — ПАУЗА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС", 16, Color("f2f4f6"))
 	status_label.anchor_right = 1.0
 	status_label.anchor_top = 1.0
 	status_label.anchor_bottom = 1.0
@@ -873,6 +888,10 @@ func build_game_ui() -> void:
 	car_selector.call("set_background_path", MENU_BACKGROUND_PATH)
 	car_selector.connect("car_confirmed", Callable(self, "_on_car_confirmed"))
 	car_selector.connect("back_requested", Callable(self, "_back_to_main_menu"))
+	pause_menu = PauseMenuScript.new()
+	add_child(pause_menu)
+	pause_menu.connect("resume_requested", Callable(self, "_resume_game"))
+	pause_menu.connect("exit_requested", Callable(self, "_exit_game"))
 
 
 func _open_car_selection() -> void:
@@ -902,6 +921,11 @@ func apply_car_selection(profile_id: String, color: Color) -> void:
 	car_steering_mult = float(profile.steering_mult)
 	car_acceleration_mult = float(profile.acceleration_mult)
 	car_fuel_mult = float(profile.fuel_mult)
+	car_damage_mult = float(profile.damage_mult)
+	car_max_speed_mps = float(profile.max_speed_kmh) / 3.6
+	base_max_speed = car_max_speed_mps
+	if is_instance_valid(car_collider) and car_collider.shape is BoxShape3D:
+		(car_collider.shape as BoxShape3D).size = profile.collider_size
 	if is_instance_valid(car_visual):
 		car_visual.queue_free()
 	car_visual = CarFactory.build(car, selected_car_id, selected_car_color)
@@ -918,6 +942,26 @@ func _start_game() -> void:
 	reset_car()
 	minimap.visible = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+
+func _pause_game() -> void:
+	if not game_started or get_tree().paused:
+		return
+	camera_dragging = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	get_tree().paused = true
+	pause_menu.call("show_pause")
+
+
+func _resume_game() -> void:
+	get_tree().paused = false
+	if is_instance_valid(pause_menu):
+		pause_menu.hide()
+
+
+func _exit_game() -> void:
+	get_tree().paused = false
+	get_tree().quit()
 
 
 func build_refuel_client() -> void:
@@ -1049,7 +1093,12 @@ func enforce_track_safety(delta: float) -> void:
 		# Local-offset recovery cannot jump to the wrong branch at Loop 3's crossing.
 		car.global_position = center
 		car.global_transform.basis = frame.basis
-		speed *= 0.35
+		var retained_speed := lerpf(0.24, 0.58, clampf((1.25 - car_damage_mult) / 0.95, 0.0, 1.0))
+		speed *= retained_speed
+		if collision_cooldown <= 0.0:
+			fuel = maxf(0.0, fuel - 2.0 * car_damage_mult)
+			elapsed += 0.4 * car_damage_mult
+			collision_cooldown = 0.65
 		status_label.text = "ВОЗВРАТ НА ТРАССУ | МАШИНА ВЕРНУТА НА ГОНОЧНУЮ ЛИНИЮ"
 	elif absf(lateral_distance) > soft_edge:
 		var clamped_lateral := clampf(lateral_distance, -soft_edge, soft_edge)
@@ -1066,14 +1115,14 @@ func enforce_track_safety(delta: float) -> void:
 
 
 func compute_drive_speed(current_speed: float, throttle: float, reverse_pressed: bool, hard_braking: bool, progress: float, delta: float) -> float:
-	# Holding W continues to accelerate; tapering keeps extreme speeds controllable.
-	var acceleration := ((18.0 + progress * 3.0) * car_acceleration_mult) / (1.0 + maxf(current_speed, 0.0) / 105.0)
+	# Acceleration controls time-to-cap; max speed is a genuine per-car limit.
+	var acceleration := (18.0 + progress * 3.0) * car_acceleration_mult
 	if boost_time > 0.0:
 		acceleration *= 1.75
 	if fuel <= 0.0:
 		throttle = minf(throttle, 0.35)
 	if throttle > 0.0:
-		current_speed = move_toward(current_speed, 0.0, 34.0 * delta) if current_speed < 0.0 else current_speed + acceleration * delta
+		current_speed = move_toward(current_speed, 0.0, 34.0 * delta) if current_speed < 0.0 else move_toward(current_speed, car_max_speed_mps, acceleration * delta)
 	elif reverse_pressed:
 		# S brakes forward motion first and only selects reverse near a standstill.
 		current_speed = move_toward(current_speed, 0.0, 42.0 * delta) if current_speed > 0.5 else move_toward(current_speed, -15.0, 11.0 * delta)
@@ -1081,8 +1130,7 @@ func compute_drive_speed(current_speed: float, throttle: float, reverse_pressed:
 		current_speed = move_toward(current_speed, 0.0, 5.5 * delta)
 	if hard_braking:
 		current_speed = move_toward(current_speed, 0.0, 55.0 * delta)
-	# Numerical/physics guard only; normal play never reaches this value.
-	return clampf(current_speed, -15.0, 300.0)
+	return clampf(current_speed, -15.0, car_max_speed_mps)
 
 
 func handle_obstacle_hit(normal := Vector3.ZERO, _incoming := Vector3.ZERO) -> void:
@@ -1092,18 +1140,20 @@ func handle_obstacle_hit(normal := Vector3.ZERO, _incoming := Vector3.ZERO) -> v
 	if collision_cooldown > 0.0:
 		obstacle_slide_time = maxf(obstacle_slide_time, 0.25)
 		return
-	collision_cooldown = 0.9
-	collision_stop_time = 0.14
-	obstacle_slide_time = 0.9
+	collision_cooldown = 0.55 + 0.35 * car_damage_mult
+	collision_stop_time = 0.06 + 0.08 * car_damage_mult
+	obstacle_slide_time = 0.72 + 0.18 * car_damage_mult
 	speed = 0.0
 	car.velocity = Vector3.ZERO
 	if shield_hits > 0:
 		shield_hits -= 1
 		status_label.text = "ЩИТ ПОГЛОТИЛ УДАР | МАШИНА ОСТАНОВЛЕНА"
 	else:
-		fuel = maxf(0.0, fuel - 8.0)
-		elapsed += 2.0
-		status_label.text = "СТОЛКНОВЕНИЕ | ПОЛНАЯ ОСТАНОВКА | +2,0 СЕК"
+		var fuel_penalty := 8.0 * car_damage_mult
+		var time_penalty := 2.0 * car_damage_mult
+		fuel = maxf(0.0, fuel - fuel_penalty)
+		elapsed += time_penalty
+		status_label.text = "СТОЛКНОВЕНИЕ | ПОЛНАЯ ОСТАНОВКА | +%.1f СЕК" % time_penalty
 
 
 func update_progress(delta: float) -> void:
@@ -1185,7 +1235,7 @@ func reset_car() -> void:
 	obstacle_block_normal = Vector3.ZERO
 	race_active = true
 	finish_portrait.visible = false
-	status_label.text = "WASD — ЕЗДА | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС"
+	status_label.text = "WASD — ЕЗДА | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | ESC — ПАУЗА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС"
 	refuel_in_progress = false
 	refuel_cooldown = 0.0
 	countdown_time = 3.2

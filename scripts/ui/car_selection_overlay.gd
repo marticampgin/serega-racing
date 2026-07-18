@@ -14,8 +14,15 @@ var name_label: Label
 var subtitle_label: Label
 var description_label: Label
 var stat_bars: Array[ProgressBar] = []
+var stat_labels: Array[Label] = []
 var color_buttons: Array[Button] = []
 var background: TextureRect
+var position_label: Label
+var lock_label: Label
+var code_edit: LineEdit
+var code_status: Label
+var confirm_button: Button
+var unlocked_cars := {}
 
 
 func _ready() -> void:
@@ -84,7 +91,7 @@ func _build_interface() -> void:
 
 	var info := VBoxContainer.new()
 	info.custom_minimum_size = Vector2(430, 0)
-	info.add_theme_constant_override("separation", 14)
+	info.add_theme_constant_override("separation", 7)
 	layout.add_child(info)
 	name_label = _label("", 38, Color.WHITE)
 	info.add_child(name_label)
@@ -92,31 +99,49 @@ func _build_interface() -> void:
 	info.add_child(subtitle_label)
 	description_label = _label("", 17, Color("d9d3ec"))
 	description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	description_label.custom_minimum_size = Vector2(400, 78)
+	description_label.custom_minimum_size = Vector2(400, 56)
 	info.add_child(description_label)
-	for stat in ["УПРАВЛЕНИЕ", "СКОРОСТЬ", "ЭКОНОМИЧНОСТЬ"]:
-		info.add_child(_label(stat, 15, Color("b9c8e8")))
+	for stat in ["УПРАВЛЕНИЕ", "МАКС. СКОРОСТЬ", "РАЗГОН", "ЭКОНОМИЧНОСТЬ", "ПРОЧНОСТЬ"]:
+		var stat_label := _label(stat, 13, Color("b9c8e8"))
+		info.add_child(stat_label)
+		stat_labels.append(stat_label)
 		var bar := ProgressBar.new()
 		bar.max_value = 5.0
 		bar.show_percentage = false
-		bar.custom_minimum_size = Vector2(390, 18)
+		bar.custom_minimum_size = Vector2(390, 12)
 		bar.add_theme_stylebox_override("background", _panel_style(Color(0.12, 0.08, 0.2, 0.9), Color(0,0,0,0), 6))
 		bar.add_theme_stylebox_override("fill", _panel_style(Color("d72f91"), Color("ff88cf"), 6))
 		info.add_child(bar)
 		stat_bars.append(bar)
-	info.add_child(_label("ЦВЕТ КУЗОВА", 15, Color("b9c8e8")))
+	info.add_child(_label("ЦВЕТ КУЗОВА", 13, Color("b9c8e8")))
 	var colors := HBoxContainer.new()
 	colors.add_theme_constant_override("separation", 10)
 	info.add_child(colors)
 	for index in CarFactory.COLORS.size():
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(48, 48)
+		button.custom_minimum_size = Vector2(42, 42)
 		button.add_theme_stylebox_override("normal", _swatch_style(CarFactory.COLORS[index], false))
 		button.add_theme_stylebox_override("hover", _swatch_style(CarFactory.COLORS[index].lightened(0.15), true))
 		button.add_theme_stylebox_override("pressed", _swatch_style(CarFactory.COLORS[index], true))
 		button.pressed.connect(_select_color.bind(index))
 		colors.add_child(button)
 		color_buttons.append(button)
+	var unlock_row := HBoxContainer.new()
+	unlock_row.add_theme_constant_override("separation", 8)
+	info.add_child(unlock_row)
+	code_edit = LineEdit.new()
+	code_edit.placeholder_text = "СЕКРЕТНЫЙ КОД"
+	code_edit.custom_minimum_size = Vector2(245, 42)
+	code_edit.add_theme_font_size_override("font_size", 16)
+	code_edit.secret = true
+	code_edit.text_submitted.connect(func(_value: String): _try_unlock())
+	unlock_row.add_child(code_edit)
+	var unlock := _button("ОТКРЫТЬ", 15)
+	unlock.custom_minimum_size = Vector2(135, 42)
+	unlock.pressed.connect(_try_unlock)
+	unlock_row.add_child(unlock)
+	code_status = _label("", 13, Color("7deaff"))
+	info.add_child(code_status)
 
 	var preview_column := VBoxContainer.new()
 	preview_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -126,8 +151,9 @@ func _build_interface() -> void:
 	preview_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	preview_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	preview_column.add_child(preview_row)
-	var left := _button("‹", 54)
-	left.custom_minimum_size = Vector2(76, 120)
+	var left := _button("‹", 32)
+	left.custom_minimum_size = Vector2(58, 58)
+	left.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	left.pressed.connect(_change_car.bind(-1))
 	preview_row.add_child(left)
 	var container := SubViewportContainer.new()
@@ -136,12 +162,15 @@ func _build_interface() -> void:
 	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	preview_row.add_child(container)
 	_build_preview(container)
-	var right := _button("›", 54)
-	right.custom_minimum_size = Vector2(76, 120)
+	var right := _button("›", 32)
+	right.custom_minimum_size = Vector2(58, 58)
+	right.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	right.pressed.connect(_change_car.bind(1))
 	preview_row.add_child(right)
-	var dots := _label("1  •  2  •  3", 18, Color("8eefff"), HORIZONTAL_ALIGNMENT_CENTER)
-	preview_column.add_child(dots)
+	position_label = _label("", 18, Color("8eefff"), HORIZONTAL_ALIGNMENT_CENTER)
+	preview_column.add_child(position_label)
+	lock_label = _label("", 22, Color("ffe35a"), HORIZONTAL_ALIGNMENT_CENTER)
+	preview_column.add_child(lock_label)
 
 	var actions := HBoxContainer.new()
 	actions.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -151,10 +180,10 @@ func _build_interface() -> void:
 	back.custom_minimum_size = Vector2(190, 58)
 	back.pressed.connect(_on_back)
 	actions.add_child(back)
-	var confirm := _button("ВЫБРАТЬ И НАЧАТЬ", 21, true)
-	confirm.custom_minimum_size = Vector2(330, 58)
-	confirm.pressed.connect(_on_confirm)
-	actions.add_child(confirm)
+	confirm_button = _button("ВЫБРАТЬ И НАЧАТЬ", 21, true)
+	confirm_button.custom_minimum_size = Vector2(330, 58)
+	confirm_button.pressed.connect(_on_confirm)
+	actions.add_child(confirm_button)
 
 
 func _build_preview(container: SubViewportContainer) -> void:
@@ -231,7 +260,15 @@ func _refresh_selection() -> void:
 	description_label.text = str(profile.description)
 	stat_bars[0].value = float(profile.control)
 	stat_bars[1].value = float(profile.speed)
-	stat_bars[2].value = float(profile.efficiency)
+	stat_bars[2].value = float(profile.acceleration)
+	stat_bars[3].value = float(profile.efficiency)
+	stat_bars[4].value = float(profile.tolerance)
+	stat_labels[1].text = "МАКС. СКОРОСТЬ — %d КМ/Ч" % int(profile.max_speed_kmh)
+	position_label.text = "%d / %d" % [selected_car + 1, CarFactory.PROFILES.size()]
+	var locked := bool(profile.get("locked", false)) and not unlocked_cars.has(str(profile.id))
+	lock_label.text = "ЗАБЛОКИРОВАНО — НУЖЕН КОД" if locked else ""
+	confirm_button.disabled = locked
+	confirm_button.text = "ЗАБЛОКИРОВАНО" if locked else "ВЫБРАТЬ И НАЧАТЬ"
 	for index in color_buttons.size():
 		color_buttons[index].add_theme_stylebox_override("normal", _swatch_style(CarFactory.COLORS[index], index == selected_color))
 	for child in preview_root.get_children():
@@ -241,9 +278,23 @@ func _refresh_selection() -> void:
 
 func _on_confirm() -> void:
 	var profile: Dictionary = CarFactory.PROFILES[selected_car]
+	if bool(profile.get("locked", false)) and not unlocked_cars.has(str(profile.id)):
+		return
 	car_confirmed.emit(str(profile.id), CarFactory.COLORS[selected_color])
 	_set_preview_active(false)
 	hide()
+
+
+func _try_unlock() -> void:
+	if code_edit.text == "LILPOC_":
+		unlocked_cars["lilpoc"] = true
+		code_status.text = "LILPOC РАЗБЛОКИРОВАН"
+		code_status.add_theme_color_override("font_color", Color("70ef88"))
+		code_edit.clear()
+		_refresh_selection()
+	else:
+		code_status.text = "НЕВЕРНЫЙ КОД"
+		code_status.add_theme_color_override("font_color", Color("ff6a86"))
 
 
 func _on_back() -> void:

@@ -17,10 +17,12 @@ func check(condition: bool, message: String) -> void:
 
 
 func _run() -> void:
-	check(CarFactory.PROFILES.size() == 3, "three car profiles are available")
-	check(CarFactory.COLORS.size() >= 6, "cars offer a useful color palette")
+	check(CarFactory.PROFILES.size() == 6, "five bolids and one secret SUV are available")
+	check(CarFactory.COLORS.size() >= 7, "cars offer a useful color palette including black")
 	var signatures: Dictionary = {}
 	for profile in CarFactory.PROFILES:
+		check(float(profile.max_speed_kmh) >= 450.0, "%s has at least a 450 km/h maximum" % profile.name)
+		check(int(profile.acceleration) >= 1 and int(profile.tolerance) >= 1, "%s defines acceleration and damage tolerance" % profile.name)
 		var holder := Node3D.new()
 		root.add_child(holder)
 		var visual := CarFactory.build(holder, str(profile.id), CarFactory.COLORS[0])
@@ -33,7 +35,7 @@ func _run() -> void:
 		signatures[signature] = true
 		check(meshes.size() >= 10, "%s has a complete low-poly visual" % profile.name)
 		holder.queue_free()
-	check(signatures.size() == 3, "all three cars have distinct silhouettes")
+	check(signatures.size() == 6, "all six cars have distinct silhouettes")
 
 	var selector_scene := load("res://scenes/ui/car_selection_overlay.tscn") as PackedScene
 	var selector := selector_scene.instantiate()
@@ -48,6 +50,15 @@ func _run() -> void:
 	check(int(selector.get("selected_car")) == 1, "selection arrows change the car")
 	selector.call("_select_color", 3)
 	check(int(selector.get("selected_color")) == 3, "color swatches change the body color")
+	selector.set("selected_car", 5)
+	selector.call("_refresh_selection")
+	check(selector.get("confirm_button").disabled, "secret SUV starts locked")
+	selector.get("code_edit").text = "wrong"
+	selector.call("_try_unlock")
+	check(selector.get("confirm_button").disabled, "wrong code does not unlock the SUV")
+	selector.get("code_edit").text = "LILPOC_"
+	selector.call("_try_unlock")
+	check(not selector.get("confirm_button").disabled, "exact easter-egg code unlocks the SUV")
 
 	print("CAR SELECTION QA: %d failures" % failures.size())
 	quit(0 if failures.is_empty() else 1)
