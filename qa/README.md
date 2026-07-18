@@ -98,3 +98,15 @@ Verify all 52 small props and the complete 11-artwork x 5-carrier media matrix:
 ```powershell
 .\godot\Godot_v4.7-stable_win64_console.exe --path . --headless --rendering-method gl_compatibility --script res://qa/manual_scenery_expansion_test.gd
 ```
+### Optimized runtime world
+
+After changing `scenes/world/editable_world.tscn`, rebuild the generated play-only
+artifact and verify that friend media/external presets survive compaction:
+
+```powershell
+.\godot\Godot_v4.7-stable_win64_console.exe --headless --path . --script res://tools/build_optimized_runtime_world.gd
+.\godot\Godot_v4.7-stable_win64_console.exe --headless --path . --script res://qa/runtime_world_optimization_test.gd
+```
+
+`runtime_world_optimized.scn` is generated. Continue editing only
+`editable_world.tscn`; the build tool never writes to the authoring scene.

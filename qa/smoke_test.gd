@@ -62,6 +62,8 @@ func _run() -> void:
 	root.add_child(race)
 	await process_frame
 	await process_frame
+	var runtime_world := race.get_node_or_null("EditableWorld")
+	var optimized_runtime := runtime_world != null and bool(runtime_world.get_meta("runtime_optimized", false))
 
 	check(race is Node3D, "main scene instantiates as a 3D race")
 	var car := race.get_node_or_null("PlayerCar") as CharacterBody3D
@@ -74,12 +76,17 @@ func _run() -> void:
 	check(get_nodes_in_group("rock_scenery").is_empty(), "legacy giant rock-cone scenery is absent")
 	check(count_oversized_cones(race) == 0, "no oversized cone meshes masquerade as scenery")
 	check(get_nodes_in_group("ocean_scenery").size() == 1, "continuous island ocean exists")
-	check(get_nodes_in_group("palm_scenery").size() > 40, "palms populate the island course")
-	check(get_nodes_in_group("lamp_scenery").size() > 20, "neon lamp posts populate the course")
-	check(get_nodes_in_group("house_scenery").size() > 20, "Miami-style beach houses populate the course")
-	check(get_nodes_in_group("hotel_scenery").size() >= 2, "larger art-deco hotels punctuate the skyline")
-	check(get_nodes_in_group("shop_scenery").size() >= 8, "multiple storefronts make commercial sectors lively")
-	check(get_nodes_in_group("building_layout").size() >= 192, "planned building rows create recognizable neighborhoods")
+	if optimized_runtime:
+		# Runtime batching intentionally collapses per-prop group identities. Exact
+		# source/catalog preservation is covered by runtime_world_optimization_test.
+		check(get_nodes_in_group("runtime_static_batch").size() > 1000, "optimized batches retain the dense authored world")
+	else:
+		check(get_nodes_in_group("palm_scenery").size() > 40, "palms populate the island course")
+		check(get_nodes_in_group("lamp_scenery").size() > 20, "neon lamp posts populate the course")
+		check(get_nodes_in_group("house_scenery").size() > 20, "Miami-style beach houses populate the course")
+		check(get_nodes_in_group("hotel_scenery").size() >= 2, "larger art-deco hotels punctuate the skyline")
+		check(get_nodes_in_group("shop_scenery").size() >= 8, "multiple storefronts make commercial sectors lively")
+		check(get_nodes_in_group("building_layout").size() >= 192, "planned building rows create recognizable neighborhoods")
 	var grounded_buildings: Array[Node] = []
 	grounded_buildings.append_array(get_nodes_in_group("house_scenery"))
 	grounded_buildings.append_array(get_nodes_in_group("hotel_scenery"))

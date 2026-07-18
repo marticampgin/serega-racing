@@ -5,6 +5,7 @@ const WorldBuilderScript := preload("res://scripts/world_builder.gd")
 const MainMenuScene := preload("res://scenes/ui/main_menu_overlay.tscn")
 const TrackMinimapScene := preload("res://scenes/ui/track_minimap.tscn")
 const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
+const RUNTIME_WORLD_PATH := "res://scenes/world/runtime_world_optimized.scn"
 const MENU_BACKGROUND_PATH := "res://assets/generated/ui/main-menu-synthwave-v1.png"
 const GENERATED_SCENERY_PATHS := [
 	"res://scenes/world/neighborhood_details.tscn",
@@ -424,17 +425,32 @@ func orient_track_piece(piece: Node3D, target: Vector3, bank: float) -> void:
 func build_scenery() -> void:
 	world_builder = WorldBuilderScript.new()
 	world_builder.build_infrastructure(self, course)
-	var packed := load(EDITABLE_WORLD_PATH) as PackedScene
+	var packed := load(RUNTIME_WORLD_PATH) as PackedScene if ResourceLoader.exists(RUNTIME_WORLD_PATH) else null
+	var editable_world := packed.instantiate() as Node3D if packed != null else null
+	if editable_world != null and (
+		not bool(editable_world.get_meta("runtime_optimized", false))
+		or str(editable_world.get_meta("runtime_source_sha256", "")) != FileAccess.get_sha256(EDITABLE_WORLD_PATH)
+	):
+		editable_world.free()
+		editable_world = null
+		push_warning("Optimized runtime world is stale; using editable authoring scene")
+	if editable_world == null:
+		packed = load(EDITABLE_WORLD_PATH) as PackedScene
+		editable_world = packed.instantiate() as Node3D if packed != null else null
 	if packed == null:
 		push_error("Editable scenery is missing: %s" % EDITABLE_WORLD_PATH)
 		return
-	var editable_world := packed.instantiate()
+	if editable_world == null:
+		push_error("Scenery could not be instantiated")
+		return
+	var is_runtime_optimized := bool(editable_world.get_meta("runtime_optimized", false))
 	editable_world.name = "EditableWorld"
 	editable_world.add_to_group("editable_world")
 	add_child(editable_world)
 	_configure_authored_runtime_scenery(editable_world)
-	_load_generated_scenery_overlays(editable_world)
-	_apply_manual_scenery_reservations(editable_world)
+	if not is_runtime_optimized:
+		_load_generated_scenery_overlays(editable_world)
+		_apply_manual_scenery_reservations(editable_world)
 
 
 func _configure_authored_runtime_scenery(editable_world: Node3D) -> void:
@@ -791,7 +807,7 @@ func build_hud() -> void:
 	fuel_bar.value = fuel
 	fuel_bar.show_percentage = true
 	column.add_child(fuel_bar)
-	status_label = make_label("WASD — ЕЗДА (S — ТОРМОЗ/ЗАДНИЙ ХОД) | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС", 16, Color("f2f4f6"))
+	status_label = make_label("WASD — ЕЗДА | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС", 16, Color("f2f4f6"))
 	status_label.anchor_right = 1.0
 	status_label.anchor_top = 1.0
 	status_label.anchor_bottom = 1.0
@@ -1116,7 +1132,7 @@ func reset_car() -> void:
 	obstacle_block_normal = Vector3.ZERO
 	race_active = true
 	finish_portrait.visible = false
-	status_label.text = "WASD — ЕЗДА (S — ТОРМОЗ/ЗАДНИЙ ХОД) | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС"
+	status_label.text = "WASD — ЕЗДА | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС"
 	refuel_in_progress = false
 	refuel_cooldown = 0.0
 	countdown_time = 3.2
