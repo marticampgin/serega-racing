@@ -2,6 +2,7 @@ class_name PauseMenuOverlay
 extends CanvasLayer
 
 signal resume_requested
+signal main_menu_requested
 signal exit_requested
 
 
@@ -37,8 +38,8 @@ func _build_interface() -> void:
 	var card := PanelContainer.new()
 	card.name = "Card"
 	card.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	card.position = Vector2(-235, -175)
-	card.size = Vector2(470, 350)
+	card.position = Vector2(-235, -220)
+	card.size = Vector2(470, 440)
 	card.add_theme_stylebox_override("panel", _panel(Color("11072b"), Color("4fe7ff"), 20))
 	root.add_child(card)
 	var margin := MarginContainer.new()
@@ -67,6 +68,10 @@ func _build_interface() -> void:
 	resume.name = "ResumeButton"
 	resume.pressed.connect(func(): resume_requested.emit())
 	content.add_child(resume)
+	var main_menu := _button("В ГЛАВНОЕ МЕНЮ")
+	main_menu.name = "MainMenuButton"
+	main_menu.pressed.connect(func(): main_menu_requested.emit())
+	content.add_child(main_menu)
 	var exit := _button("ВЫЙТИ ИЗ ИГРЫ")
 	exit.name = "ExitButton"
 	exit.pressed.connect(func(): exit_requested.emit())

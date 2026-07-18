@@ -59,6 +59,18 @@ func _run() -> void:
 	race.call("reset_car")
 	check(bool(race.get("race_active")), "reset starts a fresh map lap")
 	check(is_zero_approx(float(race.get("course_offset"))), "reset returns progress to the start gate")
+	# Regression for the reported false hit near 9.27 km: the road collider's
+	# pitched triangle normals must not be interpreted as an invisible wall.
+	var regression_offset := minf(9267.0, length - 20.0)
+	var regression_frame := race.call("sample_course", regression_offset) as Transform3D
+	race.set("course_offset", regression_offset)
+	race.set("speed", 95.0)
+	race.set("durability", 100.0)
+	car.global_transform = Transform3D(regression_frame.basis, regression_frame.origin + regression_frame.basis.y * 0.55)
+	var regression_position := car.global_position
+	race.call("enforce_track_safety", 1.0 / 60.0)
+	check(is_equal_approx(float(race.get("speed")), 95.0) and is_equal_approx(float(race.get("durability")), 100.0), "9.27 km road surface does not cause a false stop or damage")
+	check(car.global_position.distance_to(regression_position) < 0.05, "9.27 km safety resolver keeps a centered car in place")
 	var sample_offset := length * 0.71
 	var recovery_frame := race.call("sample_course", sample_offset) as Transform3D
 	race.set("course_offset", sample_offset)

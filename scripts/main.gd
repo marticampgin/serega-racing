@@ -33,7 +33,8 @@ var course_offset := 0.0
 var race_active := true
 var shield_hits := 0
 var collision_cooldown := 0.0
-var collision_stop_time := 0.0
+var wall_impact_cooldown := 0.0
+var road_edge_contacting := false
 var obstacle_slide_time := 0.0
 var obstacle_block_normal := Vector3.ZERO
 var boost_time := 0.0
@@ -1127,6 +1128,7 @@ func build_game_ui() -> void:
 	pause_menu = PauseMenuScript.new()
 	add_child(pause_menu)
 	pause_menu.connect("resume_requested", Callable(self, "_resume_game"))
+	pause_menu.connect("main_menu_requested", Callable(self, "_return_from_pause_to_main_menu"))
 	pause_menu.connect("exit_requested", Callable(self, "_exit_game"))
 
 
@@ -1220,6 +1222,21 @@ func _exit_game() -> void:
 	get_tree().quit()
 
 
+func _return_from_pause_to_main_menu() -> void:
+	get_tree().paused = false
+	game_started = false
+	race_active = false
+	speed = 0.0
+	car.velocity = Vector3.ZERO
+	if is_instance_valid(pause_menu): pause_menu.hide()
+	if is_instance_valid(mode_selector): mode_selector.hide()
+	if is_instance_valid(car_selector): car_selector.hide()
+	if is_instance_valid(minimap): minimap.hide()
+	if is_instance_valid(main_menu):
+		main_menu.show()
+		main_menu.call_deferred("focus_start_button")
+
+
 func build_refuel_client() -> void:
 	refuel_request = HTTPRequest.new()
 	refuel_request.timeout = 75.0
@@ -1237,7 +1254,7 @@ func _physics_process(delta: float) -> void:
 		update_hud()
 		return
 	collision_cooldown = maxf(0.0, collision_cooldown - delta)
-	collision_stop_time = maxf(0.0, collision_stop_time - delta)
+	wall_impact_cooldown = maxf(0.0, wall_impact_cooldown - delta)
 	obstacle_slide_time = maxf(0.0, obstacle_slide_time - delta)
 	boost_time = maxf(0.0, boost_time - delta)
 	ghost_time = maxf(0.0, ghost_time - delta)
@@ -1320,11 +1337,16 @@ func update_car(delta: float) -> void:
 		car.move_and_slide()
 		for collision_index in range(car.get_slide_collision_count()):
 			var step_collision := car.get_slide_collision(collision_index)
-			if step_collision.get_collider() is Node and step_collision.get_collider().is_in_group("obstacle"):
+			var collider := step_collision.get_collider() as Node
+			if collider != null and collider.is_in_group("obstacle"):
 				handle_obstacle_hit(step_collision.get_normal(), intended_motion)
 				break
-			elif absf(step_collision.get_normal().y) < 0.55 and Vector2(step_collision.get_normal().x, step_collision.get_normal().z).length() > 0.35:
-				handle_wall_hit(step_collision.get_normal())
+			# The continuous road trimesh can produce lateral normals at pitched
+			# triangle seams. It is ground, not a wall, so never damage or brake here.
+			elif collider != null and not collider.is_in_group("track") and not collider.is_in_group("bridge") \
+					and absf(step_collision.get_normal().y) < 0.55 \
+					and Vector2(step_collision.get_normal().x, step_collision.get_normal().z).length() > 0.35:
+				handle_wall_hit(step_collision.get_normal(), intended_motion, delta / float(movement_steps))
 				break
 	enforce_track_safety(delta)
 
@@ -1346,21 +1368,23 @@ func enforce_track_safety(delta: float) -> void:
 	var lateral_distance := (car.global_position - center).dot(lateral_axis)
 	var soft_edge := ROAD_WIDTH * 0.48
 	var hard_edge := ROAD_WIDTH * 0.88
+	var touching_edge := absf(lateral_distance) > soft_edge
+	var outward_axis := lateral_axis * signf(lateral_distance)
+	var drive_motion := -car.global_transform.basis.z.normalized() * speed
+	var outward_speed := maxf(0.0, drive_motion.dot(outward_axis)) if touching_edge else 0.0
+	var scrape_speed := drive_motion.slide(outward_axis).length() if touching_edge else 0.0
 	if absf(lateral_distance) > hard_edge:
 		# Correct only the out-of-bounds component. Keeping longitudinal position and
 		# heading avoids the visible despawn/centerline respawn that used to occur.
 		var edge_position := signf(lateral_distance) * soft_edge
 		car.global_position -= lateral_axis * (lateral_distance - edge_position)
-		var retained_speed := lerpf(0.62, 0.84, clampf((1.25 - car_damage_mult) / 0.95, 0.0, 1.0))
-		speed *= retained_speed
-		if collision_cooldown <= 0.0:
-			apply_vehicle_damage(7.0, "СТЕНА")
-			collision_cooldown = 0.65
+		handle_road_edge_contact(outward_speed, scrape_speed, delta, not road_edge_contacting, true)
 		if race_active: status_label.text = "ВЫЕЗД ЗА ГРАНИЦУ | МЯГКИЙ ВОЗВРАТ НА ТРАССУ"
 	elif absf(lateral_distance) > soft_edge:
 		var clamped_lateral := clampf(lateral_distance, -soft_edge, soft_edge)
 		car.global_position -= lateral_axis * (lateral_distance - clamped_lateral)
-		speed *= 0.985
+		handle_road_edge_contact(outward_speed, scrape_speed, delta, not road_edge_contacting, false)
+	road_edge_contacting = touching_edge
 	# The modular course is an arcade surface, so keep the chassis attached to its
 	# analytical height. This prevents tunneling through pitched road seams.
 	var target_height := center.y
@@ -1411,15 +1435,43 @@ func handle_obstacle_hit(normal := Vector3.ZERO, _incoming := Vector3.ZERO) -> v
 		speed *= 0.78
 
 
-func handle_wall_hit(normal := Vector3.ZERO) -> void:
-	if collision_cooldown > 0.0: return
+func handle_wall_hit(normal := Vector3.ZERO, incoming := Vector3.ZERO, delta := 1.0 / 60.0) -> void:
 	var flat_normal := Vector3(normal.x, 0.0, normal.z)
-	if flat_normal.length_squared() > 0.01: obstacle_block_normal = flat_normal.normalized()
-	collision_cooldown = 0.6
+	if flat_normal.length_squared() <= 0.01: return
+	flat_normal = flat_normal.normalized()
+	obstacle_block_normal = flat_normal
 	obstacle_slide_time = 0.42
-	if apply_vehicle_damage(7.0, "СТЕНА"):
-		speed *= lerpf(0.48, 0.78, clampf((1.25 - car_damage_mult) / 0.95, 0.0, 1.0))
-		if race_active: status_label.text = "КАСАНИЕ СТЕНЫ | ПРОЧНОСТЬ %d%%" % int(durability)
+	var impact_speed := maxf(0.0, -incoming.dot(flat_normal))
+	var scrape_speed := incoming.slide(flat_normal).length()
+	handle_road_edge_contact(impact_speed, scrape_speed, delta, wall_impact_cooldown <= 0.0, false)
+
+
+func handle_road_edge_contact(impact_speed: float, scrape_speed: float, delta: float, new_contact: bool, hard_edge: bool) -> void:
+	# Damage is driven by the velocity into the wall, while a shallow slide causes
+	# much lighter damage over time. Neither path applies percentage-per-frame
+	# braking, which was able to overpower acceleration and make the car stop.
+	if new_contact and impact_speed > 2.0 and wall_impact_cooldown <= 0.0:
+		var impact_damage := clampf(1.0 + impact_speed * 0.11 + (2.0 if hard_edge else 0.0), 1.5, 24.0)
+		if apply_vehicle_damage(impact_damage, "СТЕНА"):
+			var retention := lerpf(0.96, 0.68, clampf(impact_speed / 100.0, 0.0, 1.0))
+			speed *= retention
+			if race_active: status_label.text = "УДАР О СТЕНУ | ПРОЧНОСТЬ %d%%" % int(durability)
+		wall_impact_cooldown = 0.22
+	if scrape_speed > 2.0:
+		var scrape_ratio := clampf(scrape_speed / 120.0, 0.0, 1.0)
+		var scrape_damage := lerpf(0.35, 2.4, scrape_ratio) * maxf(delta, 0.0)
+		if apply_continuous_vehicle_damage(scrape_damage, "ТРЕНИЕ О СТЕНУ"):
+			var scrape_drag := lerpf(0.25, 2.4, scrape_ratio)
+			speed = signf(speed) * maxf(0.0, absf(speed) - scrape_drag * maxf(delta, 0.0))
+			if race_active: status_label.text = "ТРЕНИЕ О СТЕНУ | ПРОЧНОСТЬ %d%%" % int(durability)
+
+
+func apply_continuous_vehicle_damage(base_damage: float, _source: String) -> bool:
+	if ghost_time > 0.0 or shield_hits > 0 or base_damage <= 0.0:
+		return false
+	durability = maxf(0.0, durability - base_damage * car_damage_mult)
+	if durability <= 0.0: wreck_car()
+	return true
 
 
 func apply_vehicle_damage(base_damage: float, source: String) -> bool:
@@ -1536,7 +1588,8 @@ func reset_car() -> void:
 	powerup_toast = ""
 	powerup_toast_time = 0.0
 	collision_cooldown = 0.0
-	collision_stop_time = 0.0
+	wall_impact_cooldown = 0.0
+	road_edge_contacting = false
 	obstacle_slide_time = 0.0
 	obstacle_block_normal = Vector3.ZERO
 	race_active = true
