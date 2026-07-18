@@ -50,6 +50,7 @@ var distance_label: Label
 var status_label: Label
 var fuel_bar: ProgressBar
 var durability_bar: ProgressBar
+var powerup_status_label: Label
 var game_over_label: Label
 var finish_portrait: TextureRect
 var start_position := Vector3.ZERO
@@ -79,6 +80,8 @@ var selected_game_mode := "free_run"
 var powerups_enabled := true
 var gameplay_content: Node3D
 var obstacle_materials: Dictionary = {}
+var powerup_toast := ""
+var powerup_toast_time := 0.0
 
 
 func _ready() -> void:
@@ -911,10 +914,62 @@ func _create_powerup(type: String, offset: float, lateral: float) -> void:
 	pickup.add_child(shape_node)
 	var colors := {"boost": Color("ff5c3d"), "repair": Color("5df07e"), "shield": Color("45dcff"), "ghost": Color("c96cff")}
 	var material := make_material(colors[type], 0.28, 0.18)
-	add_cylinder(pickup, 0.78, 0.22, Vector3.ZERO, material)
-	add_box(pickup, Vector3(0.22, 1.35, 0.22), Vector3.ZERO, material)
-	add_box(pickup, Vector3(1.35, 0.22, 0.22), Vector3.ZERO, material)
+	material.emission_enabled = true
+	material.emission = colors[type]
+	material.emission_energy_multiplier = 1.8
+	_build_powerup_icon(pickup, type, material)
 	pickup.body_entered.connect(_on_powerup_body_entered.bind(pickup, type))
+
+
+func _build_powerup_icon(parent: Node3D, type: String, material: Material) -> void:
+	var icon_color := (material as StandardMaterial3D).albedo_color
+	var disc_material := make_material(icon_color.darkened(0.72), 0.35, 0.22)
+	disc_material.emission_enabled = true
+	disc_material.emission = icon_color.darkened(0.58)
+	disc_material.emission_energy_multiplier = 0.8
+	var disc := add_cylinder(parent, 0.9, 0.14, Vector3.ZERO, disc_material)
+	disc.rotation.x = PI * 0.5
+	match type:
+		"boost":
+			for face_z in [-0.12, 0.12]:
+				add_box(parent, Vector3(0.24, 1.25, 0.12), Vector3(0, -0.12, face_z), material)
+				var left := add_box(parent, Vector3(0.22, 0.86, 0.12), Vector3(-0.3, 0.46, face_z), material)
+				left.rotation.z = -0.72
+				var right := add_box(parent, Vector3(0.22, 0.86, 0.12), Vector3(0.3, 0.46, face_z), material)
+				right.rotation.z = 0.72
+		"repair":
+			for face_z in [-0.12, 0.12]:
+				add_box(parent, Vector3(0.28, 1.35, 0.12), Vector3(0, 0, face_z), material)
+				add_box(parent, Vector3(1.35, 0.28, 0.12), Vector3(0, 0, face_z), material)
+		"shield":
+			var ring := MeshInstance3D.new()
+			var torus := TorusMesh.new()
+			torus.inner_radius = 0.56
+			torus.outer_radius = 0.82
+			torus.rings = 20
+			torus.ring_segments = 10
+			torus.material = material
+			ring.mesh = torus
+			ring.rotation.x = PI * 0.5
+			parent.add_child(ring)
+			for face_z in [-0.12, 0.12]:
+				var diamond := add_box(parent, Vector3(0.62, 0.62, 0.12), Vector3(0, 0, face_z), material)
+				diamond.rotation.z = PI * 0.25
+		"ghost":
+			var face := MeshInstance3D.new()
+			var sphere := SphereMesh.new()
+			sphere.radius = 0.68
+			sphere.height = 1.35
+			sphere.radial_segments = 16
+			sphere.rings = 8
+			sphere.material = material
+			face.mesh = sphere
+			face.scale = Vector3(1.0, 1.0, 0.36)
+			parent.add_child(face)
+			var eye_material := make_material(Color("090418"), 0.1, 0.3)
+			for x in [-0.25, 0.25]:
+				add_box(parent, Vector3(0.16, 0.2, 0.12), Vector3(x, 0.14, -0.28), eye_material)
+				add_box(parent, Vector3(0.16, 0.2, 0.12), Vector3(x, 0.14, 0.28), eye_material)
 
 
 func _on_powerup_body_entered(body: Node3D, pickup: Area3D, type: String) -> void:
@@ -924,18 +979,23 @@ func _on_powerup_body_entered(body: Node3D, pickup: Area3D, type: String) -> voi
 
 
 func collect_powerup(type: String) -> void:
+	powerup_toast_time = 2.8
 	match type:
 		"boost":
 			boost_time = maxf(boost_time, 10.0)
+			powerup_toast = "ПОДОБРАНО: ТУРБО"
 			status_label.text = "УСИЛЕНИЕ | ТУРБО НА 10 СЕКУНД"
 		"repair":
 			durability = minf(100.0, durability + 32.0)
+			powerup_toast = "ПОДОБРАНО: РЕМОНТ +32%"
 			status_label.text = "УСИЛЕНИЕ | ПРОЧНОСТЬ ВОССТАНОВЛЕНА"
 		"shield":
 			shield_hits += 1
+			powerup_toast = "ПОДОБРАНО: ЩИТ НА 1 УДАР"
 			status_label.text = "УСИЛЕНИЕ | ЩИТ ОТ СЛЕДУЮЩЕГО УДАРА"
 		"ghost":
 			ghost_time = maxf(ghost_time, 8.0)
+			powerup_toast = "ПОДОБРАНО: РЕЖИМ ПРИЗРАКА"
 			status_label.text = "УСИЛЕНИЕ | РЕЖИМ ПРИЗРАКА НА 8 СЕКУНД"
 
 
@@ -986,6 +1046,21 @@ func build_hud() -> void:
 	durability_bar.value = durability
 	durability_bar.show_percentage = true
 	column.add_child(durability_bar)
+	powerup_status_label = make_label("", 18, Color("f5f7ff"))
+	powerup_status_label.anchor_left = 0.3
+	powerup_status_label.anchor_top = 0.025
+	powerup_status_label.anchor_right = 0.7
+	powerup_status_label.anchor_bottom = 0.095
+	powerup_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	powerup_status_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	var effect_style := StyleBoxFlat.new()
+	effect_style.bg_color = Color(0.03, 0.015, 0.1, 0.78)
+	effect_style.border_color = Color("54e7ff")
+	effect_style.set_border_width_all(2)
+	effect_style.set_corner_radius_all(12)
+	powerup_status_label.add_theme_stylebox_override("normal", effect_style)
+	powerup_status_label.visible = false
+	layer.add_child(powerup_status_label)
 	status_label = make_label("WASD — ЕЗДА | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | ESC — ПАУЗА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС", 16, Color("f2f4f6"))
 	status_label.anchor_right = 1.0
 	status_label.anchor_top = 1.0
@@ -1166,9 +1241,8 @@ func _physics_process(delta: float) -> void:
 	obstacle_slide_time = maxf(0.0, obstacle_slide_time - delta)
 	boost_time = maxf(0.0, boost_time - delta)
 	ghost_time = maxf(0.0, ghost_time - delta)
+	powerup_toast_time = maxf(0.0, powerup_toast_time - delta)
 	refuel_cooldown = maxf(0.0, refuel_cooldown - delta)
-	for pickup in get_tree().get_nodes_in_group("powerup"):
-		if pickup is Node3D: (pickup as Node3D).rotate_y(delta * 1.8)
 	car.collision_mask = 0 if ghost_time > 0.0 else 1
 	var refuel_pressed := Input.is_key_pressed(KEY_F)
 	if refuel_pressed and not refuel_key_down:
@@ -1204,11 +1278,6 @@ func _physics_process(delta: float) -> void:
 
 
 func update_car(delta: float) -> void:
-	if collision_stop_time > 0.0:
-		speed = 0.0
-		car.velocity = Vector3.ZERO
-		enforce_track_safety(delta)
-		return
 	if refuel_in_progress:
 		speed = move_toward(speed, 0.0, 28.0 * delta)
 		car.velocity = -car.global_transform.basis.z.normalized() * speed
@@ -1275,18 +1344,19 @@ func enforce_track_safety(delta: float) -> void:
 	var lateral_axis := frame.basis.x
 	var center := frame.origin + frame.basis.y * 0.55
 	var lateral_distance := (car.global_position - center).dot(lateral_axis)
-	var soft_edge := ROAD_WIDTH * 0.43
-	var hard_edge := ROAD_WIDTH * 0.7
+	var soft_edge := ROAD_WIDTH * 0.48
+	var hard_edge := ROAD_WIDTH * 0.88
 	if absf(lateral_distance) > hard_edge:
-		# Local-offset recovery cannot jump to the wrong branch at Loop 3's crossing.
-		car.global_position = center
-		car.global_transform.basis = frame.basis
-		var retained_speed := lerpf(0.2, 0.56, clampf((1.25 - car_damage_mult) / 0.95, 0.0, 1.0))
+		# Correct only the out-of-bounds component. Keeping longitudinal position and
+		# heading avoids the visible despawn/centerline respawn that used to occur.
+		var edge_position := signf(lateral_distance) * soft_edge
+		car.global_position -= lateral_axis * (lateral_distance - edge_position)
+		var retained_speed := lerpf(0.62, 0.84, clampf((1.25 - car_damage_mult) / 0.95, 0.0, 1.0))
 		speed *= retained_speed
 		if collision_cooldown <= 0.0:
 			apply_vehicle_damage(7.0, "СТЕНА")
 			collision_cooldown = 0.65
-		if race_active: status_label.text = "УДАР О СТЕНУ | ВОЗВРАТ НА ГОНОЧНУЮ ЛИНИЮ"
+		if race_active: status_label.text = "ВЫЕЗД ЗА ГРАНИЦУ | МЯГКИЙ ВОЗВРАТ НА ТРАССУ"
 	elif absf(lateral_distance) > soft_edge:
 		var clamped_lateral := clampf(lateral_distance, -soft_edge, soft_edge)
 		car.global_position -= lateral_axis * (lateral_distance - clamped_lateral)
@@ -1334,8 +1404,7 @@ func handle_obstacle_hit(normal := Vector3.ZERO, _incoming := Vector3.ZERO) -> v
 	obstacle_slide_time = 0.72 + 0.18 * car_damage_mult
 	var damaged := apply_vehicle_damage(15.0, "ПРЕПЯТСТВИЕ")
 	if damaged:
-		collision_stop_time = 0.04 + 0.07 * car_damage_mult
-		speed *= lerpf(0.06, 0.46, clampf((1.25 - car_damage_mult) / 0.95, 0.0, 1.0))
+		speed *= lerpf(0.18, 0.55, clampf((1.25 - car_damage_mult) / 0.95, 0.0, 1.0))
 		car.velocity = Vector3.ZERO
 		if race_active: status_label.text = "СТОЛКНОВЕНИЕ | ПРОЧНОСТЬ %d%%" % int(durability)
 	else:
@@ -1434,6 +1503,13 @@ func update_hud() -> void:
 		durability_bar.modulate = Color("ffb84d")
 	else:
 		durability_bar.modulate = Color("59e7ff")
+	var effects: Array[String] = []
+	if powerup_toast_time > 0.0 and not powerup_toast.is_empty(): effects.append(powerup_toast)
+	if boost_time > 0.0: effects.append("ТУРБО %.1f С" % boost_time)
+	if ghost_time > 0.0: effects.append("ПРИЗРАК %.1f С" % ghost_time)
+	if shield_hits > 0: effects.append("ЩИТ: %d УДАР" % shield_hits)
+	powerup_status_label.text = "   •   ".join(effects)
+	powerup_status_label.visible = not effects.is_empty()
 
 
 func format_time(value: float) -> String:
@@ -1457,6 +1533,8 @@ func reset_car() -> void:
 	shield_hits = 0
 	boost_time = 0.0
 	ghost_time = 0.0
+	powerup_toast = ""
+	powerup_toast_time = 0.0
 	collision_cooldown = 0.0
 	collision_stop_time = 0.0
 	obstacle_slide_time = 0.0

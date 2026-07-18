@@ -4,10 +4,15 @@ extends CanvasLayer
 signal mode_confirmed(mode: String, powerups: bool)
 signal back_requested
 
+const FREE_IMAGE := "res://assets/generated/ui/mode-free-run-v1.png"
+const OBSTACLE_IMAGE := "res://assets/generated/ui/mode-obstacle-course-v1.png"
+
 var selected_mode := "free_run"
 var powerups_toggle: CheckButton
-var free_button: Button
-var obstacle_button: Button
+var free_button: TextureButton
+var obstacle_button: TextureButton
+var free_panel: PanelContainer
+var obstacle_panel: PanelContainer
 var background: TextureRect
 
 
@@ -24,8 +29,7 @@ func show_selector() -> void:
 
 
 func set_background_path(path: String) -> void:
-	if is_instance_valid(background) and ResourceLoader.exists(path):
-		background.texture = load(path)
+	if is_instance_valid(background) and ResourceLoader.exists(path): background.texture = load(path)
 
 
 func _build_interface() -> void:
@@ -40,41 +44,44 @@ func _build_interface() -> void:
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	background.modulate = Color(0.35, 0.25, 0.48, 0.42)
+	background.modulate = Color(0.25, 0.18, 0.36, 0.28)
 	root.add_child(background)
 	var tint := ColorRect.new()
 	tint.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	tint.color = Color(0.02, 0.005, 0.07, 0.76)
+	tint.color = Color(0.02, 0.005, 0.07, 0.78)
 	tint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(tint)
 	var content := VBoxContainer.new()
-	content.anchor_left = 0.12
-	content.anchor_top = 0.1
-	content.anchor_right = 0.88
-	content.anchor_bottom = 0.9
-	content.add_theme_constant_override("separation", 26)
+	content.anchor_left = 0.16
+	content.anchor_top = 0.06
+	content.anchor_right = 0.84
+	content.anchor_bottom = 0.94
+	content.add_theme_constant_override("separation", 18)
 	root.add_child(content)
-	content.add_child(_label("ВЫБЕРИТЕ РЕЖИМ", 44, Color("ffe45f"), HORIZONTAL_ALIGNMENT_CENTER))
+	content.add_child(_label("ВЫБЕРИТЕ РЕЖИМ", 42, Color("ffe45f"), HORIZONTAL_ALIGNMENT_CENTER))
 	var cards := HBoxContainer.new()
-	cards.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	cards.custom_minimum_size = Vector2(0, 440)
+	cards.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	cards.alignment = BoxContainer.ALIGNMENT_CENTER
 	cards.add_theme_constant_override("separation", 28)
 	content.add_child(cards)
-	free_button = _mode_button("СВОБОДНАЯ ГОНКА\n\nЧистая трасса и лучшее время.\nБудущие награды: бронза, серебро, золото.")
-	free_button.pressed.connect(_select_mode.bind("free_run"))
-	cards.add_child(free_button)
-	obstacle_button = _mode_button("ПОЛОСА ПРЕПЯТСТВИЙ\n\nСлучайный дорожный хаос: транспорт,\nтехника, конусы и разбитые болиды.")
-	obstacle_button.pressed.connect(_select_mode.bind("obstacle_course"))
-	cards.add_child(obstacle_button)
+	var free := _mode_card(FREE_IMAGE, "СВОБОДНАЯ ГОНКА", "Чистая трасса • Лучшее время", "free_run")
+	free_panel = free.panel
+	free_button = free.button
+	cards.add_child(free_panel)
+	var obstacle := _mode_card(OBSTACLE_IMAGE, "ПОЛОСА ПРЕПЯТСТВИЙ", "Транспорт • Техника • Дорожный хаос", "obstacle_course")
+	obstacle_panel = obstacle.panel
+	obstacle_button = obstacle.button
+	cards.add_child(obstacle_panel)
 	powerups_toggle = CheckButton.new()
 	powerups_toggle.text = "ВКЛЮЧИТЬ УСИЛЕНИЯ НА ТРАССЕ"
 	powerups_toggle.button_pressed = true
-	powerups_toggle.custom_minimum_size = Vector2(650, 54)
+	powerups_toggle.custom_minimum_size = Vector2(650, 48)
 	powerups_toggle.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	powerups_toggle.add_theme_font_size_override("font_size", 20)
+	powerups_toggle.add_theme_font_size_override("font_size", 19)
 	powerups_toggle.add_theme_color_override("font_color", Color("8beeff"))
 	content.add_child(powerups_toggle)
-	var hint := _label("ТУРБО • РЕМОНТ • ЩИТ • РЕЖИМ ПРИЗРАКА", 16, Color("d7cceb"), HORIZONTAL_ALIGNMENT_CENTER)
-	content.add_child(hint)
+	content.add_child(_label("ТУРБО • РЕМОНТ • ЩИТ • РЕЖИМ ПРИЗРАКА", 15, Color("d7cceb"), HORIZONTAL_ALIGNMENT_CENTER))
 	var actions := HBoxContainer.new()
 	actions.alignment = BoxContainer.ALIGNMENT_CENTER
 	actions.add_theme_constant_override("separation", 18)
@@ -87,33 +94,44 @@ func _build_interface() -> void:
 	actions.add_child(confirm)
 
 
+func _mode_card(image_path: String, title: String, subtitle: String, mode: String) -> Dictionary:
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(590, 405)
+	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 8)
+	panel.add_child(column)
+	var image_button := TextureButton.new()
+	image_button.custom_minimum_size = Vector2(550, 305)
+	image_button.ignore_texture_size = true
+	image_button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_COVERED
+	image_button.texture_normal = load(image_path)
+	image_button.tooltip_text = title
+	image_button.pressed.connect(_select_mode.bind(mode))
+	column.add_child(image_button)
+	column.add_child(_label(title, 23, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER))
+	column.add_child(_label(subtitle, 15, Color("bfc9e5"), HORIZONTAL_ALIGNMENT_CENTER))
+	return {"panel": panel, "button": image_button}
+
+
 func _select_mode(mode: String) -> void:
 	selected_mode = mode
 	_refresh()
 
 
 func _refresh() -> void:
-	if not is_instance_valid(free_button): return
-	free_button.add_theme_stylebox_override("normal", _panel(Color("17204b") if selected_mode == "free_run" else Color("0d1028"), Color("ffe45f") if selected_mode == "free_run" else Color("4de6ff"), 18))
-	obstacle_button.add_theme_stylebox_override("normal", _panel(Color("48143e") if selected_mode == "obstacle_course" else Color("0d1028"), Color("ffe45f") if selected_mode == "obstacle_course" else Color("f058b6"), 18))
-
-
-func _mode_button(text: String) -> Button:
-	var button := Button.new()
-	button.text = text
-	button.custom_minimum_size = Vector2(650, 430)
-	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.add_theme_font_size_override("font_size", 21)
-	button.add_theme_stylebox_override("hover", _panel(Color("1d3159"), Color("d8fbff"), 18))
-	button.add_theme_stylebox_override("pressed", _panel(Color("57205a"), Color("ffe45f"), 18))
-	return button
+	if not is_instance_valid(free_panel): return
+	free_panel.add_theme_stylebox_override("panel", _panel(Color("121735"), Color("ffe45f") if selected_mode == "free_run" else Color("43dff5"), 16))
+	obstacle_panel.add_theme_stylebox_override("panel", _panel(Color("21102f"), Color("ffe45f") if selected_mode == "obstacle_course" else Color("ee57b4"), 16))
+	free_button.modulate = Color.WHITE if selected_mode == "free_run" else Color(0.62, 0.62, 0.7)
+	obstacle_button.modulate = Color.WHITE if selected_mode == "obstacle_course" else Color(0.62, 0.62, 0.7)
 
 
 func _button(text: String, primary: bool) -> Button:
 	var button := Button.new()
 	button.text = text
-	button.custom_minimum_size = Vector2(360 if primary else 190, 60)
-	button.add_theme_font_size_override("font_size", 19)
+	button.custom_minimum_size = Vector2(360 if primary else 190, 56)
+	button.add_theme_font_size_override("font_size", 18)
 	button.add_theme_stylebox_override("normal", _panel(Color("b51a72") if primary else Color("17204b"), Color("6be8ff"), 11))
 	button.add_theme_stylebox_override("hover", _panel(Color("31b9dc"), Color.WHITE, 11))
 	return button
@@ -132,10 +150,10 @@ func _panel(fill: Color, border: Color, radius: int) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = fill
 	style.border_color = border
-	style.set_border_width_all(2)
+	style.set_border_width_all(3)
 	style.set_corner_radius_all(radius)
-	style.content_margin_left = 26
-	style.content_margin_right = 26
-	style.content_margin_top = 22
-	style.content_margin_bottom = 22
+	style.content_margin_left = 16
+	style.content_margin_right = 16
+	style.content_margin_top = 16
+	style.content_margin_bottom = 16
 	return style

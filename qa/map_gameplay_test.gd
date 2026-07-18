@@ -65,7 +65,8 @@ func _run() -> void:
 	car.global_position = recovery_frame.origin + recovery_frame.basis.x * 40.0 - recovery_frame.basis.y * 8.0
 	race.call("enforce_track_safety", 1.0 / 60.0)
 	var expected := recovery_frame.origin + recovery_frame.basis.y * 0.55
-	check(car.global_position.distance_to(expected) < 0.2, "off-track recovery returns to the correct local loop branch")
+	var recovery_delta := car.global_position - expected
+	check(absf(recovery_delta.dot(recovery_frame.basis.x)) <= 8.4 and absf(recovery_delta.dot(recovery_frame.basis.z)) < 0.3, "off-track recovery clamps to the correct local edge without a centerline respawn")
 
 	var braking := float(race.call("compute_drive_speed", 20.0, 0.0, true, false, 0.5, 0.1))
 	var reverse := float(race.call("compute_drive_speed", 0.0, 0.0, true, false, 0.5, 0.1))

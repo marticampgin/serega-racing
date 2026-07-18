@@ -30,6 +30,13 @@ func _run() -> void:
 		for kind in ["cone", "taxi", "car", "truck", "bulldozer", "wrecked_bolid"]:
 			if kind in obstacle.name: kinds[kind] = true
 	check(kinds.size() == 6, "course includes all six hazard families")
+	var icon_signatures := {}
+	for pickup in powerups:
+		var signature := ""
+		for mesh_node in pickup.find_children("*", "MeshInstance3D", true, false):
+			if (mesh_node as MeshInstance3D).mesh != null: signature += (mesh_node as MeshInstance3D).mesh.get_class() + ":"
+		icon_signatures[signature] = true
+	check(icon_signatures.size() == 4, "all four power-ups have distinct functional symbols")
 	game.set("shield_hits", 0)
 	game.set("ghost_time", 0.0)
 	game.set("durability", 100.0)
@@ -38,6 +45,9 @@ func _run() -> void:
 	var damaged := float(game.get("durability"))
 	game.call("collect_powerup", "repair")
 	check(float(game.get("durability")) > damaged, "repair power-up heals durability")
+	game.call("collect_powerup", "boost")
+	game.call("update_hud")
+	check("ТУРБО" in game.get("powerup_status_label").text and "С" in game.get("powerup_status_label").text, "HUD identifies timed power-ups and remaining duration")
 	game.call("collect_powerup", "shield")
 	var before_shield := float(game.get("durability"))
 	game.call("apply_vehicle_damage", 30.0, "TEST")

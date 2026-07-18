@@ -128,7 +128,7 @@ func _run() -> void:
 	race.call("handle_obstacle_hit")
 	check(float(race.get("speed")) < 100.0 and float(race.get("speed")) > 0.0, "obstacle collision slows according to tolerance")
 	check(float(race.get("durability")) < 100.0, "obstacle collision causes real durability damage")
-	check(float(race.get("collision_stop_time")) > 0.0, "collision lockout prevents steering catapult")
+	check(float(race.get("collision_cooldown")) > 0.0, "collision cooldown prevents repeated damage and steering catapult")
 	var head_on := race.call("project_motion_along_obstacle", Vector3(0, 0, -20), Vector3(0, 0, 1)) as Vector3
 	var glancing := race.call("project_motion_along_obstacle", Vector3(10, 0, -20), Vector3(0, 0, 1)) as Vector3
 	var outward := race.call("project_motion_along_obstacle", Vector3(0, 0, 20), Vector3(0, 0, 1)) as Vector3

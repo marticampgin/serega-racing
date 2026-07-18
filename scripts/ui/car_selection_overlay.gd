@@ -158,7 +158,7 @@ func _build_interface() -> void:
 	left.pressed.connect(_change_car.bind(-1))
 	preview_row.add_child(left)
 	var container := SubViewportContainer.new()
-	container.custom_minimum_size = Vector2(760, 560)
+	container.custom_minimum_size = Vector2(900, 560)
 	container.stretch = true
 	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	preview_row.add_child(container)
@@ -189,7 +189,7 @@ func _build_interface() -> void:
 
 func _build_preview(container: SubViewportContainer) -> void:
 	viewport = SubViewport.new()
-	viewport.size = Vector2i(760, 560)
+	viewport.size = Vector2i(900, 560)
 	viewport.own_world_3d = true
 	viewport.transparent_bg = false
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS

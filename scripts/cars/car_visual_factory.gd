@@ -146,14 +146,17 @@ static func _build_strela(root: Node3D, body: Material, body_dark: Material, dar
 static func _build_lilpoc(root: Node3D, body: Material, body_dark: Material, dark: Material, glass: Material, accent: Material, neon: Material) -> void:
 	# Long-wheelbase luxury SUV: high beltline, long roof, sloped windshield,
 	# broad mesh grille and vertical running lights match the supplied reference.
-	_box(root, Vector3(2.2, 0.64, 4.85), Vector3(0, 0.3, 0.05), body)
-	_box(root, Vector3(2.08, 0.82, 2.72), Vector3(0, 1.12, 0.55), body_dark)
-	_box(root, Vector3(2.1, 0.13, 3.05), Vector3(0, 1.58, 0.34), body)
+	_box(root, Vector3(2.2, 0.72, 4.95), Vector3(0, 0.34, 0.05), body)
+	# The passenger compartment and rear quarter are one continuous full-width
+	# volume: no old-fashioned step or narrow cabin ledge along the sides/back.
+	_box(root, Vector3(2.18, 0.9, 3.32), Vector3(0, 1.13, 0.55), body_dark)
+	_box(root, Vector3(2.18, 0.13, 3.48), Vector3(0, 1.63, 0.53), body)
 	var windshield := _box(root, Vector3(1.96, 0.72, 0.09), Vector3(0, 1.17, -0.94), glass)
 	windshield.rotation.x = -0.3
-	for x in [-1.045, 1.045]:
-		_box(root, Vector3(0.07, 0.61, 0.86), Vector3(x, 1.26, -0.28), glass)
-		_box(root, Vector3(0.07, 0.61, 1.12), Vector3(x, 1.26, 0.83), glass)
+	for x in [-1.075, 1.075]:
+		_box(root, Vector3(0.06, 0.61, 0.82), Vector3(x, 1.29, -0.35), glass)
+		_box(root, Vector3(0.06, 0.61, 0.76), Vector3(x, 1.29, 0.48), glass)
+		_box(root, Vector3(0.06, 0.61, 1.0), Vector3(x, 1.29, 1.42), glass)
 		_box(root, Vector3(0.1, 0.1, 0.42), Vector3(x * 1.08, 1.02, -0.78), body)
 	_box(root, Vector3(2.08, 0.53, 1.28), Vector3(0, 0.78, -2.2), body)
 	_box(root, Vector3(1.72, 0.72, 0.12), Vector3(0, 0.76, -2.87), dark)
@@ -168,6 +171,13 @@ static func _build_lilpoc(root: Node3D, body: Material, body_dark: Material, dar
 	_box(root, Vector3(2.42, 0.1, 3.6), Vector3(0, -0.05, 0.1), neon)
 	_box(root, Vector3(0.14, 0.16, 3.35), Vector3(-1.17, 0.28, 0.08), dark)
 	_box(root, Vector3(0.14, 0.16, 3.35), Vector3(1.17, 0.28, 0.08), dark)
+	# Full-height tailgate, rear glass and vertical lamps close the same slab-sided
+	# silhouette seen in the side reference.
+	_box(root, Vector3(2.16, 1.16, 0.16), Vector3(0, 1.02, 2.43), body_dark)
+	_box(root, Vector3(1.88, 0.55, 0.07), Vector3(0, 1.36, 2.53), glass)
+	var tail_material := _material(Color("ff345c"), 0.18, 0.2, true)
+	for x in [-1.0, 1.0]: _box(root, Vector3(0.12, 1.02, 0.1), Vector3(x, 1.04, 2.53), tail_material)
+	_box(root, Vector3(2.25, 0.18, 0.32), Vector3(0, 0.12, 2.55), dark)
 	_cylinder_wheels(root, 1.15, [-1.62, 1.55], 0.5, 0.36, dark)
 
 
