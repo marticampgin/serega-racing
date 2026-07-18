@@ -16,6 +16,11 @@ const GENERATED_SCENERY_PATHS := [
 ]
 const ROAD_WIDTH := 17.0
 const ROAD_SAMPLE_STEP := 2.0
+const POWERUP_BOOST_DURATION := 5.5
+const POWERUP_GHOST_DURATION := 5.0
+const POWERUP_REPAIR_AMOUNT := 24.0
+const BOOST_ACCELERATION_MULTIPLIER := 1.35
+const BOOST_MAX_SPEED_MULTIPLIER := 1.04
 
 var course: CourseLayout
 var course_curve: Curve3D
@@ -890,12 +895,12 @@ func _obstacle_wheels(parent: Node3D, x: float, z_values: Array, material: Mater
 func build_powerups() -> void:
 	var types := ["boost", "repair", "shield", "ghost"]
 	var lanes := [-4.9, 0.0, 4.9]
-	var offset := 330.0
+	var offset := 450.0
 	var index := 0
 	while offset < TRACK_LENGTH - 100.0:
 		_create_powerup(types[index % types.size()], offset, lanes[rng.randi_range(0, 2)])
 		index += 1
-		offset += rng.randf_range(360.0, 520.0)
+		offset += rng.randf_range(620.0, 850.0)
 
 
 func _create_powerup(type: String, offset: float, lateral: float) -> void:
@@ -980,24 +985,24 @@ func _on_powerup_body_entered(body: Node3D, pickup: Area3D, type: String) -> voi
 
 
 func collect_powerup(type: String) -> void:
-	powerup_toast_time = 2.8
+	powerup_toast_time = 2.2
 	match type:
 		"boost":
-			boost_time = maxf(boost_time, 10.0)
+			boost_time = maxf(boost_time, POWERUP_BOOST_DURATION)
 			powerup_toast = "ПОДОБРАНО: ТУРБО"
-			status_label.text = "УСИЛЕНИЕ | ТУРБО НА 10 СЕКУНД"
+			status_label.text = "УСИЛЕНИЕ | ТУРБО НА %.1f СЕКУНДЫ" % POWERUP_BOOST_DURATION
 		"repair":
-			durability = minf(100.0, durability + 32.0)
-			powerup_toast = "ПОДОБРАНО: РЕМОНТ +32%"
+			durability = minf(100.0, durability + POWERUP_REPAIR_AMOUNT)
+			powerup_toast = "ПОДОБРАНО: РЕМОНТ +%d%%" % int(POWERUP_REPAIR_AMOUNT)
 			status_label.text = "УСИЛЕНИЕ | ПРОЧНОСТЬ ВОССТАНОВЛЕНА"
 		"shield":
-			shield_hits += 1
+			shield_hits = 1
 			powerup_toast = "ПОДОБРАНО: ЩИТ НА 1 УДАР"
 			status_label.text = "УСИЛЕНИЕ | ЩИТ ОТ СЛЕДУЮЩЕГО УДАРА"
 		"ghost":
-			ghost_time = maxf(ghost_time, 8.0)
+			ghost_time = maxf(ghost_time, POWERUP_GHOST_DURATION)
 			powerup_toast = "ПОДОБРАНО: РЕЖИМ ПРИЗРАКА"
-			status_label.text = "УСИЛЕНИЕ | РЕЖИМ ПРИЗРАКА НА 8 СЕКУНД"
+			status_label.text = "УСИЛЕНИЕ | РЕЖИМ ПРИЗРАКА НА %.1f СЕКУНД" % POWERUP_GHOST_DURATION
 
 
 func make_label(text_value: String, size: int, color: Color) -> Label:
@@ -1400,9 +1405,9 @@ func compute_drive_speed(current_speed: float, throttle: float, reverse_pressed:
 	var condition_ratio := clampf(durability / 100.0, 0.0, 1.0)
 	var active_max_speed := car_max_speed_mps * lerpf(0.58, 1.0, condition_ratio)
 	var acceleration := (18.0 + progress * 3.0) * car_acceleration_mult * lerpf(0.72, 1.0, condition_ratio)
-	if boost_time > 0.0:
-		acceleration *= 1.75
-		active_max_speed *= 1.16
+	if boost_time > 0.0 and not road_edge_contacting:
+		acceleration *= BOOST_ACCELERATION_MULTIPLIER
+		active_max_speed *= BOOST_MAX_SPEED_MULTIPLIER
 	if fuel <= 0.0:
 		throttle = minf(throttle, 0.35)
 	if throttle > 0.0:
@@ -1614,10 +1619,10 @@ func apply_drink_result(color_name: String) -> void:
 			shield_hits += 1
 			status_label.text = "СИНЕЕ ТОПЛИВО | ЩИТ ЗАРЯЖЕН"
 		"red", "orange":
-			boost_time = 12.0
+			boost_time = 8.0
 			status_label.text = "КРАСНОЕ ТОПЛИВО | ТУРБОУСКОРЕНИЕ"
 		"purple", "violet":
-			ghost_time = 12.0
+			ghost_time = 8.0
 			status_label.text = "ФИОЛЕТОВОЕ ТОПЛИВО | РЕЖИМ ПРИЗРАКА"
 		"green":
 			fuel = minf(100.0, fuel + 20.0)
