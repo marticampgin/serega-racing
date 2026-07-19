@@ -38,7 +38,7 @@ const PROFILES := [
 		"collider_size": Vector3(1.95, 0.7, 4.65),
 	},
 	{
-		"id": "lilpoc", "name": "LILPOC", "subtitle": "Секретный городской внедорожник",
+		"id": "lilpoc", "name": "CADILLAC", "subtitle": "Секретный городской внедорожник",
 		"description": "Тяжёлый чёрный SUV с огромной решёткой, вертикальной оптикой и почти запредельными характеристиками.",
 		"control": 5, "speed": 5, "max_speed_kmh": 800.0, "acceleration": 5, "efficiency": 5, "tolerance": 5,
 		"steering_mult": 1.25, "acceleration_mult": 1.42, "fuel_mult": 0.65, "damage_mult": 0.3,
@@ -99,7 +99,7 @@ static func _build_iskra(root: Node3D, body: Material, body_dark: Material, dark
 
 static func _build_molniya(root: Node3D, body: Material, body_dark: Material, dark: Material, glass: Material, accent: Material, neon: Material) -> void:
 	_box(root, Vector3(1.82, 0.34, 4.35), Vector3(0, 0.0, -0.08), body)
-	_box(root, Vector3(0.82, 0.3, 1.5), Vector3(0, 0.36, 0.32), glass)
+	_box(root, Vector3(0.82, 0.3, 1.5), Vector3(0, 0.29, 0.32), glass)
 	_box(root, Vector3(0.6, 0.2, 1.85), Vector3(0, 0.14, -2.75), body)
 	_box(root, Vector3(3.05, 0.1, 0.72), Vector3(0, -0.02, -2.95), accent)
 	_box(root, Vector3(2.72, 0.16, 0.48), Vector3(0, 0.72, 1.95), body_dark)
@@ -184,6 +184,8 @@ static func _build_lilpoc(root: Node3D, body: Material, body_dark: Material, dar
 		_box(root, Vector3(0.075, 0.72, 0.12), Vector3(x * 1.002, 1.28, 0.14), dark)
 		_box(root, Vector3(0.1, 0.1, 0.42), Vector3(x * 1.08, 1.02, -0.78), body)
 	_box(root, Vector3(2.08, 0.53, 1.28), Vector3(0, 0.78, -2.2), body)
+	# Cowl panel bridges the hood to the windshield instead of leaving a slot.
+	_box(root, Vector3(2.08, 0.28, 0.62), Vector3(0, 0.84, -1.36), body)
 	_box(root, Vector3(1.72, 0.72, 0.12), Vector3(0, 0.76, -2.87), dark)
 	# Abstract crest and the signature vertical front lights.
 	_box(root, Vector3(0.24, 0.17, 0.06), Vector3(0, 0.8, -2.95), accent)

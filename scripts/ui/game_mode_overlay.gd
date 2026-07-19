@@ -76,7 +76,7 @@ func _build_interface() -> void:
 	powerups_toggle = CheckButton.new()
 	powerups_toggle.text = "ВКЛЮЧИТЬ УСИЛЕНИЯ НА ТРАССЕ (ТУРБО • РЕМОНТ • ЩИТ • ПРИЗРАК)"
 	powerups_toggle.button_pressed = true
-	powerups_toggle.custom_minimum_size = Vector2(900, 48)
+	powerups_toggle.custom_minimum_size = Vector2(720, 48)
 	powerups_toggle.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	powerups_toggle.add_theme_font_size_override("font_size", 17)
 	powerups_toggle.add_theme_color_override("font_color", Color("8beeff"))
@@ -89,7 +89,7 @@ func _build_interface() -> void:
 	back.pressed.connect(func(): hide(); back_requested.emit())
 	actions.add_child(back)
 	var confirm := _button("ДАЛЕЕ — ВЫБОР МАШИНЫ", true)
-	confirm.pressed.connect(func(): hide(); mode_confirmed.emit(selected_mode, powerups_toggle.button_pressed))
+	confirm.pressed.connect(func(): hide(); mode_confirmed.emit(selected_mode, true if selected_mode == "obstacle_course" else powerups_toggle.button_pressed))
 	actions.add_child(confirm)
 
 
@@ -124,6 +124,7 @@ func _refresh() -> void:
 	obstacle_panel.add_theme_stylebox_override("panel", _panel(Color("21102f"), Color("ffe45f") if selected_mode == "obstacle_course" else Color("ee57b4"), 16))
 	free_button.modulate = Color.WHITE if selected_mode == "free_run" else Color(0.62, 0.62, 0.7)
 	obstacle_button.modulate = Color.WHITE if selected_mode == "obstacle_course" else Color(0.62, 0.62, 0.7)
+	powerups_toggle.visible = selected_mode == "free_run"
 
 
 func _button(text: String, primary: bool) -> Button:

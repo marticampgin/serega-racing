@@ -29,7 +29,7 @@ func _process(delta: float) -> void:
 	_elapsed += delta
 	if is_instance_valid(_sun_glow) and _sun_glow.material is ShaderMaterial:
 		var pulse := 0.5 + 0.5 * sin(_elapsed * 1.15)
-		(_sun_glow.material as ShaderMaterial).set_shader_parameter("strength", lerpf(0.16, 0.34, pulse))
+		(_sun_glow.material as ShaderMaterial).set_shader_parameter("strength", lerpf(0.10, 0.24, pulse))
 
 
 func set_background_texture(texture: Texture2D) -> void:

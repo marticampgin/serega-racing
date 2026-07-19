@@ -9,6 +9,7 @@ const CarFactory := preload("res://scripts/cars/car_visual_factory.gd")
 var selected_car := 0
 var selected_color := 0
 var preview_root: Node3D
+var preview_base_y := 0.25
 var viewport: SubViewport
 var name_label: Label
 var subtitle_label: Label
@@ -37,7 +38,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if visible and is_instance_valid(preview_root):
 		preview_root.rotate_y(delta * 0.42)
-		preview_root.position.y = 0.15 + sin(Time.get_ticks_msec() * 0.0014) * 0.08
+		preview_root.position.y = preview_base_y + sin(Time.get_ticks_msec() * 0.0014) * 0.025
 
 
 func show_selector() -> void:
@@ -199,7 +200,7 @@ func _build_preview(container: SubViewportContainer) -> void:
 	var environment := WorldEnvironment.new()
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color("100820")
+	env.background_color = Color("08051b")
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color("a99bd8")
 	env.ambient_light_energy = 1.15
@@ -216,6 +217,8 @@ func _build_preview(container: SubViewportContainer) -> void:
 	fill.omni_range = 12.0
 	fill.light_energy = 5.0
 	world.add_child(fill)
+	_build_cosmos_backdrop(world)
+	_build_synthwave_grid(world)
 	var platform := MeshInstance3D.new()
 	var cylinder := CylinderMesh.new()
 	cylinder.top_radius = 3.8
@@ -231,8 +234,23 @@ func _build_preview(container: SubViewportContainer) -> void:
 	platform.mesh = cylinder
 	platform.position.y = -0.48
 	world.add_child(platform)
+	var platform_ring := MeshInstance3D.new()
+	var ring_mesh := TorusMesh.new()
+	ring_mesh.inner_radius = 3.94
+	ring_mesh.outer_radius = 4.12
+	ring_mesh.rings = 48
+	ring_mesh.ring_segments = 8
+	var ring_material := StandardMaterial3D.new()
+	ring_material.albedo_color = Color("3ceeff")
+	ring_material.emission_enabled = true
+	ring_material.emission = Color("3ceeff")
+	ring_material.emission_energy_multiplier = 2.2
+	ring_mesh.material = ring_material
+	platform_ring.mesh = ring_mesh
+	platform_ring.position.y = -0.36
+	world.add_child(platform_ring)
 	preview_root = Node3D.new()
-	preview_root.rotation_degrees = Vector3(-4, 145, 0)
+	preview_root.rotation_degrees = Vector3(0, 145, 0)
 	preview_root.scale = Vector3.ONE * 1.35
 	world.add_child(preview_root)
 	var camera := Camera3D.new()
@@ -240,6 +258,66 @@ func _build_preview(container: SubViewportContainer) -> void:
 	camera.fov = 42.0
 	camera.look_at_from_position(camera.position, Vector3(0, 0.25, 0), Vector3.UP)
 	world.add_child(camera)
+
+
+func _build_synthwave_grid(world: Node3D) -> void:
+	var floor := MeshInstance3D.new()
+	var floor_mesh := BoxMesh.new()
+	floor_mesh.size = Vector3(18.0, 0.04, 18.0)
+	var floor_material := StandardMaterial3D.new()
+	floor_material.albedo_color = Color("080b22")
+	floor_material.roughness = 0.78
+	floor_mesh.material = floor_material
+	floor.mesh = floor_mesh
+	floor.position.y = -0.64
+	world.add_child(floor)
+	var grid_material := StandardMaterial3D.new()
+	grid_material.albedo_color = Color("168ec4")
+	grid_material.emission_enabled = true
+	grid_material.emission = Color("25cfff")
+	grid_material.emission_energy_multiplier = 1.5
+	for coordinate in range(-9, 10):
+		var line_x := MeshInstance3D.new()
+		var mesh_x := BoxMesh.new()
+		mesh_x.size = Vector3(0.025, 0.025, 18.0)
+		mesh_x.material = grid_material
+		line_x.mesh = mesh_x
+		line_x.position = Vector3(float(coordinate), -0.605, 0.0)
+		world.add_child(line_x)
+		var line_z := MeshInstance3D.new()
+		var mesh_z := BoxMesh.new()
+		mesh_z.size = Vector3(18.0, 0.025, 0.025)
+		mesh_z.material = grid_material
+		line_z.mesh = mesh_z
+		line_z.position = Vector3(0.0, -0.604, float(coordinate))
+		world.add_child(line_z)
+
+
+func _build_cosmos_backdrop(world: Node3D) -> void:
+	var star_material := StandardMaterial3D.new()
+	star_material.albedo_color = Color("d9e8ff")
+	star_material.emission_enabled = true
+	star_material.emission = Color("b8cfff")
+	star_material.emission_energy_multiplier = 2.0
+	var star_mesh := SphereMesh.new()
+	star_mesh.radius = 0.035
+	star_mesh.height = 0.07
+	star_mesh.radial_segments = 6
+	star_mesh.rings = 3
+	star_mesh.material = star_material
+	var stars := MultiMeshInstance3D.new()
+	var multimesh := MultiMesh.new()
+	multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	multimesh.mesh = star_mesh
+	multimesh.instance_count = 34
+	var star_rng := RandomNumberGenerator.new()
+	star_rng.seed = 1977
+	for index in multimesh.instance_count:
+		var scale_value := star_rng.randf_range(0.45, 1.25)
+		var position := Vector3(star_rng.randf_range(-8.5, 8.5), star_rng.randf_range(0.7, 7.2), -7.5)
+		multimesh.set_instance_transform(index, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * scale_value), position))
+	stars.multimesh = multimesh
+	world.add_child(stars)
 
 
 func _change_car(direction: int) -> void:
@@ -277,7 +355,29 @@ func _refresh_selection() -> void:
 		color_buttons[index].add_theme_stylebox_override("normal", _swatch_style(CarFactory.COLORS[index], index == selected_color))
 	for child in preview_root.get_children():
 		child.queue_free()
-	CarFactory.build(preview_root, str(profile.id), CarFactory.COLORS[selected_color])
+	var visual := CarFactory.build(preview_root, str(profile.id), CarFactory.COLORS[selected_color])
+	_align_preview_to_platform(visual)
+
+
+func _align_preview_to_platform(visual: Node3D) -> void:
+	# Cars have different wheel radii and chassis heights. Derive the lowest mesh
+	# point so every model sits above the podium without relying on one shared tilt.
+	var minimum_y := INF
+	for value in visual.find_children("*", "MeshInstance3D", true, false):
+		var mesh_node := value as MeshInstance3D
+		if mesh_node.mesh == null: continue
+		var bounds := mesh_node.mesh.get_aabb()
+		var to_preview := preview_root.global_transform.affine_inverse() * mesh_node.global_transform
+		for corner_index in 8:
+			var corner := bounds.position + Vector3(
+				bounds.size.x if (corner_index & 1) != 0 else 0.0,
+				bounds.size.y if (corner_index & 2) != 0 else 0.0,
+				bounds.size.z if (corner_index & 4) != 0 else 0.0
+			)
+			minimum_y = minf(minimum_y, (to_preview * corner).y)
+	if minimum_y < INF:
+		preview_base_y = -0.34 - minimum_y * preview_root.scale.y
+		preview_root.position.y = preview_base_y
 
 
 func _on_confirm() -> void:
@@ -294,7 +394,7 @@ func _try_unlock() -> void:
 		return
 	if code_edit.text == "LILPOC_":
 		unlocked_cars["lilpoc"] = true
-		code_status.text = "LILPOC РАЗБЛОКИРОВАН"
+		code_status.text = "CADILLAC РАЗБЛОКИРОВАН"
 		code_status.add_theme_color_override("font_color", Color("70ef88"))
 		code_edit.clear()
 		_refresh_selection()

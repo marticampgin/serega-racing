@@ -18,12 +18,13 @@ func _run() -> void:
 	var game := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	root.add_child(game)
 	await process_frame
-	game.call("_on_mode_confirmed", "obstacle_course", true)
+	game.call("_on_mode_confirmed", "obstacle_course", false)
 	game.call("_on_car_confirmed", "titan", Color("20c9e8"))
 	await process_frame
 	var obstacles := get_nodes_in_group("obstacle")
 	var powerups := get_nodes_in_group("powerup")
 	check(obstacles.size() > 100, "obstacle course densely populates the full lap")
+	check(bool(game.get("powerups_enabled")), "obstacle mode forces power-ups on even when passed a disabled toggle")
 	check(powerups.size() >= 7 and powerups.size() <= 11, "power-ups are valuable and genuinely rare around the lap")
 	var kinds := {}
 	for obstacle in obstacles:

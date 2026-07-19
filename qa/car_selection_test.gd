@@ -49,6 +49,7 @@ func _run() -> void:
 	var before := preview.rotation.y
 	selector.call("_process", 1.0)
 	check(absf(preview.rotation.y - before) > 0.3, "showroom car rotates smoothly")
+	check(is_zero_approx(preview.rotation.x), "showroom cars remain level instead of sinking their front wheels")
 	selector.call("_change_car", 1)
 	check(int(selector.get("selected_car")) == 1, "selection arrows change the car")
 	selector.call("_select_color", 3)

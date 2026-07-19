@@ -57,6 +57,7 @@ var speed_label: Label
 var timer_label: Label
 var distance_label: Label
 var status_label: Label
+var fuel_title: Label
 var fuel_bar: ProgressBar
 var durability_bar: ProgressBar
 var powerup_status_label: Label
@@ -87,6 +88,7 @@ var car_max_speed_mps := 500.0 / 3.6
 var durability := 100.0
 var selected_game_mode := "free_run"
 var powerups_enabled := true
+var fuel_enabled := true
 var gameplay_content: Node3D
 var obstacle_materials: Dictionary = {}
 var powerup_toast := ""
@@ -1039,7 +1041,7 @@ func build_hud() -> void:
 	column.add_child(speed_label)
 	distance_label = make_label("0 / %d М" % int(TRACK_LENGTH), 17, Color("dce5ed"))
 	column.add_child(distance_label)
-	var fuel_title := make_label("ТОПЛИВО", 14, Color("b8c4cf"))
+	fuel_title = make_label("ТОПЛИВО", 14, Color("b8c4cf"))
 	column.add_child(fuel_title)
 	fuel_bar = ProgressBar.new()
 	fuel_bar.custom_minimum_size = Vector2(285, 22)
@@ -1070,7 +1072,7 @@ func build_hud() -> void:
 	powerup_status_label.add_theme_stylebox_override("normal", effect_style)
 	powerup_status_label.visible = false
 	layer.add_child(powerup_status_label)
-	status_label = make_label("WASD — ЕЗДА | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | ESC — ПАУЗА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС", 16, Color("f2f4f6"))
+	status_label = make_label(driving_help_text(), 16, Color("f2f4f6"))
 	status_label.anchor_right = 1.0
 	status_label.anchor_top = 1.0
 	status_label.anchor_bottom = 1.0
@@ -1154,7 +1156,8 @@ func _open_mode_selection() -> void:
 
 func _on_mode_confirmed(mode: String, enable_powerups: bool) -> void:
 	selected_game_mode = mode
-	powerups_enabled = enable_powerups
+	powerups_enabled = true if mode == "obstacle_course" else enable_powerups
+	fuel_enabled = not (mode == "free_run" and not powerups_enabled)
 	if is_instance_valid(mode_selector): mode_selector.hide()
 	_open_car_selection()
 
@@ -1269,11 +1272,11 @@ func _physics_process(delta: float) -> void:
 	powerup_toast_time = maxf(0.0, powerup_toast_time - delta)
 	refuel_cooldown = maxf(0.0, refuel_cooldown - delta)
 	car.collision_mask = 0 if ghost_time > 0.0 else 1
-	var refuel_pressed := Input.is_key_pressed(KEY_F)
+	var refuel_pressed := fuel_enabled and Input.is_key_pressed(KEY_F)
 	if refuel_pressed and not refuel_key_down:
 		request_refuel()
 	refuel_key_down = refuel_pressed
-	var debug_refill_pressed := Input.is_key_pressed(KEY_G)
+	var debug_refill_pressed := fuel_enabled and Input.is_key_pressed(KEY_G)
 	if debug_refill_pressed and not debug_refill_key_down:
 		debug_refill()
 	debug_refill_key_down = debug_refill_pressed
@@ -1415,7 +1418,7 @@ func compute_drive_speed(current_speed: float, throttle: float, reverse_pressed:
 	if boost_time > 0.0 and not road_edge_contacting:
 		acceleration *= BOOST_ACCELERATION_MULTIPLIER
 		active_max_speed *= BOOST_MAX_SPEED_MULTIPLIER
-	if fuel <= 0.0:
+	if fuel_enabled and fuel <= 0.0:
 		throttle = minf(throttle, 0.35)
 	if throttle > 0.0:
 		current_speed = move_toward(current_speed, 0.0, 34.0 * delta) if current_speed < 0.0 else move_toward(current_speed, active_max_speed, acceleration * delta)
@@ -1527,7 +1530,8 @@ func update_progress(delta: float) -> void:
 		offset_delta += TRACK_LENGTH
 	course_offset = next_offset
 	distance = clampf(distance + offset_delta, 0.0, TRACK_LENGTH)
-	fuel = maxf(0.0, fuel - delta * (1.0 + distance / TRACK_LENGTH * 0.5) * car_fuel_mult)
+	if fuel_enabled:
+		fuel = maxf(0.0, fuel - delta * (1.0 + distance / TRACK_LENGTH * 0.5) * car_fuel_mult)
 	if distance >= TRACK_LENGTH - 2.0:
 		race_active = false
 		speed = 0.0
@@ -1559,6 +1563,8 @@ func update_hud() -> void:
 	speed_label.text = ("ЗАД %03d КМ/Ч" % int(absf(speed) * 3.6)) if speed < -0.5 else ("%03d КМ/Ч" % int(speed * 3.6))
 	timer_label.text = format_time(elapsed)
 	distance_label.text = "%04d / %d М" % [int(distance), int(TRACK_LENGTH)]
+	fuel_title.visible = fuel_enabled
+	fuel_bar.visible = fuel_enabled
 	fuel_bar.value = fuel
 	durability_bar.value = durability
 	if is_instance_valid(minimap):
@@ -1591,6 +1597,12 @@ func format_time(value: float) -> String:
 	return "%02d:%02d.%03d" % [minutes, seconds, millis]
 
 
+func driving_help_text() -> String:
+	if fuel_enabled:
+		return "WASD — ЕЗДА | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | ESC — ПАУЗА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС"
+	return "WASD — ЕЗДА | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | ESC — ПАУЗА | R — СБРОС"
+
+
 func reset_car() -> void:
 	var start_frame := course.sample_course(0.0)
 	car.global_position = start_position
@@ -1616,7 +1628,7 @@ func reset_car() -> void:
 	race_active = true
 	game_over_label.visible = false
 	finish_portrait.visible = false
-	status_label.text = "WASD — ЕЗДА | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | ESC — ПАУЗА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС"
+	status_label.text = driving_help_text()
 	refuel_in_progress = false
 	refuel_cooldown = 0.0
 	countdown_time = 3.2
