@@ -25,14 +25,17 @@ func _run() -> void:
 		check(stream != null, "%s engine stream imports" % profile_id)
 		loaded_paths[path] = true
 	stream = null
-	check(loaded_paths.size() == 6, "engine profiles use six distinct source loops")
+	check(loaded_paths.size() >= 3, "bolids, road cars and Cadillac use distinct real-engine sources")
 	for path in [
-		"res://assets/audio/vehicle/wall_scrape.ogg",
+		"res://assets/audio/vehicle/metal_scrape.mp3",
 		"res://assets/audio/vehicle/brake_skid.wav",
-		"res://assets/audio/impacts/crash.ogg",
-		"res://assets/audio/ui/powerup.wav",
+		"res://assets/audio/impacts/vehicle_collision.mp3",
+		"res://assets/audio/impacts/car_crash_heavy.mp3",
+		"res://assets/audio/ui/powerup_short.wav",
 	]:
 		check(load(path) is AudioStream, "%s imports" % path.get_file())
+	var pickup_stream := load("res://assets/audio/ui/powerup_short.wav") as AudioStream
+	check(pickup_stream.get_length() < 1.0, "power-up pickup is a genuinely short one-shot")
 	var controller := AudioController.new()
 	root.add_child(controller)
 	await process_frame
@@ -43,6 +46,8 @@ func _run() -> void:
 	controller.update_vehicle(200.0, 220.0, true, true, true, 0.1)
 	check(controller.engine.pitch_scale > idle_pitch, "engine pitch rises progressively with speed")
 	check(controller.scrape.playing and controller.brake.playing, "scrape and brake layers react to their contacts")
+	controller.update_vehicle(200.0, 220.0, true, false, false, 1.0)
+	check(not controller.scrape.playing, "scrape layer stops when wall contact ends")
 	controller.play_impact(0.8, true)
 	check(controller.impact_players.any(func(player): return player.playing), "collision layer supports impact one-shots")
 	controller.set_active(false)

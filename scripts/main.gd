@@ -1360,7 +1360,9 @@ func _physics_process(delta: float) -> void:
 	update_hud()
 	if is_instance_valid(vehicle_audio):
 		var braking := Input.is_key_pressed(KEY_SPACE) or (Input.is_key_pressed(KEY_S) and speed > 1.0)
-		vehicle_audio.update_vehicle(speed, car_max_speed_mps, Input.is_key_pressed(KEY_W), braking, road_edge_contacting or obstacle_slide_time > 0.0, delta)
+		# Obstacles create discrete body impacts only. Continuous metal scraping is
+		# reserved for sustained contact with the road boundary/walls.
+		vehicle_audio.update_vehicle(speed, car_max_speed_mps, Input.is_key_pressed(KEY_W), braking, road_edge_contacting, delta)
 
 
 func update_car(delta: float) -> void:
