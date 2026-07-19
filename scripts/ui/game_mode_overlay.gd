@@ -74,14 +74,13 @@ func _build_interface() -> void:
 	obstacle_button = obstacle.button
 	cards.add_child(obstacle_panel)
 	powerups_toggle = CheckButton.new()
-	powerups_toggle.text = "ВКЛЮЧИТЬ УСИЛЕНИЯ НА ТРАССЕ"
+	powerups_toggle.text = "ВКЛЮЧИТЬ УСИЛЕНИЯ НА ТРАССЕ (ТУРБО • РЕМОНТ • ЩИТ • ПРИЗРАК)"
 	powerups_toggle.button_pressed = true
-	powerups_toggle.custom_minimum_size = Vector2(650, 48)
+	powerups_toggle.custom_minimum_size = Vector2(900, 48)
 	powerups_toggle.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	powerups_toggle.add_theme_font_size_override("font_size", 19)
+	powerups_toggle.add_theme_font_size_override("font_size", 17)
 	powerups_toggle.add_theme_color_override("font_color", Color("8beeff"))
 	content.add_child(powerups_toggle)
-	content.add_child(_label("ТУРБО • РЕМОНТ • ЩИТ • РЕЖИМ ПРИЗРАКА", 15, Color("d7cceb"), HORIZONTAL_ALIGNMENT_CENTER))
 	var actions := HBoxContainer.new()
 	actions.alignment = BoxContainer.ALIGNMENT_CENTER
 	actions.add_theme_constant_override("separation", 18)

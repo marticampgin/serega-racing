@@ -27,13 +27,16 @@ func _run() -> void:
 		root.add_child(holder)
 		var visual := CarFactory.build(holder, str(profile.id), CarFactory.COLORS[0])
 		var meshes := visual.find_children("*", "MeshInstance3D", true, false)
+		var round_wheels := 0
 		var signature := ""
 		for value in meshes:
 			var mesh := (value as MeshInstance3D).mesh
 			if mesh != null:
+				if mesh is CylinderMesh: round_wheels += 1
 				signature += var_to_str(mesh.get_aabb().size.snapped(Vector3.ONE * 0.01))
 		signatures[signature] = true
 		check(meshes.size() >= 10, "%s has a complete low-poly visual" % profile.name)
+		check(round_wheels >= 4, "%s uses round wheels with separate rim details" % profile.name)
 		holder.queue_free()
 	check(signatures.size() == 6, "all six cars have distinct silhouettes")
 

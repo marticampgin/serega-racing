@@ -16,11 +16,13 @@ const GENERATED_SCENERY_PATHS := [
 ]
 const ROAD_WIDTH := 17.0
 const ROAD_SAMPLE_STEP := 2.0
-const POWERUP_BOOST_DURATION := 5.5
-const POWERUP_GHOST_DURATION := 5.0
-const POWERUP_REPAIR_AMOUNT := 24.0
-const BOOST_ACCELERATION_MULTIPLIER := 1.35
-const BOOST_MAX_SPEED_MULTIPLIER := 1.04
+const POWERUP_BOOST_DURATION := 6.5
+const POWERUP_GHOST_DURATION := 6.0
+const POWERUP_REPAIR_AMOUNT := 30.0
+const BOOST_ACCELERATION_MULTIPLIER := 1.4
+const BOOST_MAX_SPEED_MULTIPLIER := 1.05
+const WALL_SLIDE_PENALTY_DELAY := 0.45
+const WALL_SLIDE_SPEED_CAP := 55.0 # 198 km/h: still movable, never a fast line.
 
 var course: CourseLayout
 var course_curve: Curve3D
@@ -40,6 +42,7 @@ var shield_hits := 0
 var collision_cooldown := 0.0
 var wall_impact_cooldown := 0.0
 var road_edge_contacting := false
+var road_edge_contact_time := 0.0
 var obstacle_slide_time := 0.0
 var obstacle_block_normal := Vector3.ZERO
 var boost_time := 0.0
@@ -895,12 +898,12 @@ func _obstacle_wheels(parent: Node3D, x: float, z_values: Array, material: Mater
 func build_powerups() -> void:
 	var types := ["boost", "repair", "shield", "ghost"]
 	var lanes := [-4.9, 0.0, 4.9]
-	var offset := 450.0
+	var offset := 600.0
 	var index := 0
 	while offset < TRACK_LENGTH - 100.0:
 		_create_powerup(types[index % types.size()], offset, lanes[rng.randi_range(0, 2)])
 		index += 1
-		offset += rng.randf_range(620.0, 850.0)
+		offset += rng.randf_range(1050.0, 1350.0)
 
 
 func _create_powerup(type: String, offset: float, lateral: float) -> void:
@@ -1378,6 +1381,10 @@ func enforce_track_safety(delta: float) -> void:
 	var drive_motion := -car.global_transform.basis.z.normalized() * speed
 	var outward_speed := maxf(0.0, drive_motion.dot(outward_axis)) if touching_edge else 0.0
 	var scrape_speed := drive_motion.slide(outward_axis).length() if touching_edge else 0.0
+	if touching_edge and scrape_speed > 6.0:
+		road_edge_contact_time += delta
+	else:
+		road_edge_contact_time = 0.0
 	if absf(lateral_distance) > hard_edge:
 		# Correct only the out-of-bounds component. Keeping longitudinal position and
 		# heading avoids the visible despawn/centerline respawn that used to occur.
@@ -1469,6 +1476,14 @@ func handle_road_edge_contact(impact_speed: float, scrape_speed: float, delta: f
 			var scrape_drag := lerpf(0.25, 2.4, scrape_ratio)
 			speed = signf(speed) * maxf(0.0, absf(speed) - scrape_drag * maxf(delta, 0.0))
 			if race_active: status_label.text = "ТРЕНИЕ О СТЕНУ | ПРОЧНОСТЬ %d%%" % int(durability)
+	if road_edge_contact_time >= WALL_SLIDE_PENALTY_DELAY:
+		# Riding the boundary must never become a faster alternative to steering.
+		# After a short grace period, pull speed firmly toward a safe sliding cap.
+		var slide_cap := minf(WALL_SLIDE_SPEED_CAP, car_max_speed_mps * 0.42)
+		if absf(speed) > slide_cap:
+			var penalized_speed := move_toward(absf(speed), slide_cap, 115.0 * maxf(delta, 0.0))
+			speed = signf(speed) * penalized_speed
+		if race_active: status_label.text = "ДОЛГИЙ КОНТАКТ СО СТЕНОЙ | СКОРОСТЬ СНИЖЕНА"
 
 
 func apply_continuous_vehicle_damage(base_damage: float, _source: String) -> bool:
@@ -1595,6 +1610,7 @@ func reset_car() -> void:
 	collision_cooldown = 0.0
 	wall_impact_cooldown = 0.0
 	road_edge_contacting = false
+	road_edge_contact_time = 0.0
 	obstacle_slide_time = 0.0
 	obstacle_block_normal = Vector3.ZERO
 	race_active = true

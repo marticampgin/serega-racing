@@ -24,7 +24,7 @@ func _run() -> void:
 	var obstacles := get_nodes_in_group("obstacle")
 	var powerups := get_nodes_in_group("powerup")
 	check(obstacles.size() > 100, "obstacle course densely populates the full lap")
-	check(powerups.size() >= 12 and powerups.size() <= 19, "power-ups are useful but relatively rare around the lap")
+	check(powerups.size() >= 7 and powerups.size() <= 11, "power-ups are valuable and genuinely rare around the lap")
 	var kinds := {}
 	for obstacle in obstacles:
 		for kind in ["cone", "taxi", "car", "truck", "bulldozer", "wrecked_bolid"]:
@@ -46,11 +46,11 @@ func _run() -> void:
 	game.call("collect_powerup", "repair")
 	check(float(game.get("durability")) > damaged, "repair power-up heals durability")
 	game.call("collect_powerup", "boost")
-	check(float(game.get("boost_time")) <= 5.5, "turbo duration is capped at the nerfed value")
+	check(float(game.get("boost_time")) <= 6.5, "rare turbo duration stays within its balanced value")
 	var car_cap := float(game.get("car_max_speed_mps"))
 	game.set("road_edge_contacting", false)
 	var boosted_cap := float(game.call("compute_drive_speed", 999.0, 1.0, false, false, 0.5, 0.1))
-	check(boosted_cap <= car_cap * 1.041, "turbo adds only a modest maximum-speed bonus")
+	check(boosted_cap <= car_cap * 1.051, "turbo adds only a modest maximum-speed bonus")
 	game.set("road_edge_contacting", true)
 	var wall_cap := float(game.call("compute_drive_speed", 999.0, 1.0, false, false, 0.5, 0.1))
 	check(wall_cap <= car_cap, "turbo bonus disengages while sliding against a road edge")
@@ -64,7 +64,7 @@ func _run() -> void:
 	game.call("apply_vehicle_damage", 30.0, "TEST")
 	check(is_equal_approx(float(game.get("durability")), before_shield), "shield absorbs the next hit")
 	game.call("collect_powerup", "ghost")
-	check(float(game.get("ghost_time")) <= 5.0, "ghost duration is capped at the nerfed value")
+	check(float(game.get("ghost_time")) <= 6.0, "rare ghost duration stays within its balanced value")
 	game.set("durability", 1.0)
 	game.set("shield_hits", 0)
 	game.set("ghost_time", 0.0)
