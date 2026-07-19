@@ -78,13 +78,18 @@ static func build(parent: Node3D, profile_id: String, body_color: Color) -> Node
 		_: _build_iskra(root, body, body_dark, dark, glass, accent, neon)
 	if profile_id == "lilpoc":
 		root.position.y = -0.05
+	else:
+		# The player origin rides 0.55 m above the analytical road surface. Lower
+		# the sports-car art so the tyre bottoms, rather than the chassis origin,
+		# actually meet the pavement during gameplay.
+		root.position.y = -0.3
 	return root
 
 
 static func _build_iskra(root: Node3D, body: Material, body_dark: Material, dark: Material, glass: Material, accent: Material, neon: Material) -> void:
 	# Balanced 1980s wedge coupe with a full cabin and road-car proportions.
-	_box(root, Vector3(1.96, 0.4, 4.12), Vector3(0, 0.28, 0.0), body)
-	var hood := _box(root, Vector3(1.82, 0.16, 1.55), Vector3(0, 0.54, -1.38), body_dark)
+	_tapered_box(root, Vector3(1.98, 0.42, 4.14), Vector3(1.76, 0.42, 3.78), Vector3(0, 0.28, 0), Vector3(0, 0, 0.12), body)
+	var hood := _box(root, Vector3(1.8, 0.14, 1.55), Vector3(0, 0.54, -1.38), body_dark)
 	hood.rotation.x = 0.04
 	_box(root, Vector3(1.52, 0.12, 1.28), Vector3(0, 0.91, 0.27), body_dark)
 	var windshield := _box(root, Vector3(1.5, 0.42, 0.08), Vector3(0, 0.72, -0.46), glass)
@@ -100,11 +105,18 @@ static func _build_iskra(root: Node3D, body: Material, body_dark: Material, dark
 	var cyan := _material(Color("36e7f2"), 0.25, 0.24, true)
 	for x in [-0.57, 0.57]: _box(root, Vector3(0.46, 0.11, 0.08), Vector3(x, 0.4, -2.12), cyan)
 	for x in [-0.2, 0.2]: _box(root, Vector3(0.08, 0.04, 2.9), Vector3(x, 0.62, -0.38), cyan)
+	# Pop-up lamp pods and rear-window louvers make Iskra unmistakably eighties.
+	for x in [-0.58, 0.58]:
+		var pod := _box(root, Vector3(0.42, 0.12, 0.34), Vector3(x, 0.66, -1.66), body_dark)
+		pod.rotation.x = -0.08
+	for louver in 4:
+		var slat := _box(root, Vector3(1.42, 0.045, 0.09), Vector3(0, 0.78 - louver * 0.07, 0.78 + louver * 0.14), dark)
+		slat.rotation.x = 0.42
 
 
 static func _build_molniya(root: Node3D, body: Material, body_dark: Material, dark: Material, glass: Material, accent: Material, neon: Material) -> void:
 	# Wide mid-engine supercar: low canopy, side intakes and supported rear wing.
-	_box(root, Vector3(2.18, 0.36, 4.62), Vector3(0, 0.25, -0.02), body)
+	_tapered_box(root, Vector3(2.2, 0.36, 4.66), Vector3(1.9, 0.36, 4.15), Vector3(0, 0.25, -0.02), Vector3(0, 0, 0.12), body)
 	var hood := _box(root, Vector3(1.96, 0.12, 1.68), Vector3(0, 0.47, -1.56), body_dark)
 	hood.rotation.x = 0.06
 	_box(root, Vector3(1.4, 0.11, 1.35), Vector3(0, 0.82, 0.06), body_dark)
@@ -123,11 +135,25 @@ static func _build_molniya(root: Node3D, body: Material, body_dark: Material, da
 	for x in [-0.78, 0.78]: _box(root, Vector3(0.12, 0.1, 2.8), Vector3(x, 0.18, -0.05), electric)
 	for x in [-0.65, 0.65]: _box(root, Vector3(0.52, 0.1, 0.08), Vector3(x, 0.37, -2.36), accent)
 	_box(root, Vector3(1.86, 0.1, 0.08), Vector3(0, 0.36, 2.3), electric)
+	# Twin exhausts and dorsal spine reinforce Molniya's high-speed identity.
+	for x in [-0.42, 0.42]:
+		var exhaust := MeshInstance3D.new()
+		var exhaust_mesh := CylinderMesh.new()
+		exhaust_mesh.top_radius = 0.11
+		exhaust_mesh.bottom_radius = 0.11
+		exhaust_mesh.height = 0.24
+		exhaust_mesh.radial_segments = 12
+		exhaust_mesh.material = dark
+		exhaust.mesh = exhaust_mesh
+		exhaust.position = Vector3(x, 0.22, 2.4)
+		exhaust.rotation.x = PI * 0.5
+		root.add_child(exhaust)
+	_box(root, Vector3(0.09, 0.07, 2.25), Vector3(0, 0.52, -0.62), electric)
 
 
 static func _build_prizrak(root: Node3D, body: Material, body_dark: Material, dark: Material, glass: Material, accent: Material, neon: Material) -> void:
 	# Compact squared-off synthwave coupe inspired by small 1980s rally cars.
-	_box(root, Vector3(1.88, 0.43, 3.74), Vector3(0, 0.3, 0.02), body)
+	_tapered_box(root, Vector3(1.9, 0.44, 3.76), Vector3(1.7, 0.44, 3.48), Vector3(0, 0.3, 0.02), Vector3(0, 0, 0.06), body)
 	var hood := _box(root, Vector3(1.72, 0.14, 1.2), Vector3(0, 0.56, -1.22), body_dark)
 	hood.rotation.x = 0.04
 	_box(root, Vector3(1.58, 0.12, 1.34), Vector3(0, 0.96, 0.3), body_dark)
@@ -144,11 +170,15 @@ static func _build_prizrak(root: Node3D, body: Material, body_dark: Material, da
 	for x in [-0.58, 0.58]: _box(root, Vector3(0.48, 0.12, 0.08), Vector3(x, 0.42, -1.92), violet)
 	_box(root, Vector3(1.75, 0.11, 0.08), Vector3(0, 0.46, 1.9), violet)
 	_box(root, Vector3(1.45, 0.07, 2.9), Vector3(0, 0.07, 0.0), neon)
+	# Flush dark nose and a short hatch spoiler give the compact Prizrak a
+	# stealthier silhouette instead of another long-hood coupe.
+	_box(root, Vector3(1.64, 0.18, 0.42), Vector3(0, 0.38, -1.75), dark)
+	_box(root, Vector3(1.84, 0.08, 0.28), Vector3(0, 0.63, 1.72), body_dark)
 
 
 static func _build_titan(root: Node3D, body: Material, body_dark: Material, dark: Material, glass: Material, accent: Material, neon: Material) -> void:
 	# Heavy grand tourer: broad shoulders, long hood and muscular wheel blocks.
-	_box(root, Vector3(2.18, 0.5, 4.36), Vector3(0, 0.34, 0.0), body)
+	_tapered_box(root, Vector3(2.22, 0.54, 4.38), Vector3(2.08, 0.54, 4.08), Vector3(0, 0.34, 0), Vector3(0, 0, 0.04), body)
 	var hood := _box(root, Vector3(2.04, 0.17, 1.6), Vector3(0, 0.64, -1.34), body_dark)
 	hood.rotation.x = 0.035
 	_box(root, Vector3(1.66, 0.13, 1.42), Vector3(0, 1.02, 0.42), body_dark)
@@ -165,11 +195,15 @@ static func _build_titan(root: Node3D, body: Material, body_dark: Material, dark
 	for x in [-0.63, 0.0, 0.63]: _box(root, Vector3(0.42, 0.11, 0.08), Vector3(x, 0.44, -2.23), bronze)
 	for x in [-0.72, 0.72]: _box(root, Vector3(0.16, 0.06, 2.75), Vector3(x, 0.65, -0.25), bronze)
 	_box(root, Vector3(1.9, 0.11, 0.08), Vector3(0, 0.46, 2.19), neon)
+	# Reinforced hood scoop and shoulder rails visually explain Titan's extra
+	# durability without making it SUV-tall.
+	_tapered_box(root, Vector3(0.76, 0.2, 0.92), Vector3(0.52, 0.2, 0.7), Vector3(0, 0.76, -1.05), Vector3.ZERO, dark)
+	for x in [-0.92, 0.92]: _box(root, Vector3(0.13, 0.1, 3.0), Vector3(x, 0.64, 0.05), bronze)
 
 
 static func _build_strela(root: Node3D, body: Material, body_dark: Material, dark: Material, glass: Material, accent: Material, neon: Material) -> void:
 	# Long-nose exotic road car with an arrow-like hood and fastback glass.
-	_box(root, Vector3(2.02, 0.35, 4.7), Vector3(0, 0.25, -0.05), body)
+	_tapered_box(root, Vector3(2.04, 0.35, 4.74), Vector3(1.68, 0.35, 4.02), Vector3(0, 0.25, -0.05), Vector3(0, 0, 0.24), body)
 	var hood := _box(root, Vector3(1.82, 0.12, 1.82), Vector3(0, 0.49, -1.43), body_dark)
 	hood.rotation.x = 0.07
 	_box(root, Vector3(1.42, 0.1, 1.22), Vector3(0, 0.82, 0.4), body_dark)
@@ -186,6 +220,10 @@ static func _build_strela(root: Node3D, body: Material, body_dark: Material, dar
 	_box(root, Vector3(0.16, 0.04, 3.4), Vector3(0, 0.56, -0.48), white)
 	for x in [-0.58, 0.58]: _box(root, Vector3(0.48, 0.1, 0.08), Vector3(x, 0.39, -2.44), accent)
 	_box(root, Vector3(1.8, 0.1, 0.08), Vector3(0, 0.39, 2.33), neon)
+	# Arrowhead nose rails converge visually toward the front point.
+	for x in [-0.46, 0.46]:
+		var rail := _box(root, Vector3(0.08, 0.055, 2.05), Vector3(x, 0.57, -1.1), white)
+		rail.rotation.y = (-0.08 if x < 0.0 else 0.08)
 
 
 static func _build_lilpoc(root: Node3D, body: Material, body_dark: Material, dark: Material, glass: Material, accent: Material, neon: Material) -> void:
@@ -279,6 +317,37 @@ static func _box(parent: Node3D, size: Vector3, position: Vector3, material: Mat
 	mesh.size = size
 	mesh.material = material
 	instance.mesh = mesh
+	instance.position = position
+	parent.add_child(instance)
+	return instance
+
+
+static func _tapered_box(parent: Node3D, bottom_size: Vector3, top_size: Vector3, position: Vector3, top_offset: Vector3, material: Material) -> MeshInstance3D:
+	var bottom := bottom_size * 0.5
+	var top := top_size * 0.5
+	var vertices := PackedVector3Array([
+		Vector3(-bottom.x, -bottom.y, -bottom.z), Vector3(bottom.x, -bottom.y, -bottom.z),
+		Vector3(bottom.x, -bottom.y, bottom.z), Vector3(-bottom.x, -bottom.y, bottom.z),
+		Vector3(-top.x, top.y, -top.z) + top_offset, Vector3(top.x, top.y, -top.z) + top_offset,
+		Vector3(top.x, top.y, top.z) + top_offset, Vector3(-top.x, top.y, top.z) + top_offset,
+	])
+	var triangles := PackedInt32Array([
+		0, 2, 1, 0, 3, 2,
+		4, 5, 6, 4, 6, 7,
+		0, 1, 5, 0, 5, 4,
+		1, 2, 6, 1, 6, 5,
+		2, 3, 7, 2, 7, 6,
+		3, 0, 4, 3, 4, 7,
+	])
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	surface.set_material(material)
+	for vertex_index in triangles:
+		surface.set_uv(Vector2(vertices[vertex_index].x, vertices[vertex_index].z))
+		surface.add_vertex(vertices[vertex_index])
+	surface.generate_normals()
+	var instance := MeshInstance3D.new()
+	instance.mesh = surface.commit()
 	instance.position = position
 	parent.add_child(instance)
 	return instance

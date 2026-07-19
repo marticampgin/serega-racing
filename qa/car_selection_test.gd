@@ -29,14 +29,25 @@ func _run() -> void:
 		var meshes := visual.find_children("*", "MeshInstance3D", true, false)
 		var round_wheels := 0
 		var signature := ""
+		var lowest_point := INF
 		for value in meshes:
-			var mesh := (value as MeshInstance3D).mesh
+			var mesh_node := value as MeshInstance3D
+			var mesh := mesh_node.mesh
 			if mesh != null:
 				if mesh is CylinderMesh: round_wheels += 1
-				signature += var_to_str(mesh.get_aabb().size.snapped(Vector3.ONE * 0.01))
+				var bounds := mesh.get_aabb()
+				signature += var_to_str(bounds.size.snapped(Vector3.ONE * 0.01))
+				for corner_index in 8:
+					var corner := bounds.position + Vector3(
+						bounds.size.x if (corner_index & 1) != 0 else 0.0,
+						bounds.size.y if (corner_index & 2) != 0 else 0.0,
+						bounds.size.z if (corner_index & 4) != 0 else 0.0
+					)
+					lowest_point = minf(lowest_point, holder.to_local(mesh_node.to_global(corner)).y)
 		signatures[signature] = true
 		check(meshes.size() >= 10, "%s has a complete low-poly visual" % profile.name)
 		check(round_wheels >= 4, "%s uses round wheels with separate rim details" % profile.name)
+		check(absf(lowest_point + 0.55) < 0.09, "%s tyres meet the gameplay road surface" % profile.name)
 		holder.queue_free()
 	check(signatures.size() == 6, "all six cars have distinct silhouettes")
 
