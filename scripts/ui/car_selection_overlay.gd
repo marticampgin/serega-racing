@@ -83,7 +83,7 @@ func _build_interface() -> void:
 	tint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root_control.add_child(tint)
 
-	var title := _label("ВЫБЕРИТЕ БОЛИД", 42, Color("ffe35a"), HORIZONTAL_ALIGNMENT_CENTER)
+	var title := _label("ВЫБЕРИТЕ МАШИНУ", 42, Color("ffe35a"), HORIZONTAL_ALIGNMENT_CENTER)
 	title.anchor_right = 1.0
 	title.offset_top = 34.0
 	title.offset_bottom = 94.0

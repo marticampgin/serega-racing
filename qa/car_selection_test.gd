@@ -17,7 +17,7 @@ func check(condition: bool, message: String) -> void:
 
 
 func _run() -> void:
-	check(CarFactory.PROFILES.size() == 6, "five bolids and one secret SUV are available")
+	check(CarFactory.PROFILES.size() == 6, "five synthwave sports cars and one secret SUV are available")
 	check(CarFactory.COLORS.size() >= 7, "cars offer a useful color palette including black")
 	var signatures: Dictionary = {}
 	for profile in CarFactory.PROFILES:
@@ -54,7 +54,7 @@ func _run() -> void:
 	check(int(selector.get("selected_car")) == 1, "selection arrows change the car")
 	selector.call("_select_color", 3)
 	check(int(selector.get("selected_color")) == 3, "color swatches change the body color")
-	check(not selector.get("unlock_row").visible, "secret code field is hidden for regular bolids")
+	check(not selector.get("unlock_row").visible, "secret code field is hidden for regular sports cars")
 	selector.set("selected_car", 5)
 	selector.call("_refresh_selection")
 	check(selector.get("unlock_row").visible, "secret code field appears only on the Cadillac-style SUV")
