@@ -66,6 +66,7 @@ func _run() -> void:
 	selector.get("code_edit").text = "LILPOC_"
 	selector.call("_try_unlock")
 	check(not selector.get("confirm_button").disabled, "exact easter-egg code unlocks the SUV")
+	selector.free()
 
 	print("CAR SELECTION QA: %d failures" % failures.size())
 	quit(0 if failures.is_empty() else 1)

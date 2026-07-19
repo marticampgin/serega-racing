@@ -5,6 +5,7 @@ signal car_confirmed(profile_id: String, color: Color)
 signal back_requested
 
 const CarFactory := preload("res://scripts/cars/car_visual_factory.gd")
+const VehicleAudio := preload("res://scripts/audio/vehicle_audio_controller.gd")
 
 var selected_car := 0
 var selected_color := 0
@@ -25,6 +26,10 @@ var code_status: Label
 var confirm_button: Button
 var unlock_row: HBoxContainer
 var unlocked_cars := {}
+var engine_preview: AudioStreamPlayer
+var engine_preview_time := 0.0
+var ui_move: AudioStreamPlayer
+var ui_select: AudioStreamPlayer
 
 
 func _ready() -> void:
@@ -39,6 +44,10 @@ func _process(delta: float) -> void:
 	if visible and is_instance_valid(preview_root):
 		preview_root.rotate_y(delta * 0.42)
 		preview_root.position.y = preview_base_y + sin(Time.get_ticks_msec() * 0.0014) * 0.025
+	if engine_preview_time > 0.0 and is_instance_valid(engine_preview):
+		engine_preview_time = maxf(0.0, engine_preview_time - delta)
+		engine_preview.volume_db = lerpf(-20.0, -6.0, clampf(engine_preview_time / 0.75, 0.0, 1.0))
+		if engine_preview_time <= 0.0: engine_preview.stop()
 
 
 func show_selector() -> void:
@@ -217,7 +226,7 @@ func _build_preview(container: SubViewportContainer) -> void:
 	fill.omni_range = 12.0
 	fill.light_energy = 5.0
 	world.add_child(fill)
-	_build_cosmos_backdrop(world)
+	_build_retro_backdrop(world)
 	_build_synthwave_grid(world)
 	var platform := MeshInstance3D.new()
 	var cylinder := CylinderMesh.new()
@@ -258,6 +267,17 @@ func _build_preview(container: SubViewportContainer) -> void:
 	camera.fov = 42.0
 	camera.look_at_from_position(camera.position, Vector3(0, 0.25, 0), Vector3.UP)
 	world.add_child(camera)
+	engine_preview = AudioStreamPlayer.new()
+	engine_preview.name = "EnginePreview"
+	add_child(engine_preview)
+	ui_move = AudioStreamPlayer.new()
+	ui_move.stream = load("res://assets/audio/ui/menu_move.wav")
+	ui_move.volume_db = -8.0
+	add_child(ui_move)
+	ui_select = AudioStreamPlayer.new()
+	ui_select.stream = load("res://assets/audio/ui/menu_select.wav")
+	ui_select.volume_db = -8.0
+	add_child(ui_select)
 
 
 func _build_synthwave_grid(world: Node3D) -> void:
@@ -293,41 +313,102 @@ func _build_synthwave_grid(world: Node3D) -> void:
 		world.add_child(line_z)
 
 
-func _build_cosmos_backdrop(world: Node3D) -> void:
-	var star_material := StandardMaterial3D.new()
-	star_material.albedo_color = Color("d9e8ff")
-	star_material.emission_enabled = true
-	star_material.emission = Color("b8cfff")
-	star_material.emission_energy_multiplier = 2.0
-	var star_mesh := SphereMesh.new()
-	star_mesh.radius = 0.035
-	star_mesh.height = 0.07
-	star_mesh.radial_segments = 6
-	star_mesh.rings = 3
-	star_mesh.material = star_material
-	var stars := MultiMeshInstance3D.new()
-	var multimesh := MultiMesh.new()
-	multimesh.transform_format = MultiMesh.TRANSFORM_3D
-	multimesh.mesh = star_mesh
-	multimesh.instance_count = 34
-	var star_rng := RandomNumberGenerator.new()
-	star_rng.seed = 1977
-	for index in multimesh.instance_count:
-		var scale_value := star_rng.randf_range(0.45, 1.25)
-		var position := Vector3(star_rng.randf_range(-8.5, 8.5), star_rng.randf_range(0.7, 7.2), -7.5)
-		multimesh.set_instance_transform(index, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * scale_value), position))
-	stars.multimesh = multimesh
-	world.add_child(stars)
+func _build_retro_backdrop(world: Node3D) -> void:
+	var backdrop := MeshInstance3D.new()
+	var backdrop_mesh := BoxMesh.new()
+	backdrop_mesh.size = Vector3(18.0, 10.0, 0.08)
+	backdrop_mesh.material = _emissive_material(Color("11072b"), 0.22)
+	backdrop.mesh = backdrop_mesh
+	backdrop.position = Vector3(0, 3.2, -8.1)
+	world.add_child(backdrop)
+	var sun := MeshInstance3D.new()
+	var sun_mesh := CylinderMesh.new()
+	sun_mesh.top_radius = 2.2
+	sun_mesh.bottom_radius = 2.2
+	sun_mesh.height = 0.07
+	sun_mesh.radial_segments = 48
+	sun_mesh.material = _emissive_material(Color("ffb449"), 2.1)
+	sun.mesh = sun_mesh
+	sun.rotation.x = PI * 0.5
+	sun.position = Vector3(0.2, 3.15, -7.85)
+	world.add_child(sun)
+	# Dark cuts form the classic striped lower half without a busy texture.
+	for bar_index in 5:
+		var bar := MeshInstance3D.new()
+		var bar_mesh := BoxMesh.new()
+		bar_mesh.size = Vector3(4.5, 0.1 + bar_index * 0.025, 0.06)
+		bar_mesh.material = _emissive_material(Color("24103f"), 0.2)
+		bar.mesh = bar_mesh
+		bar.position = Vector3(0.2, 2.9 - bar_index * 0.35, -7.7)
+		world.add_child(bar)
+	var mountain_material := _emissive_material(Color("271454"), 0.35)
+	var edge_material := _emissive_material(Color("36dff2"), 1.65)
+	var peaks := [
+		[Vector2(-9.0, -0.55), Vector2(-6.8, 2.4), Vector2(-4.4, -0.55)],
+		[Vector2(-5.8, -0.55), Vector2(-3.6, 1.55), Vector2(-1.1, -0.55)],
+		[Vector2(-2.1, -0.55), Vector2(0.0, 2.05), Vector2(2.4, -0.55)],
+		[Vector2(1.2, -0.55), Vector2(3.45, 1.7), Vector2(5.8, -0.55)],
+		[Vector2(4.4, -0.55), Vector2(6.8, 2.15), Vector2(9.1, -0.55)],
+	]
+	for triangle in peaks:
+		var mountain := MeshInstance3D.new()
+		var immediate := ImmediateMesh.new()
+		immediate.surface_begin(Mesh.PRIMITIVE_TRIANGLES, mountain_material)
+		for point_index in [0, 2, 1]:
+			var point: Vector2 = triangle[point_index]
+			immediate.surface_add_vertex(Vector3(point.x, point.y, -7.45))
+		immediate.surface_end()
+		mountain.mesh = immediate
+		world.add_child(mountain)
+		_add_neon_line(world, triangle[0], triangle[1], -7.28, edge_material)
+		_add_neon_line(world, triangle[1], triangle[2], -7.28, edge_material)
+
+
+func _add_neon_line(world: Node3D, start: Vector2, finish: Vector2, z: float, material: Material) -> void:
+	var line := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(start.distance_to(finish), 0.045, 0.045)
+	mesh.material = material
+	line.mesh = mesh
+	line.position = Vector3((start.x + finish.x) * 0.5, (start.y + finish.y) * 0.5, z)
+	line.rotation.z = start.angle_to_point(finish)
+	world.add_child(line)
+
+
+func _emissive_material(color: Color, energy: float) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.emission_enabled = true
+	material.emission = color
+	material.emission_energy_multiplier = energy
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	return material
 
 
 func _change_car(direction: int) -> void:
 	selected_car = posmod(selected_car + direction, CarFactory.PROFILES.size())
 	_refresh_selection()
+	_play_engine_preview()
+	if is_instance_valid(ui_move): ui_move.play()
+
+
+func _play_engine_preview() -> void:
+	if not is_instance_valid(engine_preview): return
+	var profile_id := str(CarFactory.PROFILES[selected_car].id)
+	engine_preview.stop()
+	engine_preview.stream = load(str(VehicleAudio.ENGINE_PATHS.get(profile_id, VehicleAudio.ENGINE_PATHS.iskra)))
+	if engine_preview.stream is AudioStreamWAV:
+		(engine_preview.stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD
+	engine_preview.pitch_scale = float(VehicleAudio.ENGINE_TONES.get(profile_id, 0.9))
+	engine_preview.volume_db = -6.0
+	engine_preview_time = 0.9
+	engine_preview.play()
 
 
 func _select_color(index: int) -> void:
 	selected_color = index
 	_refresh_selection()
+	if is_instance_valid(ui_move): ui_move.play()
 
 
 func _refresh_selection() -> void:
@@ -384,6 +465,7 @@ func _on_confirm() -> void:
 	var profile: Dictionary = CarFactory.PROFILES[selected_car]
 	if bool(profile.get("locked", false)) and not unlocked_cars.has(str(profile.id)):
 		return
+	if is_instance_valid(ui_select): ui_select.play()
 	car_confirmed.emit(str(profile.id), CarFactory.COLORS[selected_color])
 	_set_preview_active(false)
 	hide()

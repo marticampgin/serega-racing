@@ -33,6 +33,7 @@ func _run() -> void:
 	check(kinds.size() == 6, "course includes all six hazard families")
 	var icon_signatures := {}
 	for pickup in powerups:
+		check(pickup.get_node_or_null("Visual") != null, "%s has a rotating 3D visual root" % pickup.name)
 		var signature := ""
 		for mesh_node in pickup.find_children("*", "MeshInstance3D", true, false):
 			if (mesh_node as MeshInstance3D).mesh != null: signature += (mesh_node as MeshInstance3D).mesh.get_class() + ":"
@@ -58,6 +59,8 @@ func _run() -> void:
 	game.set("road_edge_contacting", false)
 	game.call("update_hud")
 	check("ТУРБО" in game.get("powerup_status_label").text and "С" in game.get("powerup_status_label").text, "HUD identifies timed power-ups and remaining duration")
+	check(game.get("powerup_status_panel").visible and not game.get("powerup_icon_label").text.is_empty(), "active power-up uses the compact icon tab")
+	check("ПОДОБРАНО" not in game.get("powerup_status_label").text, "power-up tab avoids redundant pickup wording")
 	game.call("collect_powerup", "shield")
 	game.call("collect_powerup", "shield")
 	check(int(game.get("shield_hits")) == 1, "shield pickups cannot be stockpiled")

@@ -8,6 +8,7 @@ const CarSelectionScene := preload("res://scenes/ui/car_selection_overlay.tscn")
 const CarFactory := preload("res://scripts/cars/car_visual_factory.gd")
 const PauseMenuScript := preload("res://scripts/ui/pause_menu_overlay.gd")
 const GameModeScript := preload("res://scripts/ui/game_mode_overlay.gd")
+const VehicleAudioScript := preload("res://scripts/audio/vehicle_audio_controller.gd")
 const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
 const RUNTIME_WORLD_PATH := "res://scenes/world/runtime_world_optimized.scn"
 const MENU_BACKGROUND_PATH := "res://assets/generated/ui/main-menu-synthwave-v1.png"
@@ -61,6 +62,8 @@ var fuel_title: Label
 var fuel_bar: ProgressBar
 var durability_bar: ProgressBar
 var powerup_status_label: Label
+var powerup_icon_label: Label
+var powerup_status_panel: PanelContainer
 var game_over_label: Label
 var finish_portrait: TextureRect
 var start_position := Vector3.ZERO
@@ -87,16 +90,20 @@ var car_damage_mult := 1.0
 var car_max_speed_mps := 500.0 / 3.6
 var durability := 100.0
 var selected_game_mode := "free_run"
-var powerups_enabled := true
+var powerups_enabled := false
 var fuel_enabled := true
 var gameplay_content: Node3D
 var obstacle_materials: Dictionary = {}
 var powerup_toast := ""
 var powerup_toast_time := 0.0
+var powerup_display_type := ""
+var vehicle_audio: VehicleAudioController
 
 
 func _ready() -> void:
-	rng.seed = 8675309
+	# Fresh session seed makes lane, spacing and hazard choices genuinely differ
+	# between runs while the QA tests still assert safe density ranges.
+	rng.randomize()
 	course = CourseLayoutScript.load_default()
 	course_curve = course.course_curve
 	course_zones = course.course_zones
@@ -105,6 +112,7 @@ func _ready() -> void:
 	build_track()
 	build_scenery()
 	build_car()
+	build_vehicle_audio()
 	build_hud()
 	build_game_ui()
 	build_refuel_client()
@@ -899,6 +907,7 @@ func _obstacle_wheels(parent: Node3D, x: float, z_values: Array, material: Mater
 
 func build_powerups() -> void:
 	var types := ["boost", "repair", "shield", "ghost"]
+	types.shuffle()
 	var lanes := [-4.9, 0.0, 4.9]
 	var offset := 600.0
 	var index := 0
@@ -912,15 +921,16 @@ func _create_powerup(type: String, offset: float, lateral: float) -> void:
 	var frame := course.sample_course(offset)
 	var pickup := Area3D.new()
 	pickup.name = "Powerup_%s_%d" % [type, int(offset)]
-	pickup.transform = Transform3D(frame.basis, frame.origin + frame.basis.x * lateral + frame.basis.y * 1.35)
+	pickup.transform = Transform3D(frame.basis, frame.origin + frame.basis.x * lateral + frame.basis.y * 1.65)
 	pickup.collision_layer = 2
 	pickup.collision_mask = 1
 	pickup.set_meta("powerup_type", type)
+	pickup.set_meta("float_phase", rng.randf_range(0.0, TAU))
 	pickup.add_to_group("powerup")
 	gameplay_content.add_child(pickup)
 	var shape_node := CollisionShape3D.new()
 	var sphere := SphereShape3D.new()
-	sphere.radius = 1.25
+	sphere.radius = 1.6
 	shape_node.shape = sphere
 	pickup.add_child(shape_node)
 	var colors := {"boost": Color("ff5c3d"), "repair": Color("5df07e"), "shield": Color("45dcff"), "ghost": Color("c96cff")}
@@ -928,7 +938,11 @@ func _create_powerup(type: String, offset: float, lateral: float) -> void:
 	material.emission_enabled = true
 	material.emission = colors[type]
 	material.emission_energy_multiplier = 1.8
-	_build_powerup_icon(pickup, type, material)
+	var visual := Node3D.new()
+	visual.name = "Visual"
+	visual.scale = Vector3.ONE * 1.28
+	pickup.add_child(visual)
+	_build_powerup_icon(visual, type, material)
 	pickup.body_entered.connect(_on_powerup_body_entered.bind(pickup, type))
 
 
@@ -938,8 +952,18 @@ func _build_powerup_icon(parent: Node3D, type: String, material: Material) -> vo
 	disc_material.emission_enabled = true
 	disc_material.emission = icon_color.darkened(0.58)
 	disc_material.emission_energy_multiplier = 0.8
-	var disc := add_cylinder(parent, 0.9, 0.14, Vector3.ZERO, disc_material)
+	var disc := add_cylinder(parent, 0.96, 0.28, Vector3.ZERO, disc_material)
 	disc.rotation.x = PI * 0.5
+	var halo := MeshInstance3D.new()
+	var halo_mesh := TorusMesh.new()
+	halo_mesh.inner_radius = 1.02
+	halo_mesh.outer_radius = 1.14
+	halo_mesh.rings = 28
+	halo_mesh.ring_segments = 8
+	halo_mesh.material = material
+	halo.mesh = halo_mesh
+	halo.rotation.x = PI * 0.5
+	parent.add_child(halo)
 	match type:
 		"boost":
 			for face_z in [-0.12, 0.12]:
@@ -991,23 +1015,21 @@ func _on_powerup_body_entered(body: Node3D, pickup: Area3D, type: String) -> voi
 
 func collect_powerup(type: String) -> void:
 	powerup_toast_time = 2.2
+	powerup_display_type = type
+	if is_instance_valid(vehicle_audio): vehicle_audio.play_powerup()
 	match type:
 		"boost":
 			boost_time = maxf(boost_time, POWERUP_BOOST_DURATION)
-			powerup_toast = "ПОДОБРАНО: ТУРБО"
-			status_label.text = "УСИЛЕНИЕ | ТУРБО НА %.1f СЕКУНДЫ" % POWERUP_BOOST_DURATION
+			powerup_toast = "ТУРБО"
 		"repair":
 			durability = minf(100.0, durability + POWERUP_REPAIR_AMOUNT)
-			powerup_toast = "ПОДОБРАНО: РЕМОНТ +%d%%" % int(POWERUP_REPAIR_AMOUNT)
-			status_label.text = "УСИЛЕНИЕ | ПРОЧНОСТЬ ВОССТАНОВЛЕНА"
+			powerup_toast = "РЕМОНТ +%d%%" % int(POWERUP_REPAIR_AMOUNT)
 		"shield":
 			shield_hits = 1
-			powerup_toast = "ПОДОБРАНО: ЩИТ НА 1 УДАР"
-			status_label.text = "УСИЛЕНИЕ | ЩИТ ОТ СЛЕДУЮЩЕГО УДАРА"
+			powerup_toast = "ЩИТ • 1 УДАР"
 		"ghost":
 			ghost_time = maxf(ghost_time, POWERUP_GHOST_DURATION)
-			powerup_toast = "ПОДОБРАНО: РЕЖИМ ПРИЗРАКА"
-			status_label.text = "УСИЛЕНИЕ | РЕЖИМ ПРИЗРАКА НА %.1f СЕКУНД" % POWERUP_GHOST_DURATION
+			powerup_toast = "ПРИЗРАК"
 
 
 func make_label(text_value: String, size: int, color: Color) -> Label:
@@ -1019,6 +1041,13 @@ func make_label(text_value: String, size: int, color: Color) -> Label:
 	label.add_theme_constant_override("shadow_offset_x", 2)
 	label.add_theme_constant_override("shadow_offset_y", 2)
 	return label
+
+
+func build_vehicle_audio() -> void:
+	vehicle_audio = VehicleAudioScript.new()
+	vehicle_audio.name = "VehicleAudio"
+	add_child(vehicle_audio)
+	vehicle_audio.set_profile(selected_car_id)
 
 
 func build_hud() -> void:
@@ -1057,11 +1086,22 @@ func build_hud() -> void:
 	durability_bar.value = durability
 	durability_bar.show_percentage = true
 	column.add_child(durability_bar)
-	powerup_status_label = make_label("", 18, Color("f5f7ff"))
-	powerup_status_label.anchor_left = 0.3
-	powerup_status_label.anchor_top = 0.025
-	powerup_status_label.anchor_right = 0.7
-	powerup_status_label.anchor_bottom = 0.095
+	powerup_status_panel = PanelContainer.new()
+	powerup_status_panel.anchor_left = 0.365
+	powerup_status_panel.anchor_top = 0.025
+	powerup_status_panel.anchor_right = 0.635
+	powerup_status_panel.anchor_bottom = 0.088
+	var powerup_row := HBoxContainer.new()
+	powerup_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	powerup_row.add_theme_constant_override("separation", 14)
+	powerup_status_panel.add_child(powerup_row)
+	powerup_icon_label = make_label("", 28, Color("ffe45f"))
+	powerup_icon_label.custom_minimum_size = Vector2(44, 40)
+	powerup_icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	powerup_icon_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	powerup_row.add_child(powerup_icon_label)
+	powerup_status_label = make_label("", 17, Color("f5f7ff"))
+	powerup_status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	powerup_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	powerup_status_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	var effect_style := StyleBoxFlat.new()
@@ -1069,9 +1109,14 @@ func build_hud() -> void:
 	effect_style.border_color = Color("54e7ff")
 	effect_style.set_border_width_all(2)
 	effect_style.set_corner_radius_all(12)
-	powerup_status_label.add_theme_stylebox_override("normal", effect_style)
-	powerup_status_label.visible = false
-	layer.add_child(powerup_status_label)
+	effect_style.content_margin_left = 18.0
+	effect_style.content_margin_right = 18.0
+	effect_style.content_margin_top = 7.0
+	effect_style.content_margin_bottom = 7.0
+	powerup_status_panel.add_theme_stylebox_override("panel", effect_style)
+	powerup_row.add_child(powerup_status_label)
+	powerup_status_panel.visible = false
+	layer.add_child(powerup_status_panel)
 	status_label = make_label(driving_help_text(), 16, Color("f2f4f6"))
 	status_label.anchor_right = 1.0
 	status_label.anchor_top = 1.0
@@ -1154,10 +1199,10 @@ func _open_mode_selection() -> void:
 	if is_instance_valid(mode_selector): mode_selector.call("show_selector")
 
 
-func _on_mode_confirmed(mode: String, enable_powerups: bool) -> void:
+func _on_mode_confirmed(mode: String, _enable_powerups: bool) -> void:
 	selected_game_mode = mode
-	powerups_enabled = true if mode == "obstacle_course" else enable_powerups
-	fuel_enabled = not (mode == "free_run" and not powerups_enabled)
+	powerups_enabled = mode == "obstacle_course"
+	fuel_enabled = mode == "obstacle_course"
 	if is_instance_valid(mode_selector): mode_selector.hide()
 	_open_car_selection()
 
@@ -1196,6 +1241,7 @@ func apply_car_selection(profile_id: String, color: Color) -> void:
 	if is_instance_valid(car_visual):
 		car_visual.queue_free()
 	car_visual = CarFactory.build(car, selected_car_id, selected_car_color)
+	if is_instance_valid(vehicle_audio): vehicle_audio.set_profile(selected_car_id)
 
 
 func _start_game() -> void:
@@ -1209,6 +1255,7 @@ func _start_game() -> void:
 	if is_instance_valid(mode_selector): mode_selector.hide()
 	build_gameplay_mode()
 	reset_car()
+	if is_instance_valid(vehicle_audio): vehicle_audio.set_active(true)
 	minimap.visible = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
@@ -1246,6 +1293,7 @@ func _return_from_pause_to_main_menu() -> void:
 	if is_instance_valid(main_menu):
 		main_menu.show()
 		main_menu.call_deferred("focus_start_button")
+	if is_instance_valid(vehicle_audio): vehicle_audio.set_active(false)
 
 
 func build_refuel_client() -> void:
@@ -1270,6 +1318,13 @@ func _physics_process(delta: float) -> void:
 	boost_time = maxf(0.0, boost_time - delta)
 	ghost_time = maxf(0.0, ghost_time - delta)
 	powerup_toast_time = maxf(0.0, powerup_toast_time - delta)
+	for pickup_value in get_tree().get_nodes_in_group("powerup"):
+		var pickup := pickup_value as Area3D
+		if not is_instance_valid(pickup): continue
+		var visual := pickup.get_node_or_null("Visual") as Node3D
+		if visual != null:
+			visual.rotate_y(delta * 1.55)
+			visual.position.y = sin(Time.get_ticks_msec() * 0.0022 + float(pickup.get_meta("float_phase", 0.0))) * 0.12
 	refuel_cooldown = maxf(0.0, refuel_cooldown - delta)
 	car.collision_mask = 0 if ghost_time > 0.0 else 1
 	var refuel_pressed := fuel_enabled and Input.is_key_pressed(KEY_F)
@@ -1303,6 +1358,9 @@ func _physics_process(delta: float) -> void:
 		update_progress(delta)
 	update_camera(delta)
 	update_hud()
+	if is_instance_valid(vehicle_audio):
+		var braking := Input.is_key_pressed(KEY_SPACE) or (Input.is_key_pressed(KEY_S) and speed > 1.0)
+		vehicle_audio.update_vehicle(speed, car_max_speed_mps, Input.is_key_pressed(KEY_W), braking, road_edge_contacting or obstacle_slide_time > 0.0, delta)
 
 
 func update_car(delta: float) -> void:
@@ -1442,6 +1500,7 @@ func handle_obstacle_hit(normal := Vector3.ZERO, _incoming := Vector3.ZERO) -> v
 	collision_cooldown = 0.55 + 0.35 * car_damage_mult
 	obstacle_slide_time = 0.72 + 0.18 * car_damage_mult
 	var damaged := apply_vehicle_damage(15.0, "ПРЕПЯТСТВИЕ")
+	if is_instance_valid(vehicle_audio): vehicle_audio.play_impact(clampf(absf(speed) / maxf(car_max_speed_mps, 1.0), 0.2, 1.0), true)
 	if damaged:
 		speed *= lerpf(0.18, 0.55, clampf((1.25 - car_damage_mult) / 0.95, 0.0, 1.0))
 		car.velocity = Vector3.ZERO
@@ -1468,6 +1527,7 @@ func handle_road_edge_contact(impact_speed: float, scrape_speed: float, delta: f
 	if new_contact and impact_speed > 2.0 and wall_impact_cooldown <= 0.0:
 		var impact_damage := clampf(1.0 + impact_speed * 0.11 + (2.0 if hard_edge else 0.0), 1.5, 24.0)
 		if apply_vehicle_damage(impact_damage, "СТЕНА"):
+			if is_instance_valid(vehicle_audio): vehicle_audio.play_impact(clampf(impact_speed / 95.0, 0.12, 1.0))
 			var retention := lerpf(0.96, 0.68, clampf(impact_speed / 100.0, 0.0, 1.0))
 			speed *= retention
 			if race_active: status_label.text = "УДАР О СТЕНУ | ПРОЧНОСТЬ %d%%" % int(durability)
@@ -1581,13 +1641,25 @@ func update_hud() -> void:
 		durability_bar.modulate = Color("ffb84d")
 	else:
 		durability_bar.modulate = Color("59e7ff")
-	var effects: Array[String] = []
-	if powerup_toast_time > 0.0 and not powerup_toast.is_empty(): effects.append(powerup_toast)
-	if boost_time > 0.0: effects.append("ТУРБО %.1f С" % boost_time)
-	if ghost_time > 0.0: effects.append("ПРИЗРАК %.1f С" % ghost_time)
-	if shield_hits > 0: effects.append("ЩИТ: %d УДАР" % shield_hits)
-	powerup_status_label.text = "   •   ".join(effects)
-	powerup_status_label.visible = not effects.is_empty()
+	var effect_text := ""
+	var effect_icon := ""
+	# A newly collected effect owns the tab briefly, even if another timed effect
+	# is already active. Afterwards the tab falls back to the active timer.
+	if powerup_toast_time > 0.0 and not powerup_toast.is_empty():
+		match powerup_display_type:
+			"boost": effect_icon = "⚡"; effect_text = "ТУРБО • %.1f С" % boost_time
+			"repair": effect_icon = "+"; effect_text = powerup_toast
+			"shield": effect_icon = "◆"; effect_text = "ЩИТ • %d УДАР" % shield_hits
+			"ghost": effect_icon = "◉"; effect_text = "ПРИЗРАК • %.1f С" % ghost_time
+	elif boost_time > 0.0:
+		effect_icon = "⚡"; effect_text = "ТУРБО • %.1f С" % boost_time
+	elif ghost_time > 0.0:
+		effect_icon = "◉"; effect_text = "ПРИЗРАК • %.1f С" % ghost_time
+	elif shield_hits > 0:
+		effect_icon = "◆"; effect_text = "ЩИТ • %d УДАР" % shield_hits
+	powerup_icon_label.text = effect_icon
+	powerup_status_label.text = effect_text
+	powerup_status_panel.visible = not effect_text.is_empty()
 
 
 func format_time(value: float) -> String:
@@ -1619,6 +1691,7 @@ func reset_car() -> void:
 	ghost_time = 0.0
 	powerup_toast = ""
 	powerup_toast_time = 0.0
+	powerup_display_type = ""
 	collision_cooldown = 0.0
 	wall_impact_cooldown = 0.0
 	road_edge_contacting = false

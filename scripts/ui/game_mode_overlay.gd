@@ -8,16 +8,25 @@ const FREE_IMAGE := "res://assets/generated/ui/mode-free-run-v1.png"
 const OBSTACLE_IMAGE := "res://assets/generated/ui/mode-obstacle-course-v1.png"
 
 var selected_mode := "free_run"
-var powerups_toggle: CheckButton
 var free_button: TextureButton
 var obstacle_button: TextureButton
 var free_panel: PanelContainer
 var obstacle_panel: PanelContainer
 var background: TextureRect
+var ui_move: AudioStreamPlayer
+var ui_select: AudioStreamPlayer
 
 
 func _ready() -> void:
 	layer = 105
+	ui_move = AudioStreamPlayer.new()
+	ui_move.stream = load("res://assets/audio/ui/menu_move.wav")
+	ui_move.volume_db = -8.0
+	add_child(ui_move)
+	ui_select = AudioStreamPlayer.new()
+	ui_select.stream = load("res://assets/audio/ui/menu_select.wav")
+	ui_select.volume_db = -8.0
+	add_child(ui_select)
 	_build_interface()
 	_refresh()
 	hide()
@@ -65,22 +74,14 @@ func _build_interface() -> void:
 	cards.alignment = BoxContainer.ALIGNMENT_CENTER
 	cards.add_theme_constant_override("separation", 28)
 	content.add_child(cards)
-	var free := _mode_card(FREE_IMAGE, "СВОБОДНАЯ ГОНКА", "Чистая трасса • Лучшее время", "free_run")
+	var free := _mode_card(FREE_IMAGE, "СВОБОДНАЯ ГОНКА", "Чистая трасса • Только прочность • Лучшее время", "free_run")
 	free_panel = free.panel
 	free_button = free.button
 	cards.add_child(free_panel)
-	var obstacle := _mode_card(OBSTACLE_IMAGE, "ПОЛОСА ПРЕПЯТСТВИЙ", "Транспорт • Техника • Дорожный хаос", "obstacle_course")
+	var obstacle := _mode_card(OBSTACLE_IMAGE, "ПОЛОСА ПРЕПЯТСТВИЙ", "Транспорт • Техника • Усиления включены", "obstacle_course")
 	obstacle_panel = obstacle.panel
 	obstacle_button = obstacle.button
 	cards.add_child(obstacle_panel)
-	powerups_toggle = CheckButton.new()
-	powerups_toggle.text = "ВКЛЮЧИТЬ УСИЛЕНИЯ НА ТРАССЕ (ТУРБО • РЕМОНТ • ЩИТ • ПРИЗРАК)"
-	powerups_toggle.button_pressed = true
-	powerups_toggle.custom_minimum_size = Vector2(720, 48)
-	powerups_toggle.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	powerups_toggle.add_theme_font_size_override("font_size", 17)
-	powerups_toggle.add_theme_color_override("font_color", Color("8beeff"))
-	content.add_child(powerups_toggle)
 	var actions := HBoxContainer.new()
 	actions.alignment = BoxContainer.ALIGNMENT_CENTER
 	actions.add_theme_constant_override("separation", 18)
@@ -89,7 +90,7 @@ func _build_interface() -> void:
 	back.pressed.connect(func(): hide(); back_requested.emit())
 	actions.add_child(back)
 	var confirm := _button("ДАЛЕЕ — ВЫБОР МАШИНЫ", true)
-	confirm.pressed.connect(func(): hide(); mode_confirmed.emit(selected_mode, true if selected_mode == "obstacle_course" else powerups_toggle.button_pressed))
+	confirm.pressed.connect(_confirm_mode)
 	actions.add_child(confirm)
 
 
@@ -115,7 +116,14 @@ func _mode_card(image_path: String, title: String, subtitle: String, mode: Strin
 
 func _select_mode(mode: String) -> void:
 	selected_mode = mode
+	if is_instance_valid(ui_move): ui_move.play()
 	_refresh()
+
+
+func _confirm_mode() -> void:
+	if is_instance_valid(ui_select): ui_select.play()
+	hide()
+	mode_confirmed.emit(selected_mode, selected_mode == "obstacle_course")
 
 
 func _refresh() -> void:
@@ -124,7 +132,6 @@ func _refresh() -> void:
 	obstacle_panel.add_theme_stylebox_override("panel", _panel(Color("21102f"), Color("ffe45f") if selected_mode == "obstacle_course" else Color("ee57b4"), 16))
 	free_button.modulate = Color.WHITE if selected_mode == "free_run" else Color(0.62, 0.62, 0.7)
 	obstacle_button.modulate = Color.WHITE if selected_mode == "obstacle_course" else Color(0.62, 0.62, 0.7)
-	powerups_toggle.visible = selected_mode == "free_run"
 
 
 func _button(text: String, primary: bool) -> Button:

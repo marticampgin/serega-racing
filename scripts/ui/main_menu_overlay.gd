@@ -17,9 +17,14 @@ signal exit_requested
 @onready var _exit_button: Button = %ExitButton
 
 var _elapsed := 0.0
+var _ui_select: AudioStreamPlayer
 
 
 func _ready() -> void:
+	_ui_select = AudioStreamPlayer.new()
+	_ui_select.stream = load("res://assets/audio/ui/menu_select.wav")
+	_ui_select.volume_db = -8.0
+	add_child(_ui_select)
 	_start_button.pressed.connect(_on_start_pressed)
 	_exit_button.pressed.connect(_on_exit_pressed)
 	_apply_background()
@@ -58,12 +63,14 @@ func _apply_background() -> void:
 
 
 func _on_start_pressed() -> void:
+	if is_instance_valid(_ui_select): _ui_select.play()
 	start_requested.emit()
 	if hide_on_start:
 		hide()
 
 
 func _on_exit_pressed() -> void:
+	if is_instance_valid(_ui_select): _ui_select.play()
 	exit_requested.emit()
 	if exit_quits_tree:
 		get_tree().quit()

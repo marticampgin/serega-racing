@@ -108,12 +108,14 @@ static func _build_molniya(root: Node3D, body: Material, body_dark: Material, da
 		_box(root, Vector3(0.12, 0.54, 0.12), Vector3(x, 0.47, 1.95), dark)
 	_box(root, Vector3(1.45, 0.08, 3.7), Vector3(0, -0.24, -0.1), neon)
 	_wheels(root, 1.2, [-1.42, 1.5], Vector3(0.5, 0.64, 0.9), dark)
-	# Offset lightning blades and a bright roll-hoop distinguish the speed car.
+	# Offset lightning blades and a low roll-hoop distinguish the speed car.
 	var electric := _material(Color("58f3ff"), 0.18, 0.2, true)
 	for x in [-0.48, 0.48]:
 		var slash := _box(root, Vector3(0.12, 0.06, 1.55), Vector3(x, 0.22, -0.55), electric)
 		slash.rotation.y = 0.28 * signf(x)
-	_box(root, Vector3(0.48, 0.18, 0.18), Vector3(0, 0.72, 0.9), electric)
+	# Keep this detail seated on the rear body; at the old height it read as a
+	# detached glass rectangle rather than part of the cockpit protection.
+	_box(root, Vector3(0.48, 0.16, 0.18), Vector3(0, 0.24, 0.9), electric)
 
 
 static func _build_prizrak(root: Node3D, body: Material, body_dark: Material, dark: Material, glass: Material, accent: Material, neon: Material) -> void:
@@ -158,7 +160,9 @@ static func _build_strela(root: Node3D, body: Material, body_dark: Material, dar
 	for x in [-0.86, 0.86]:
 		var pod := _box(root, Vector3(0.34, 0.18, 2.65), Vector3(x, 0.02, 0.15), body_dark)
 		pod.rotation.y = -0.08 * signf(x)
-	_box(root, Vector3(2.35, 0.13, 0.34), Vector3(0, 0.6, 1.9), dark)
+	_box(root, Vector3(2.35, 0.13, 0.34), Vector3(0, 0.52, 1.9), dark)
+	for x in [-0.74, 0.74]:
+		_box(root, Vector3(0.11, 0.46, 0.12), Vector3(x, 0.29, 1.9), dark)
 	_box(root, Vector3(1.1, 0.07, 3.75), Vector3(0, -0.23, -0.1), neon)
 	_wheels(root, 1.08, [-1.36, 1.44], Vector3(0.44, 0.6, 0.78), dark)
 	# A white arrow livery and yellow wing tips suit Strela's needle-like nose.

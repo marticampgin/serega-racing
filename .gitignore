@@ -1,5 +1,6 @@
 # Godot generated files
 .godot/
+assets/audio/_tmp/
 *.tmp
 
 # Local Godot editor binaries (the project lives at the repository root)
