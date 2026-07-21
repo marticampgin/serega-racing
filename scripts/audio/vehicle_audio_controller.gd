@@ -78,6 +78,10 @@ func set_active(value: bool) -> void:
 	active = value
 	if not is_instance_valid(engine): return
 	if active:
+		# Start from an audible idle. Beginning at the generic -45 dB construction
+		# volume made the first seconds of every race effectively silent.
+		engine.volume_db = -30.0
+		engine_bed.volume_db = -5.5
 		if not engine.playing: engine.play()
 		if not engine_bed.playing: engine_bed.play()
 	else:
@@ -104,8 +108,8 @@ func update_vehicle(speed_mps: float, max_speed_mps: float, throttle: bool, brak
 	# Crossfade the matching idle and high-RPM recordings. The high recording is
 	# pitched down at low speed, then rises smoothly instead of switching engines.
 	var high_mix := smoothstep(0.035, 0.72, ratio)
-	var target_engine_db := lerpf(-42.0, -1.5, high_mix) + (0.8 if throttle else 0.0)
-	var target_bed_db := lerpf(-4.5, -24.0, smoothstep(0.0, 0.58, ratio))
+	var target_engine_db := lerpf(-30.0, -0.5, high_mix) + (1.0 if throttle else 0.0)
+	var target_bed_db := lerpf(-4.0, -19.0, smoothstep(0.0, 0.58, ratio))
 	if impact_duck_time > 0.0: target_engine_db -= 7.0
 	if impact_duck_time > 0.0: target_bed_db -= 5.0
 	engine.volume_db = move_toward(engine.volume_db, target_engine_db, delta * 26.0)
@@ -114,7 +118,7 @@ func update_vehicle(speed_mps: float, max_speed_mps: float, throttle: bool, brak
 	var brake_now := braking and ratio > 0.07
 	if scrape_now and not was_scraping: sideswipe.play()
 	if brake_now and not was_braking: brake_chirp.play()
-	_update_loop(scrape, scrape_now, lerpf(-25.0, -8.0, ratio), lerpf(0.86, 1.1, ratio), delta, 15.0, 18.0)
+	_update_loop(scrape, scrape_now, lerpf(-25.0, -8.0, ratio), lerpf(0.86, 1.1, ratio), delta, 15.0, 38.0)
 	_update_loop(brake, braking and ratio > 0.07, lerpf(-25.0, -7.0, ratio), lerpf(0.75, 1.12, ratio), delta)
 	was_scraping = scrape_now
 	was_braking = brake_now
@@ -125,11 +129,14 @@ func play_impact(strength: float, heavy := false) -> void:
 	impact_duck_time = 0.55 if heavy else 0.28
 	var normalized := clampf(strength, 0.0, 1.0)
 	var path := "res://assets/audio/impacts/impact_light.wav"
-	if heavy or normalized > 0.72:
+	var sample_gain := 0.0
+	if heavy or normalized >= 0.55:
 		path = "res://assets/audio/impacts/impact_heavy.wav"
-	elif normalized > 0.32:
+		sample_gain = 5.0
+	elif normalized >= 0.2:
 		path = "res://assets/audio/impacts/impact_medium.wav"
-	_play_impact_layer(path, lerpf(-13.0, -2.0, normalized), lerpf(1.04, 0.9, normalized))
+		sample_gain = 4.0
+	_play_impact_layer(path, lerpf(-12.0, -3.0, normalized) + sample_gain, lerpf(1.08, 0.88, normalized))
 
 
 func _play_impact_layer(path: String, volume: float, pitch: float) -> void:
@@ -147,7 +154,12 @@ func play_powerup() -> void:
 
 func _update_loop(player: AudioStreamPlayer, should_play: bool, target_db: float, target_pitch: float, delta: float, attack := 38.0, release := 42.0) -> void:
 	if should_play:
-		if not player.playing: player.play()
+		if not player.playing:
+			# Contact effects must be heard immediately; most wall touches last well
+			# under the two seconds previously needed to climb from -50 dB.
+			player.volume_db = target_db - 5.0
+			player.pitch_scale = target_pitch
+			player.play()
 		player.volume_db = move_toward(player.volume_db, target_db, delta * attack)
 		player.pitch_scale = move_toward(player.pitch_scale, target_pitch, delta * 2.2)
 	else:

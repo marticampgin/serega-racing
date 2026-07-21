@@ -43,6 +43,7 @@ var race_active := true
 var shield_hits := 0
 var collision_cooldown := 0.0
 var wall_impact_cooldown := 0.0
+var wall_scrape_audio_time := 0.0
 var road_edge_contacting := false
 var road_edge_contact_time := 0.0
 var obstacle_slide_time := 0.0
@@ -1349,6 +1350,7 @@ func _physics_process(delta: float) -> void:
 		return
 	collision_cooldown = maxf(0.0, collision_cooldown - delta)
 	wall_impact_cooldown = maxf(0.0, wall_impact_cooldown - delta)
+	wall_scrape_audio_time = maxf(0.0, wall_scrape_audio_time - delta)
 	obstacle_slide_time = maxf(0.0, obstacle_slide_time - delta)
 	boost_time = maxf(0.0, boost_time - delta)
 	ghost_time = maxf(0.0, ghost_time - delta)
@@ -1398,7 +1400,8 @@ func _physics_process(delta: float) -> void:
 		var braking := Input.is_key_pressed(KEY_SPACE) or (Input.is_key_pressed(KEY_S) and speed > 1.0)
 		# Obstacles create discrete body impacts only. Continuous metal scraping is
 		# reserved for sustained contact with the road boundary/walls.
-		vehicle_audio.update_vehicle(speed, car_max_speed_mps, Input.is_key_pressed(KEY_W), braking, road_edge_contacting, delta)
+		var scraping := road_edge_contacting or wall_scrape_audio_time > 0.0
+		vehicle_audio.update_vehicle(speed, car_max_speed_mps, Input.is_key_pressed(KEY_W), braking, scraping, delta)
 
 
 func update_car(delta: float) -> void:
@@ -1555,6 +1558,10 @@ func handle_wall_hit(normal := Vector3.ZERO, incoming := Vector3.ZERO, delta := 
 	obstacle_slide_time = 0.42
 	var impact_speed := maxf(0.0, -incoming.dot(flat_normal))
 	var scrape_speed := incoming.slide(flat_normal).length()
+	if scrape_speed > 2.0:
+		# Collision callbacks can alternate between wall and floor triangles. Hold
+		# the scrape briefly so those one-frame gaps do not cut the audio out.
+		wall_scrape_audio_time = 0.16
 	handle_road_edge_contact(impact_speed, scrape_speed, delta, wall_impact_cooldown <= 0.0, false)
 
 
@@ -1565,7 +1572,9 @@ func handle_road_edge_contact(impact_speed: float, scrape_speed: float, delta: f
 	if new_contact and impact_speed > 2.0 and wall_impact_cooldown <= 0.0:
 		var impact_damage := clampf(1.0 + impact_speed * 0.11 + (2.0 if hard_edge else 0.0), 1.5, 24.0)
 		if apply_vehicle_damage(impact_damage, "СТЕНА"):
-			if is_instance_valid(vehicle_audio): vehicle_audio.play_impact(clampf(impact_speed / 95.0, 0.12, 1.0))
+			# Most real wall contacts are 5-45 m/s into the normal. Mapping against
+			# 95 m/s forced nearly all of them to the same light thud.
+			if is_instance_valid(vehicle_audio): vehicle_audio.play_impact(clampf(impact_speed / 45.0, 0.08, 1.0))
 			var retention := lerpf(0.96, 0.68, clampf(impact_speed / 100.0, 0.0, 1.0))
 			speed *= retention
 			if race_active: status_label.text = "УДАР О СТЕНУ | ПРОЧНОСТЬ %d%%" % int(durability)
@@ -1735,6 +1744,7 @@ func reset_car() -> void:
 	powerup_display_type = ""
 	collision_cooldown = 0.0
 	wall_impact_cooldown = 0.0
+	wall_scrape_audio_time = 0.0
 	road_edge_contacting = false
 	road_edge_contact_time = 0.0
 	obstacle_slide_time = 0.0

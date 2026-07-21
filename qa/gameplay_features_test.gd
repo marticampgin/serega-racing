@@ -54,6 +54,8 @@ func _run() -> void:
 	check(is_equal_approx(float(game.get("car_max_speed_mps")) * 3.6, 650.0), "maximum-speed stat reaches gameplay")
 	check(game.get("vehicle_audio") != null and str(game.get("vehicle_audio").get("selected_profile")) == "molniya", "selected car receives its own engine profile")
 	check(game.get("vehicle_audio").get("active") and game.get("vehicle_audio").get("engine_bed").playing, "engine idle begins with the countdown")
+	game.call("handle_wall_hit", Vector3.LEFT, Vector3(12.0, 0.0, 30.0), 1.0 / 60.0)
+	check(float(game.get("wall_scrape_audio_time")) > 0.0, "physical wall contact keeps scrape audio alive across collision gaps")
 	check(not game.get("race_music").playing, "race music remains silent during the countdown")
 	var capped := float(game.call("compute_drive_speed", 999.0, 1.0, false, false, 0.5, 0.1))
 	check(capped <= float(game.get("car_max_speed_mps")), "drive speed respects the selected car cap")
