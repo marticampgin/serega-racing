@@ -44,9 +44,9 @@ func _run() -> void:
 		peak = maxf(peak, maxf(absf(sample.x), absf(sample.y)))
 		sum_squared += sample.length_squared() * 0.5
 	var rms := sqrt(sum_squared / maxf(float(samples.size()), 1.0))
-	print("CONTINUOUS AUDIO OUTPUT: profile=%s driver=%s frames=%d peak=%.5f rms=%.5f idle_playing=%s drive_playing=%s max_roar_playing=%s" % [
+	print("CONTINUOUS AUDIO OUTPUT: profile=%s driver=%s frames=%d peak=%.5f rms=%.5f idle_playing=%s drive_playing=%s" % [
 		profile, AudioServer.get_driver_name(), available, peak, rms,
-		controller.engine_bed.playing, controller.engine.playing, controller.max_roar.playing,
+		controller.engine_bed.playing, controller.engine.playing,
 	])
 	AudioServer.remove_bus_effect(bus, 0)
-	quit(0 if available > 0 and peak > 0.001 and not controller.engine_bed.playing and not controller.engine.playing and controller.max_roar.playing else 1)
+	quit(0 if available > 0 and peak > 0.001 and not controller.engine_bed.playing and controller.engine.playing else 1)

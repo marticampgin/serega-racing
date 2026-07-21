@@ -17,14 +17,6 @@ const ENGINE_BED_PATHS := {
 	"strela": "res://assets/audio/engine/sports_idle_loop.wav",
 	"lilpoc": "res://assets/audio/engine/suv_idle_loop.wav",
 }
-const MAX_ROAR_PATHS := {
-	"iskra": "res://assets/audio/engine/sports_max_roar_loop.wav",
-	"molniya": "res://assets/audio/engine/sports_max_roar_loop.wav",
-	"prizrak": "res://assets/audio/engine/sports_max_roar_loop.wav",
-	"titan": "res://assets/audio/engine/sports_max_roar_loop.wav",
-	"strela": "res://assets/audio/engine/sports_max_roar_loop.wav",
-	"lilpoc": "res://assets/audio/engine/suv_max_roar_loop.wav",
-}
 const ENGINE_TONES := {
 	"iskra": 0.95, "molniya": 1.08, "prizrak": 0.88,
 	"titan": 0.8, "strela": 1.01, "lilpoc": 0.86,
@@ -37,7 +29,6 @@ const ENGINE_HIGH_TRIM_DB := {
 
 var engine: AudioStreamPlayer
 var engine_bed: AudioStreamPlayer
-var max_roar: AudioStreamPlayer
 var scrape: AudioStreamPlayer
 var sideswipe: AudioStreamPlayer
 var impact_players: Array[AudioStreamPlayer] = []
@@ -47,13 +38,13 @@ var active := false
 var impact_cursor := 0
 var impact_duck_time := 0.0
 var was_scraping := false
-var max_roar_blend := 0.0
+var max_rev_phase := 0.0
+var max_rev_intensity := 0.0
 
 
 func _ready() -> void:
 	engine = _player("Engine", -45.0)
 	engine_bed = _player("EngineBed", -45.0)
-	max_roar = _player("MaxRoar", -60.0)
 	scrape = _player("WallScrape", -50.0)
 	sideswipe = _player("Sideswipe", -12.0)
 	powerup = _player("Powerup", -4.0)
@@ -75,13 +66,9 @@ func set_profile(profile_id: String) -> void:
 	engine.stream = load(str(ENGINE_PATHS[selected_profile]))
 	engine_bed.stop()
 	engine_bed.stream = load(str(ENGINE_BED_PATHS[selected_profile]))
-	max_roar.stop()
-	max_roar.stream = load(str(MAX_ROAR_PATHS[selected_profile]))
 	_set_loop(engine.stream, true)
 	_set_loop(engine_bed.stream, true)
-	_set_loop(max_roar.stream, true)
 	if was_active:
-		max_roar_blend = 0.0
 		engine.play()
 		engine_bed.play()
 
@@ -90,18 +77,17 @@ func set_active(value: bool) -> void:
 	active = value
 	if not is_instance_valid(engine): return
 	if active:
-		max_roar_blend = 0.0
+		max_rev_phase = 0.0
+		max_rev_intensity = 0.0
 		engine.volume_db = -43.0
 		engine_bed.volume_db = -1.0
-		max_roar.volume_db = -60.0
-		max_roar.stop()
 		if not engine.playing: engine.play()
 		if not engine_bed.playing: engine_bed.play()
 	else:
-		max_roar_blend = 0.0
+		max_rev_phase = 0.0
+		max_rev_intensity = 0.0
 		engine.stop()
 		engine_bed.stop()
-		max_roar.stop()
 		scrape.stop()
 		sideswipe.stop()
 	was_scraping = false
@@ -117,23 +103,19 @@ func update_vehicle(speed_mps: float, max_speed_mps: float, throttle: bool, _bra
 	var rated_speed_kmh := max_speed_mps * 3.6
 	var rated_power := clampf(inverse_lerp(400.0, 800.0, rated_speed_kmh), 0.0, 1.0)
 	var at_max_speed := throttle and absf(speed_mps) >= max_speed_mps - 0.25
-	var max_roar_target := 1.0 if at_max_speed else 0.0
-	max_roar_blend = lerpf(max_roar_blend, max_roar_target, 1.0 - exp(-delta * 5.0))
-	if max_roar_blend > 0.001 and not max_roar.playing:
-		max_roar.volume_db = -60.0
-		max_roar.play()
-	if max_roar_blend < 0.999 and not engine.playing:
-		engine.volume_db = -48.0
-		engine.play()
+	var limiter_target := 1.0 if at_max_speed else 0.0
+	max_rev_intensity = lerpf(max_rev_intensity, limiter_target, 1.0 - exp(-delta * 4.5))
+	if max_rev_intensity > 0.001:
+		max_rev_phase = fmod(max_rev_phase + delta * TAU / 1.65, TAU)
+	var limiter_wave := sin(max_rev_phase) * max_rev_intensity
+	var limiter_pitch_depth := lerpf(0.01, 0.03, rated_power)
 	var rated_pitch := lerpf(0.97, 1.06, rated_power)
-	var target_pitch := tone * lerpf(0.7, 1.16 * rated_pitch, speed_ratio)
+	var target_pitch := tone * lerpf(0.7, 1.16 * rated_pitch, speed_ratio) * (1.0 + limiter_pitch_depth * limiter_wave)
 	var idle_pitch := tone * lerpf(0.92, 1.05, speed_ratio)
-	var max_roar_pitch := tone * rated_pitch
 	var follow := 1.0 - exp(-delta * 10.0)
 	var idle_follow := 1.0 - exp(-delta * 16.0)
 	engine.pitch_scale = lerpf(engine.pitch_scale, target_pitch, follow)
 	engine_bed.pitch_scale = lerpf(engine_bed.pitch_scale, idle_pitch, idle_follow)
-	max_roar.pitch_scale = max_roar_pitch
 	# Amplitudes—not decibels—move linearly with speed. The high recording is
 	# naturally about 6 dB louder, hence its 0.5 ceiling. This keeps total power
 	# continuous while acceleration and deceleration remain exact mirror images.
@@ -141,25 +123,16 @@ func update_vehicle(speed_mps: float, max_speed_mps: float, throttle: bool, _bra
 	# Idle is completely gone by 72% of the car's range, preventing two engine
 	# recordings from being audible together at maximum speed.
 	var idle_gain := maxf(1.0 - speed_ratio / 0.72, 0.001)
+	# Rated maximum affects only the cap behavior: slower cars stay restrained,
+	# while 700-800 km/h cars receive a materially stronger sustained roar.
+	var limiter_roar_db := lerpf(-1.5, 3.0, rated_power) * max_rev_intensity + lerpf(0.15, 0.9, rated_power) * limiter_wave
 	var source_trim_db := float(ENGINE_HIGH_TRIM_DB.get(selected_profile, 0.0))
-	# At the exact cap, crossfade to a seamless quarter-second micro-loop. Once
-	# settled, only this monotone layer remains, so no doubled engine cycle can
-	# reveal the source recording's longer loop boundary.
-	var drive_mix := maxf(1.0 - max_roar_blend, 0.001)
-	var roar_mix := maxf(max_roar_blend, 0.001)
-	var target_engine_db := linear_to_db(high_gain) + source_trim_db + (0.25 if throttle else 0.0) + linear_to_db(drive_mix)
-	var target_roar_db := lerpf(-8.0, -2.0, rated_power) + source_trim_db + linear_to_db(roar_mix)
+	var target_engine_db := linear_to_db(high_gain) + source_trim_db + (0.25 if throttle else 0.0) + limiter_roar_db
 	var target_bed_db := linear_to_db(idle_gain)
 	if impact_duck_time > 0.0: target_engine_db -= 7.0
-	if impact_duck_time > 0.0: target_roar_db -= 7.0
 	if impact_duck_time > 0.0: target_bed_db -= 5.0
 	engine.volume_db = lerpf(engine.volume_db, target_engine_db, follow)
 	engine_bed.volume_db = lerpf(engine_bed.volume_db, target_bed_db, idle_follow)
-	max_roar.volume_db = lerpf(max_roar.volume_db, target_roar_db, follow)
-	if max_roar_blend >= 0.995 and engine.volume_db <= -45.0:
-		engine.stop()
-	if not at_max_speed and max_roar_blend <= 0.005 and max_roar.volume_db <= -45.0:
-		max_roar.stop()
 	if speed_ratio >= 0.75 and engine_bed.volume_db <= -48.0:
 		engine_bed.stop()
 	elif speed_ratio < 0.75 and not engine_bed.playing:
