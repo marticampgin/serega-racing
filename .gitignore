@@ -29,3 +29,8 @@ artifacts/
 
 # Private source photos; only approved/stylized derivatives are committed.
 /assets/source/
+
+# Local/personal licensed music. Keep the file available to Godot exports without
+# publishing the commercial recording in the source repository.
+/assets/audio/music/cadillac.mp3
+/assets/audio/music/cadillac.mp3.import

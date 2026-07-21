@@ -1,19 +1,31 @@
 class_name PauseMenuOverlay
 extends CanvasLayer
 
+const SettingsPanelScript := preload("res://scripts/ui/audio_settings_panel.gd")
+
 signal resume_requested
 signal main_menu_requested
 signal exit_requested
+
+var settings_panel: AudioSettingsPanel
 
 
 func _ready() -> void:
 	layer = 130
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build_interface()
+	settings_panel = SettingsPanelScript.new()
+	add_child(settings_panel)
+	settings_panel.closed.connect(func():
+		var settings_button := get_node_or_null("Root/Card/Margin/Content/SettingsButton") as Button
+		if settings_button: settings_button.grab_focus()
+	)
 	hide()
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if is_instance_valid(settings_panel) and settings_panel.visible:
+		return
 	if visible and event.is_action_pressed("ui_cancel"):
 		resume_requested.emit()
 		get_viewport().set_input_as_handled()
@@ -38,8 +50,8 @@ func _build_interface() -> void:
 	var card := PanelContainer.new()
 	card.name = "Card"
 	card.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	card.position = Vector2(-235, -220)
-	card.size = Vector2(470, 440)
+	card.position = Vector2(-235, -280)
+	card.size = Vector2(470, 560)
 	card.add_theme_stylebox_override("panel", _panel(Color("11072b"), Color("4fe7ff"), 20))
 	root.add_child(card)
 	var margin := MarginContainer.new()
@@ -68,6 +80,10 @@ func _build_interface() -> void:
 	resume.name = "ResumeButton"
 	resume.pressed.connect(func(): resume_requested.emit())
 	content.add_child(resume)
+	var settings := _button("НАСТРОЙКИ")
+	settings.name = "SettingsButton"
+	settings.pressed.connect(func(): settings_panel.show_panel())
+	content.add_child(settings)
 	var main_menu := _button("В ГЛАВНОЕ МЕНЮ")
 	main_menu.name = "MainMenuButton"
 	main_menu.pressed.connect(func(): main_menu_requested.emit())

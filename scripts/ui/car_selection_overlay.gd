@@ -5,7 +5,6 @@ signal car_confirmed(profile_id: String, color: Color)
 signal back_requested
 
 const CarFactory := preload("res://scripts/cars/car_visual_factory.gd")
-const VehicleAudio := preload("res://scripts/audio/vehicle_audio_controller.gd")
 
 var selected_car := 0
 var selected_color := 0
@@ -26,8 +25,6 @@ var code_status: Label
 var confirm_button: Button
 var unlock_row: HBoxContainer
 var unlocked_cars := {}
-var engine_preview: AudioStreamPlayer
-var engine_preview_time := 0.0
 var ui_move: AudioStreamPlayer
 var ui_select: AudioStreamPlayer
 
@@ -44,10 +41,6 @@ func _process(delta: float) -> void:
 	if visible and is_instance_valid(preview_root):
 		preview_root.rotate_y(delta * 0.42)
 		preview_root.position.y = preview_base_y + sin(Time.get_ticks_msec() * 0.0014) * 0.025
-	if engine_preview_time > 0.0 and is_instance_valid(engine_preview):
-		engine_preview_time = maxf(0.0, engine_preview_time - delta)
-		engine_preview.volume_db = lerpf(-20.0, -6.0, clampf(engine_preview_time / 0.75, 0.0, 1.0))
-		if engine_preview_time <= 0.0: engine_preview.stop()
 
 
 func show_selector() -> void:
@@ -267,16 +260,15 @@ func _build_preview(container: SubViewportContainer) -> void:
 	camera.fov = 42.0
 	camera.look_at_from_position(camera.position, Vector3(0, 0.25, 0), Vector3.UP)
 	world.add_child(camera)
-	engine_preview = AudioStreamPlayer.new()
-	engine_preview.name = "EnginePreview"
-	add_child(engine_preview)
 	ui_move = AudioStreamPlayer.new()
 	ui_move.stream = load("res://assets/audio/ui/menu_move.wav")
 	ui_move.volume_db = -8.0
+	ui_move.bus = "SFX"
 	add_child(ui_move)
 	ui_select = AudioStreamPlayer.new()
 	ui_select.stream = load("res://assets/audio/ui/menu_select.wav")
 	ui_select.volume_db = -8.0
+	ui_select.bus = "SFX"
 	add_child(ui_select)
 
 
@@ -388,21 +380,7 @@ func _emissive_material(color: Color, energy: float) -> StandardMaterial3D:
 func _change_car(direction: int) -> void:
 	selected_car = posmod(selected_car + direction, CarFactory.PROFILES.size())
 	_refresh_selection()
-	_play_engine_preview()
 	if is_instance_valid(ui_move): ui_move.play()
-
-
-func _play_engine_preview() -> void:
-	if not is_instance_valid(engine_preview): return
-	var profile_id := str(CarFactory.PROFILES[selected_car].id)
-	engine_preview.stop()
-	engine_preview.stream = load(str(VehicleAudio.ENGINE_PATHS.get(profile_id, VehicleAudio.ENGINE_PATHS.iskra)))
-	if engine_preview.stream is AudioStreamWAV:
-		(engine_preview.stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD
-	engine_preview.pitch_scale = float(VehicleAudio.ENGINE_TONES.get(profile_id, 0.9))
-	engine_preview.volume_db = -6.0
-	engine_preview_time = 0.9
-	engine_preview.play()
 
 
 func _select_color(index: int) -> void:

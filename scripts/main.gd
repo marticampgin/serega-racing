@@ -12,6 +12,7 @@ const VehicleAudioScript := preload("res://scripts/audio/vehicle_audio_controlle
 const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
 const RUNTIME_WORLD_PATH := "res://scenes/world/runtime_world_optimized.scn"
 const MENU_BACKGROUND_PATH := "res://assets/generated/ui/main-menu-synthwave-v1.png"
+const CADILLAC_MUSIC_PATH := "res://assets/audio/music/cadillac.mp3"
 const GENERATED_SCENERY_PATHS := [
 	"res://scenes/world/neighborhood_details.tscn",
 ]
@@ -98,6 +99,7 @@ var powerup_toast := ""
 var powerup_toast_time := 0.0
 var powerup_display_type := ""
 var vehicle_audio: VehicleAudioController
+var race_music: AudioStreamPlayer
 
 
 func _ready() -> void:
@@ -113,6 +115,7 @@ func _ready() -> void:
 	build_scenery()
 	build_car()
 	build_vehicle_audio()
+	build_race_music()
 	build_hud()
 	build_game_ui()
 	build_refuel_client()
@@ -123,6 +126,7 @@ func _ready() -> void:
 	var cars_capture_path := ""
 	var pause_capture_path := ""
 	var mode_capture_path := ""
+	var settings_capture_path := ""
 	var capture_car_index := 0
 	var capture_color_index := 0
 	for argument in OS.get_cmdline_user_args():
@@ -140,13 +144,18 @@ func _ready() -> void:
 			pause_capture_path = argument.trim_prefix("--screenshot-pause=")
 		elif argument.begins_with("--screenshot-mode="):
 			mode_capture_path = argument.trim_prefix("--screenshot-mode=")
+		elif argument.begins_with("--screenshot-settings="):
+			settings_capture_path = argument.trim_prefix("--screenshot-settings=")
 		elif argument.begins_with("--game-mode="):
 			selected_game_mode = argument.trim_prefix("--game-mode=")
 		elif argument.begins_with("--car-index="):
 			capture_car_index = int(argument.trim_prefix("--car-index="))
 		elif argument.begins_with("--car-color="):
 			capture_color_index = int(argument.trim_prefix("--car-color="))
-	if not cars_capture_path.is_empty():
+	if not settings_capture_path.is_empty():
+		main_menu.call("_on_settings_pressed")
+		capture_qa_screenshot.call_deferred(settings_capture_path)
+	elif not cars_capture_path.is_empty():
 		_open_car_selection()
 		car_selector.call("_change_car", capture_car_index)
 		car_selector.call("_select_color", capture_color_index)
@@ -1050,6 +1059,30 @@ func build_vehicle_audio() -> void:
 	vehicle_audio.set_profile(selected_car_id)
 
 
+func build_race_music() -> void:
+	race_music = AudioStreamPlayer.new()
+	race_music.name = "RaceMusic"
+	race_music.bus = "Music"
+	race_music.volume_db = -5.0
+	if ResourceLoader.exists(CADILLAC_MUSIC_PATH):
+		race_music.stream = load(CADILLAC_MUSIC_PATH)
+		if race_music.stream is AudioStreamMP3:
+			(race_music.stream as AudioStreamMP3).loop = true
+	add_child(race_music)
+
+
+func start_race_music() -> void:
+	if selected_car_id != "lilpoc" or not is_instance_valid(race_music) or race_music.stream == null:
+		return
+	if not race_music.playing:
+		race_music.play()
+
+
+func stop_race_music() -> void:
+	if is_instance_valid(race_music):
+		race_music.stop()
+
+
 func build_hud() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
@@ -1254,6 +1287,7 @@ func _start_game() -> void:
 		car_selector.hide()
 	if is_instance_valid(mode_selector): mode_selector.hide()
 	build_gameplay_mode()
+	stop_race_music()
 	reset_car()
 	if is_instance_valid(vehicle_audio): vehicle_audio.set_active(true)
 	minimap.visible = true
@@ -1294,6 +1328,7 @@ func _return_from_pause_to_main_menu() -> void:
 		main_menu.show()
 		main_menu.call_deferred("focus_start_button")
 	if is_instance_valid(vehicle_audio): vehicle_audio.set_active(false)
+	stop_race_music()
 
 
 func build_refuel_client() -> void:
@@ -1345,6 +1380,7 @@ func _physics_process(delta: float) -> void:
 		if countdown_time <= 0.0:
 			go_flash_time = 0.8
 			countdown_label.text = "СТАРТ!"
+			start_race_music()
 	elif go_flash_time > 0.0:
 		go_flash_time = maxf(0.0, go_flash_time - delta)
 		countdown_label.modulate.a = clampf(go_flash_time * 2.0, 0.0, 1.0)
@@ -1580,6 +1616,7 @@ func wreck_car() -> void:
 	game_over_label.text = "МАШИНА РАЗБИТА\nR — ПОВТОРИТЬ ГОНКУ"
 	game_over_label.visible = true
 	status_label.text = "ГОНКА ОКОНЧЕНА | ПРОЧНОСТЬ 0%"
+	stop_race_music()
 
 
 func update_progress(delta: float) -> void:
@@ -1599,6 +1636,7 @@ func update_progress(delta: float) -> void:
 		speed = 0.0
 		finish_portrait.visible = finish_portrait.texture != null
 		status_label.text = "ФИНИШ!  %s  |  НАЖМИТЕ R, ЧТОБЫ НАЧАТЬ ЗАНОВО" % format_time(elapsed)
+		stop_race_music()
 
 
 func update_camera(delta: float) -> void:
@@ -1678,6 +1716,7 @@ func driving_help_text() -> String:
 
 
 func reset_car() -> void:
+	stop_race_music()
 	var start_frame := course.sample_course(0.0)
 	car.global_position = start_position
 	car.global_transform.basis = start_frame.basis

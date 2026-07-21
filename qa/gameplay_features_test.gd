@@ -25,6 +25,8 @@ func _run() -> void:
 	check(world != null and bool(world.get_meta("runtime_optimized", false)), "main game selects optimized runtime world")
 	check(not bool(game.get("game_started")), "main menu holds the race before Start")
 	check(game.get("main_menu").visible, "Russian main menu is visible initially")
+	check(game.get("main_menu").get_node_or_null("Root/Card/Margin/Content/SettingsButton") is Button, "main menu offers dedicated audio settings")
+	check(AudioServer.get_bus_index("Music") >= 0 and AudioServer.get_bus_index("SFX") >= 0, "music and sound effects use independent audio buses")
 	check(not game.get("minimap").visible, "minimap waits for the race")
 	check(game.get("minimap").call("track_point_count") >= 300, "minimap contains the complete sampled track")
 
@@ -51,6 +53,8 @@ func _run() -> void:
 	check(is_equal_approx(float(game.get("car_damage_mult")), 1.18), "tolerance stat changes collision penalties")
 	check(is_equal_approx(float(game.get("car_max_speed_mps")) * 3.6, 650.0), "maximum-speed stat reaches gameplay")
 	check(game.get("vehicle_audio") != null and str(game.get("vehicle_audio").get("selected_profile")) == "molniya", "selected car receives its own engine profile")
+	check(game.get("vehicle_audio").get("active") and game.get("vehicle_audio").get("engine_bed").playing, "engine idle begins with the countdown")
+	check(not game.get("race_music").playing, "race music remains silent during the countdown")
 	var capped := float(game.call("compute_drive_speed", 999.0, 1.0, false, false, 0.5, 0.1))
 	check(capped <= float(game.get("car_max_speed_mps")), "drive speed respects the selected car cap")
 	game.call("_pause_game")
@@ -90,6 +94,7 @@ func _run() -> void:
 	check(is_equal_approx(float(game.get("camera_extra_height")), -1.4), "camera can move slightly lower but respects its safety limit")
 	game.call("_pause_game")
 	check(game.get("pause_menu").get_node_or_null("Root/Card/Margin/Content/MainMenuButton") is Button, "pause menu offers a main-menu action")
+	check(game.get("pause_menu").get_node_or_null("Root/Card/Margin/Content/SettingsButton") is Button, "pause menu offers the same audio settings")
 	game.call("_return_from_pause_to_main_menu")
 	check(not paused and not bool(game.get("game_started")), "main-menu action safely leaves the active race")
 	check(game.get("main_menu").visible and not game.get("minimap").visible, "returning from pause restores the main menu UI")
@@ -102,6 +107,15 @@ func _run() -> void:
 	var fuel_before := float(game.get("fuel"))
 	game.call("update_progress", 2.0)
 	check(is_equal_approx(float(game.get("fuel")), fuel_before), "fuel does not drain when the free-run fuel system is disabled")
+	game.call("apply_car_selection", "lilpoc", Color("11131a"))
+	game.call("reset_car")
+	check(not game.get("race_music").playing, "Cadillac music waits through its countdown")
+	game.set("countdown_time", 0.01)
+	game.call("_physics_process", 0.02)
+	if game.get("race_music").stream != null:
+		check(game.get("race_music").playing, "Cadillac music starts when the countdown ends")
+	else:
+		check(true, "Cadillac music hook tolerates a deliberately untracked local song")
 
 	print("GAMEPLAY FEATURES QA: %d failures" % failures.size())
 	quit(0 if failures.is_empty() else 1)

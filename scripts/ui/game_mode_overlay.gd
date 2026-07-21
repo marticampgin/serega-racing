@@ -22,10 +22,12 @@ func _ready() -> void:
 	ui_move = AudioStreamPlayer.new()
 	ui_move.stream = load("res://assets/audio/ui/menu_move.wav")
 	ui_move.volume_db = -8.0
+	ui_move.bus = "SFX"
 	add_child(ui_move)
 	ui_select = AudioStreamPlayer.new()
 	ui_select.stream = load("res://assets/audio/ui/menu_select.wav")
 	ui_select.volume_db = -8.0
+	ui_select.bus = "SFX"
 	add_child(ui_select)
 	_build_interface()
 	_refresh()

@@ -56,6 +56,7 @@ func _run() -> void:
 	root.add_child(selector)
 	await process_frame
 	selector.call("show_selector")
+	check(selector.get_node_or_null("EnginePreview") == null, "car selection remains silent without engine previews")
 	var preview := selector.get("preview_root") as Node3D
 	var before := preview.rotation.y
 	selector.call("_process", 1.0)
