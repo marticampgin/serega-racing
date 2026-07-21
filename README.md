@@ -29,10 +29,12 @@ Copy-Item .env.example .env
 Add your Gemini API key to `.env`, then run:
 
 ```powershell
-uvicorn service.app:app --reload --port 8765
+.\start_fueling_service.ps1
 ```
 
 Check `http://127.0.0.1:8765/health`. To record and analyze a clip, send a POST request to `http://127.0.0.1:8765/analyze-drink`.
+
+The launcher deliberately uses `.venv\Scripts\python.exe -m uvicorn` instead of a global `uvicorn.exe`, preventing stale Python-launcher paths from breaking startup.
 
 Set `DRY_RUN=true` in `.env` while developing to return a deterministic blue-bottle result without opening the camera or calling Gemini. Remove it for a real run.
 
