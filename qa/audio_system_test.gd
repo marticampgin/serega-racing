@@ -58,12 +58,16 @@ func _run() -> void:
 	for frame in 60:
 		controller.update_vehicle(0.0, 220.0, false, false, false, 1.0 / 60.0)
 	var idle_pitch := controller.engine.pitch_scale
-	var before_ramp_db := controller.engine.volume_db
-	controller.update_vehicle(200.0, 220.0, true, false, true, 1.0 / 60.0)
-	check(absf(controller.engine.volume_db - before_ramp_db) <= 0.11, "engine volume begins its speed ramp without an abrupt jump")
+	var max_gain_step := 0.0
 	for frame in 240:
-		controller.update_vehicle(200.0, 220.0, true, false, true, 1.0 / 60.0)
+		var previous_gain := db_to_linear(controller.engine.volume_db)
+		var ramp_speed := 200.0 * float(frame + 1) / 240.0
+		controller.update_vehicle(ramp_speed, 220.0, true, false, false, 1.0 / 60.0)
+		max_gain_step = maxf(max_gain_step, absf(db_to_linear(controller.engine.volume_db) - previous_gain))
+	check(max_gain_step < 0.01, "linear acceleration has no abrupt engine-volume step")
 	check(controller.engine.pitch_scale > idle_pitch, "engine pitch rises progressively with speed")
+	var high_pitch := controller.engine.pitch_scale
+	controller.update_vehicle(200.0, 220.0, true, false, true, 1.0 / 60.0)
 	check(controller.engine_bed.playing, "smooth and recorded engine layers play together")
 	check(controller.scrape.playing, "generated scrape loop reacts to wall contact")
 	check(controller.scrape.volume_db > -30.0, "short scrape contacts start at an audible level")
@@ -71,6 +75,17 @@ func _run() -> void:
 	controller.update_vehicle(200.0, 220.0, true, false, false, 1.0)
 	await process_frame
 	check(not controller.scrape.playing, "scrape loop stops when wall contact ends")
+	var limiter_min_pitch := INF
+	var limiter_max_pitch := 0.0
+	for frame in 240:
+		controller.update_vehicle(220.0, 220.0, true, false, false, 1.0 / 60.0)
+		limiter_min_pitch = minf(limiter_min_pitch, controller.engine.pitch_scale)
+		limiter_max_pitch = maxf(limiter_max_pitch, controller.engine.pitch_scale)
+	check(limiter_max_pitch - limiter_min_pitch > 0.02 and limiter_max_pitch - limiter_min_pitch < 0.08, "maximum RPM has a subtle continuous rise-and-fall cycle")
+	for frame in 240:
+		var falling_speed := 200.0 * (1.0 - float(frame + 1) / 240.0)
+		controller.update_vehicle(falling_speed, 220.0, false, false, false, 1.0 / 60.0)
+	check(controller.engine.pitch_scale < high_pitch and absf(controller.engine.pitch_scale - idle_pitch) < 0.08, "linear deceleration lowers pitch back toward idle at the same pace")
 	controller.play_impact(0.1)
 	var light_path := controller.impact_players[0].stream.resource_path
 	controller.play_impact(0.3)

@@ -33,7 +33,7 @@ var active := false
 var impact_cursor := 0
 var impact_duck_time := 0.0
 var was_scraping := false
-var smoothed_speed_ratio := 0.0
+var max_rev_phase := 0.0
 
 
 func _ready() -> void:
@@ -71,13 +71,13 @@ func set_active(value: bool) -> void:
 	active = value
 	if not is_instance_valid(engine): return
 	if active:
-		smoothed_speed_ratio = 0.0
+		max_rev_phase = 0.0
 		engine.volume_db = -43.0
 		engine_bed.volume_db = -1.0
 		if not engine.playing: engine.play()
 		if not engine_bed.playing: engine_bed.play()
 	else:
-		smoothed_speed_ratio = 0.0
+		max_rev_phase = 0.0
 		engine.stop()
 		engine_bed.stop()
 		scrape.stop()
@@ -85,37 +85,36 @@ func set_active(value: bool) -> void:
 	was_scraping = false
 
 
-func update_vehicle(speed_mps: float, _max_speed_mps: float, throttle: bool, _braking: bool, scraping: bool, delta: float) -> void:
+func update_vehicle(speed_mps: float, max_speed_mps: float, throttle: bool, _braking: bool, scraping: bool, delta: float) -> void:
 	if not active or not is_instance_valid(engine): return
 	impact_duck_time = maxf(0.0, impact_duck_time - delta)
-	# Audio must react at speeds the player reaches during ordinary driving. Using
-	# the 500-800 km/h car cap kept every continuous layer near silence until the
-	# extreme end of a run. About 320 km/h now spans the useful sound range.
-	var target_speed_ratio := clampf(absf(speed_mps) / 105.0, 0.0, 1.0)
-	var response_rate := 0.48 if target_speed_ratio > smoothed_speed_ratio else 0.72
-	smoothed_speed_ratio = lerpf(smoothed_speed_ratio, target_speed_ratio, 1.0 - exp(-delta * response_rate))
-	var road_speed_ratio := smoothstep(0.0, 1.0, smoothed_speed_ratio)
-	# Speed, not the throttle key, drives the engine. This gives a calm idle and a
-	# progressive rise instead of an instant full-volume roar on the first frame.
+	# Speed itself already accelerates and decelerates continuously. Map it directly
+	# and symmetrically so sound never waits, catches up, or uses staged thresholds.
+	var speed_ratio := clampf(absf(speed_mps) / maxf(max_speed_mps, 1.0), 0.0, 1.0)
 	var tone := float(ENGINE_TONES.get(selected_profile, 0.9))
-	var target_pitch := tone * lerpf(0.68, 1.16, road_speed_ratio)
-	engine.pitch_scale = move_toward(engine.pitch_scale, target_pitch, delta * 0.3)
-	engine_bed.pitch_scale = move_toward(engine_bed.pitch_scale, tone * lerpf(0.92, 1.05, road_speed_ratio), delta * 0.24)
-	# Equal-power gains avoid the sudden loud middle of a dB-linear crossfade.
-	# A slow filtered speed value above makes both pitch and volume continuous.
-	var angle := road_speed_ratio * PI * 0.5
-	var high_gain := maxf(sin(angle), 0.01)
-	var idle_gain := maxf(cos(angle), 0.01)
-	var master_db := lerpf(-1.0, 2.0, road_speed_ratio)
-	var target_engine_db := linear_to_db(high_gain) - 3.0 + master_db + (0.5 if throttle else 0.0)
-	var target_bed_db := linear_to_db(idle_gain) + master_db
+	var limiter_blend := smoothstep(0.94, 1.0, speed_ratio) if throttle else 0.0
+	if limiter_blend > 0.0:
+		max_rev_phase = fmod(max_rev_phase + delta * TAU / 1.65, TAU)
+	var limiter_wave := sin(max_rev_phase) * limiter_blend
+	var target_pitch := tone * lerpf(0.7, 1.16, speed_ratio) * (1.0 + 0.022 * limiter_wave)
+	var idle_pitch := tone * lerpf(0.92, 1.05, speed_ratio)
+	var follow := 1.0 - exp(-delta * 10.0)
+	engine.pitch_scale = lerpf(engine.pitch_scale, target_pitch, follow)
+	engine_bed.pitch_scale = lerpf(engine_bed.pitch_scale, idle_pitch, follow)
+	# Amplitudes—not decibels—move linearly with speed. The high recording is
+	# naturally about 6 dB louder, hence its 0.5 ceiling. This keeps total power
+	# continuous while acceleration and deceleration remain exact mirror images.
+	var high_gain := lerpf(0.02, 0.5, speed_ratio)
+	var idle_gain := lerpf(1.0, 0.15, speed_ratio)
+	var target_engine_db := linear_to_db(high_gain) + (0.25 if throttle else 0.0) + 0.55 * limiter_wave
+	var target_bed_db := linear_to_db(idle_gain)
 	if impact_duck_time > 0.0: target_engine_db -= 7.0
 	if impact_duck_time > 0.0: target_bed_db -= 5.0
-	engine.volume_db = move_toward(engine.volume_db, target_engine_db, delta * 6.0)
-	engine_bed.volume_db = move_toward(engine_bed.volume_db, target_bed_db, delta * 5.0)
+	engine.volume_db = lerpf(engine.volume_db, target_engine_db, follow)
+	engine_bed.volume_db = lerpf(engine_bed.volume_db, target_bed_db, follow)
 	var scrape_now := scraping and absf(speed_mps) > 3.0
 	if scrape_now and not was_scraping: sideswipe.play()
-	_update_loop(scrape, scrape_now, lerpf(-14.0, -1.0, road_speed_ratio), lerpf(0.86, 1.1, road_speed_ratio), delta, 22.0, 65.0)
+	_update_loop(scrape, scrape_now, lerpf(-14.0, -1.0, speed_ratio), lerpf(0.86, 1.1, speed_ratio), delta, 22.0, 65.0)
 	was_scraping = scrape_now
 
 

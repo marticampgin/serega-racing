@@ -1,7 +1,9 @@
 param(
     [Parameter(Mandatory = $true)][string]$InputPath,
     [Parameter(Mandatory = $true)][string]$OutputPath,
-    [double]$CrossfadeSeconds = 1.0
+    [double]$CrossfadeSeconds = 1.0,
+    [double]$StartSeconds = 0.0,
+    [double]$EndSeconds = -1.0
 )
 
 $inputBytes = [IO.File]::ReadAllBytes((Resolve-Path -LiteralPath $InputPath))
@@ -40,15 +42,44 @@ if ($format -ne 1 -or $bitsPerSample -ne 16) {
     throw "Only 16-bit PCM WAV is supported: $InputPath"
 }
 
-$frameCount = [int]($dataSize / $blockAlign)
-$overlapFrames = [Math]::Min([int][Math]::Round($sampleRate * $CrossfadeSeconds), [int]($frameCount / 3))
+$totalFrames = [int]($dataSize / $blockAlign)
+$sourceStart = [Math]::Max(0, [int][Math]::Round($StartSeconds * $sampleRate))
+$sourceEnd = if ($EndSeconds -gt 0.0) {
+    [Math]::Min($totalFrames, [int][Math]::Round($EndSeconds * $sampleRate))
+} else {
+    $totalFrames
+}
+$frameCount = $sourceEnd - $sourceStart
+if ($frameCount -lt 4) { throw "Selected audio section is too short: $InputPath" }
+$desiredOverlap = [Math]::Min([int][Math]::Round($sampleRate * $CrossfadeSeconds), [int]($frameCount / 3))
+$overlapFrames = $desiredOverlap
+$bestBoundaryScore = [double]::PositiveInfinity
+$searchRadius = [Math]::Min([int][Math]::Round($sampleRate * 0.05), [int]($desiredOverlap / 3))
+# The final-to-first transition corresponds to two adjacent source frames. Move
+# the cut by at most 50 ms to pick the quietest stereo derivative in that area.
+for ($candidate = $desiredOverlap - $searchRadius; $candidate -le $desiredOverlap + $searchRadius; $candidate++) {
+    if ($candidate -lt 2 -or $candidate -ge $frameCount) { continue }
+    $boundary = $sourceStart + $frameCount - $candidate
+    $score = 0.0
+    for ($channel = 0; $channel -lt $channels; $channel++) {
+        $sampleOffset = $channel * 2
+        $before = [BitConverter]::ToInt16($inputBytes, $dataOffset + ($boundary - 1) * $blockAlign + $sampleOffset)
+        $after = [BitConverter]::ToInt16($inputBytes, $dataOffset + $boundary * $blockAlign + $sampleOffset)
+        $difference = [double]$after - $before
+        $score += $difference * $difference
+    }
+    if ($score -lt $bestBoundaryScore) {
+        $bestBoundaryScore = $score
+        $overlapFrames = $candidate
+    }
+}
 if ($overlapFrames -lt 2) { throw "Audio is too short to crossfade: $InputPath" }
 $outputFrames = $frameCount - $overlapFrames
 $outputData = [byte[]]::new($outputFrames * $blockAlign)
 
 for ($frame = 0; $frame -lt $outputFrames; $frame++) {
     if ($frame -ge $overlapFrames) {
-        [Array]::Copy($inputBytes, $dataOffset + $frame * $blockAlign, $outputData, $frame * $blockAlign, $blockAlign)
+        [Array]::Copy($inputBytes, $dataOffset + ($sourceStart + $frame) * $blockAlign, $outputData, $frame * $blockAlign, $blockAlign)
         continue
     }
     $progress = $frame / [double]($overlapFrames - 1)
@@ -58,8 +89,8 @@ for ($frame = 0; $frame -lt $outputFrames; $frame++) {
     $tailFrame = $outputFrames + $frame
     for ($channel = 0; $channel -lt $channels; $channel++) {
         $sampleOffset = $channel * 2
-        $head = [BitConverter]::ToInt16($inputBytes, $dataOffset + $frame * $blockAlign + $sampleOffset)
-        $tail = [BitConverter]::ToInt16($inputBytes, $dataOffset + $tailFrame * $blockAlign + $sampleOffset)
+        $head = [BitConverter]::ToInt16($inputBytes, $dataOffset + ($sourceStart + $frame) * $blockAlign + $sampleOffset)
+        $tail = [BitConverter]::ToInt16($inputBytes, $dataOffset + ($sourceStart + $tailFrame) * $blockAlign + $sampleOffset)
         $mixed = [int][Math]::Round($tail * $tailGain + $head * $headGain)
         if ($mixed -gt 32767) { $mixed = 32767 }
         if ($mixed -lt -32768) { $mixed = -32768 }
@@ -93,4 +124,4 @@ try {
     $stream.Dispose()
 }
 
-Write-Output ("Built {0}: {1:N2}s, {2:N2}s raised-cosine crossfade" -f $OutputPath, ($outputFrames / $sampleRate), ($overlapFrames / $sampleRate))
+Write-Output ("Built {0}: source {1:N2}-{2:N2}s, output {3:N2}s, {4:N2}s raised-cosine crossfade" -f $OutputPath, ($sourceStart / $sampleRate), ($sourceEnd / $sampleRate), ($outputFrames / $sampleRate), ($overlapFrames / $sampleRate))

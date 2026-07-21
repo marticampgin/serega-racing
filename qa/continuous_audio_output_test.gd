@@ -33,7 +33,7 @@ func _run() -> void:
 	var started_at := Time.get_ticks_msec()
 	while Time.get_ticks_msec() - started_at < 6400:
 		# Isolate the engine: no tyre, scrape, impact, or interface effects.
-		controller.update_vehicle(120.0, 180.0, true, false, false, maxf(root.get_process_delta_time(), 1.0 / 120.0))
+		controller.update_vehicle(180.0, 180.0, true, false, false, maxf(root.get_process_delta_time(), 1.0 / 120.0))
 		await process_frame
 	var available := capture.get_frames_available()
 	var samples := capture.get_buffer(available)
