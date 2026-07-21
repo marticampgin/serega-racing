@@ -33,6 +33,14 @@ func _run() -> void:
 	check(kinds.size() == 6, "course includes all six hazard families")
 	var icon_signatures := {}
 	for pickup in powerups:
+		var pickup_offset := float(pickup.get_meta("course_offset", -1.0))
+		var nearest_obstacle := INF
+		for obstacle in obstacles:
+			var obstacle_offset := float(obstacle.get_meta("course_offset", -1000.0))
+			var separation := absf(pickup_offset - obstacle_offset)
+			separation = minf(separation, float(game.get("TRACK_LENGTH")) - separation)
+			nearest_obstacle = minf(nearest_obstacle, separation)
+		check(nearest_obstacle >= 27.99, "%s is not inside or hidden directly behind an obstacle" % pickup.name)
 		check(pickup.get_node_or_null("Visual") != null, "%s has a rotating 3D visual root" % pickup.name)
 		var signature := ""
 		for mesh_node in pickup.find_children("*", "MeshInstance3D", true, false):

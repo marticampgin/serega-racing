@@ -77,6 +77,20 @@ class ServiceTests(unittest.TestCase):
             response = self.client.post("/analyze-drink")
         self.assertEqual(response.status_code, 504)
 
+    def test_live_failure_reports_exact_stage_type_and_message(self) -> None:
+        with tempfile.TemporaryDirectory() as temp, patch.object(
+            service, "CAPTURE_DIR", Path(temp)
+        ), patch.object(
+            service, "_record_clip", side_effect=RuntimeError("camera exploded")
+        ), self.assertLogs("uvicorn.error", level="ERROR") as logs:
+            response = self.client.post("/analyze-drink")
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(
+            response.json()["detail"],
+            "camera recording: RuntimeError: camera exploded",
+        )
+        self.assertIn("Fueling failed during camera recording", "\n".join(logs.output))
+
     def test_environment_number_validation(self) -> None:
         with patch.dict("os.environ", {"CAPTURE_SECONDS": "999"}):
             with self.assertRaises(RuntimeError):

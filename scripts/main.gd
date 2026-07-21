@@ -27,6 +27,7 @@ const BOOST_MAX_SPEED_MULTIPLIER := 1.05
 const WALL_SLIDE_PENALTY_DELAY := 0.45
 const WALL_SLIDE_SPEED_CAP := 55.0 # 198 km/h: still movable, never a fast line.
 const REFUEL_CAPTURE_SECONDS := 5.0
+const POWERUP_OBSTACLE_CLEARANCE := 28.0
 
 var course: CourseLayout
 var course_curve: Curve3D
@@ -57,6 +58,7 @@ var refuel_in_progress := false
 var refuel_key_down := false
 var debug_refill_key_down := false
 var refuel_cooldown := 0.0
+var refuel_feedback_time := 0.0
 var rng := RandomNumberGenerator.new()
 var speed_label: Label
 var timer_label: Label
@@ -910,6 +912,8 @@ func _create_road_obstacle(kind: String, offset: float, lateral: float) -> void:
 	body.transform = Transform3D(frame.basis, frame.origin + frame.basis.x * lateral + frame.basis.y * 0.05)
 	body.collision_layer = 1
 	body.collision_mask = 0
+	body.set_meta("course_offset", offset)
+	body.set_meta("lateral_offset", lateral)
 	body.add_to_group("obstacle")
 	gameplay_content.add_child(body)
 	var size := Vector3(1.25, 1.7, 1.25)
@@ -973,9 +977,32 @@ func build_powerups() -> void:
 	var offset := 600.0
 	var index := 0
 	while offset < TRACK_LENGTH - 100.0:
-		_create_powerup(types[index % types.size()], offset, lanes[rng.randi_range(0, 2)])
-		index += 1
+		var candidate := offset
+		var placed := false
+		for attempt in range(80):
+			candidate = offset + float(attempt) * 4.0
+			if candidate >= TRACK_LENGTH - 100.0:
+				break
+			if _powerup_offset_is_clear(candidate):
+				_create_powerup(types[index % types.size()], candidate, lanes[rng.randi_range(0, 2)])
+				index += 1
+				placed = true
+				break
+		if not placed:
+			push_warning("Skipped power-up near %.1fm: no obstacle-safe position was available" % offset)
 		offset += rng.randf_range(1050.0, 1350.0)
+
+
+func _powerup_offset_is_clear(offset: float) -> bool:
+	for obstacle_value in get_tree().get_nodes_in_group("obstacle"):
+		var obstacle := obstacle_value as Node3D
+		if obstacle == null or not obstacle.has_meta("course_offset"):
+			continue
+		var separation := absf(offset - float(obstacle.get_meta("course_offset")))
+		separation = minf(separation, TRACK_LENGTH - separation)
+		if separation < POWERUP_OBSTACLE_CLEARANCE:
+			return false
+	return true
 
 
 func _create_powerup(type: String, offset: float, lateral: float) -> void:
@@ -986,6 +1013,8 @@ func _create_powerup(type: String, offset: float, lateral: float) -> void:
 	pickup.collision_layer = 2
 	pickup.collision_mask = 1
 	pickup.set_meta("powerup_type", type)
+	pickup.set_meta("course_offset", offset)
+	pickup.set_meta("lateral_offset", lateral)
 	pickup.set_meta("float_phase", rng.randf_range(0.0, TAU))
 	pickup.add_to_group("powerup")
 	gameplay_content.add_child(pickup)
@@ -1495,6 +1524,9 @@ func _physics_process(delta: float) -> void:
 			visual.rotate_y(delta * 1.55)
 			visual.position.y = sin(Time.get_ticks_msec() * 0.0022 + float(pickup.get_meta("float_phase", 0.0))) * 0.12
 	refuel_cooldown = maxf(0.0, refuel_cooldown - delta)
+	refuel_feedback_time = maxf(0.0, refuel_feedback_time - delta)
+	if refuel_feedback_time <= 0.0 and not refuel_pending and not refuel_in_progress and is_instance_valid(refuel_panel):
+		refuel_panel.hide()
 	_update_refuel_sequence(delta)
 	car.collision_mask = 0 if ghost_time > 0.0 else 1
 	var refuel_pressed := realistic_fueling_enabled and race_active and countdown_time <= 0.0 and Input.is_key_pressed(KEY_F)
@@ -1551,10 +1583,9 @@ func _physics_process(delta: float) -> void:
 
 func update_car(delta: float) -> void:
 	if refuel_pending or refuel_in_progress:
-		speed = move_toward(speed, 0.0, 28.0 * delta)
-		car.velocity = -car.global_transform.basis.z.normalized() * speed
-		car.velocity.y = -1.0
-		car.move_and_slide()
+		# Fueling pauses the run, so physics must hold the exact position as well.
+		speed = 0.0
+		car.velocity = Vector3.ZERO
 		return
 	var throttle := 1.0 if Input.is_key_pressed(KEY_W) else 0.0
 	var reverse_pressed := Input.is_key_pressed(KEY_S)
@@ -1983,6 +2014,11 @@ func request_refuel() -> void:
 		return
 	refuel_pending = true
 	refuel_countdown_time = 3.0
+	refuel_feedback_time = 0.0
+	speed = 0.0
+	car.velocity = Vector3.ZERO
+	obstacle_slide_time = 0.0
+	road_edge_contact_time = 0.0
 	refuel_panel.visible = true
 	refuel_label.text = "ПОДГОТОВЬТЕ КАНИСТРУ\nЗАПИСЬ НАЧНЁТСЯ ЧЕРЕЗ 3"
 	status_label.text = "ПОДГОТОВКА К ЗАПРАВКЕ"
@@ -2024,7 +2060,7 @@ func _begin_refuel_request() -> void:
 	if error != OK:
 		refuel_in_progress = false
 		refuel_request_elapsed = 0.0
-		refuel_panel.visible = false
+		_show_refuel_error("HTTPRequest could not start (error %d)" % error)
 		status_label.text = "СЕРВИС ЗАПРАВКИ НЕДОСТУПЕН | ЗАПУСТИТЕ PYTHON-СЕРВИС"
 
 
@@ -2034,10 +2070,17 @@ func _on_refuel_request_completed(result: int, response_code: int, _headers: Pac
 	refuel_cooldown = 8.0
 	refuel_panel.visible = false
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
+		var raw_body := body.get_string_from_utf8()
+		var detail := raw_body
+		var error_report: Variant = JSON.parse_string(raw_body)
+		if error_report is Dictionary:
+			detail = str((error_report as Dictionary).get("detail", raw_body))
+		_show_refuel_error("HTTP %d / result %d\n%s" % [response_code, result, detail])
 		status_label.text = "ОШИБКА GEMINI | ТОПЛИВО НЕ ДОБАВЛЕНО"
 		return
 	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
 	if not parsed is Dictionary:
+		_show_refuel_error("Invalid JSON response\n%s" % body.get_string_from_utf8())
 		status_label.text = "НЕВЕРНЫЙ ОТЧЁТ О ТОПЛИВЕ | ПОПРОБУЙТЕ ЕЩЁ РАЗ"
 		return
 	var report: Dictionary = parsed
@@ -2045,3 +2088,13 @@ func _on_refuel_request_completed(result: int, response_code: int, _headers: Pac
 		status_label.text = "НАПИТОК НЕ ОБНАРУЖЕН | ПОПРОБУЙТЕ ЕЩЁ РАЗ"
 		return
 	apply_drink_result()
+
+
+func _show_refuel_error(detail: String) -> void:
+	var safe_detail := detail.strip_edges()
+	if safe_detail.is_empty():
+		safe_detail = "No error details were returned by the fueling service."
+	push_error("Fueling failed: %s" % safe_detail)
+	refuel_feedback_time = 12.0
+	refuel_panel.visible = true
+	refuel_label.text = "ЗАПРАВКА НЕ УДАЛАСЬ\n%s" % safe_detail.left(700)

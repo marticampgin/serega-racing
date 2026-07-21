@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import logging
 import threading
 import time
 import uuid
@@ -18,6 +19,7 @@ load_dotenv()
 app = FastAPI(title="Seryoga Speedster Video Service", version="0.3.0")
 CAPTURE_DIR = Path(os.getenv("CAPTURE_DIR", "captures"))
 _analysis_guard = threading.BoundedSemaphore(value=1)
+logger = logging.getLogger("uvicorn.error")
 
 PROMPT = """
 Analyze the complete video as an action sequence. Answer drinking_detected=true only
@@ -194,23 +196,31 @@ def analyze_drink(dry_run: bool = Query(False)) -> DrinkAnalysis:
     if not _analysis_guard.acquire(blocking=False):
         raise HTTPException(status_code=429, detail="Drink analysis already in progress")
     video_path: Path | None = None
+    stage = "initialization"
     try:
         if _dry_run_enabled(dry_run):
             return MOCK_RESULT.model_copy()
+        stage = "capture directory setup"
         CAPTURE_DIR.mkdir(parents=True, exist_ok=True)
         video_path = CAPTURE_DIR / f"drink-{uuid.uuid4().hex}.mp4"
+        stage = "camera recording"
         _record_clip(
             video_path,
             _env_float("CAPTURE_SECONDS", 5, 1, 15),
             int(os.getenv("CAMERA_INDEX", "0")),
         )
+        stage = "Gemini video analysis"
         return _analyze_video(video_path)
     except HTTPException:
         raise
     except TimeoutError as exc:
-        raise HTTPException(status_code=504, detail=str(exc)) from exc
+        detail = f"{stage}: {type(exc).__name__}: {exc}"
+        logger.exception("Fueling failed during %s", stage)
+        raise HTTPException(status_code=504, detail=detail) from exc
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        detail = f"{stage}: {type(exc).__name__}: {exc}"
+        logger.exception("Fueling failed during %s", stage)
+        raise HTTPException(status_code=500, detail=detail) from exc
     finally:
         if video_path is not None:
             video_path.unlink(missing_ok=True)
