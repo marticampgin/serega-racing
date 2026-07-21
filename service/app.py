@@ -5,8 +5,6 @@ import threading
 import time
 import uuid
 from pathlib import Path
-from typing import Literal
-
 import cv2
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
@@ -17,38 +15,29 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
-app = FastAPI(title="Serega Racing Video Service", version="0.2.0")
+app = FastAPI(title="Seryoga Speedster Video Service", version="0.3.0")
 CAPTURE_DIR = Path(os.getenv("CAPTURE_DIR", "captures"))
 _analysis_guard = threading.BoundedSemaphore(value=1)
 
 PROMPT = """
-Analyze the complete video as an action sequence. Decide whether the person visibly
-performs a drinking gesture: a container approaches the mouth, is held or tilted
-there, and then moves away. Identify the visible container and liquid colors. Prefer
-the liquid color only when clearly visible; otherwise use the container body color.
-Do not infer swallowing or contents hidden by an opaque container. Return the schema
-only. Keep reason under 160 characters.
+Analyze the complete video as an action sequence. Answer drinking_detected=true only
+when a person visibly brings the opening or spout of a bottle, can, cup, or canister
+to their mouth and holds or tilts it as if drinking. The container may be opaque and
+actual swallowing does not need to be visible. Otherwise answer false. Return the
+schema only and keep reason under 160 characters.
 """.strip()
 
 
 class DrinkAnalysis(BaseModel):
     drinking_detected: bool
-    container_type: Literal["bottle", "can", "cup", "glass", "other", "unknown"] = "unknown"
-    container_color: str = Field(default="unknown", max_length=32)
-    liquid_color: str = Field(default="unknown", max_length=32)
-    selected_color: str = Field(default="unknown", max_length=32)
     confidence: float = Field(ge=0, le=1)
     reason: str = Field(max_length=200)
 
 
 MOCK_RESULT = DrinkAnalysis(
     drinking_detected=True,
-    container_type="bottle",
-    container_color="blue",
-    liquid_color="unknown",
-    selected_color="blue",
     confidence=0.95,
-    reason="Dry-run drinking gesture with a blue bottle.",
+    reason="Dry-run drinking gesture with a canister.",
 )
 
 CONTROL_PANEL = r"""<!doctype html>
@@ -56,7 +45,7 @@ CONTROL_PANEL = r"""<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Serega Racing · Fuel Lab</title>
+  <title>Серёга Speedster · Fuel Lab</title>
   <style>
     :root{color-scheme:dark;--ink:#f4f5f7;--muted:#999fa9;--line:#2b3038;--red:#ff3b30;--green:#40e07c}
     *{box-sizing:border-box} body{margin:0;min-height:100vh;font:15px/1.5 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:#090a0c;display:grid;place-items:center;padding:28px}

@@ -42,7 +42,7 @@ class ServiceTests(unittest.TestCase):
         ) as analyze:
             response = self.client.post("/analyze-drink?dry_run=true")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["selected_color"], "blue")
+        self.assertTrue(response.json()["drinking_detected"])
         record.assert_not_called()
         analyze.assert_not_called()
 
