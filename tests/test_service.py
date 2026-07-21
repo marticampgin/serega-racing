@@ -23,6 +23,7 @@ class ServiceTests(unittest.TestCase):
         response = self.client.get("/health")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["status"], "ok")
+        self.assertEqual(response.json()["gemini_model"], "gemini-3.5-flash")
 
     def test_control_panel_is_self_contained_and_exposes_both_modes(self) -> None:
         response = self.client.get("/")

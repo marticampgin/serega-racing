@@ -79,7 +79,7 @@ CONTROL_PANEL = r"""<!doctype html>
   </section>
 </main><script>
 const $=id=>document.getElementById(id), result=$('result'), state=$('state'); let health={};
-async function refresh(){try{let r=await fetch('/health');health=await r.json();$('service').innerHTML='<span class="pulse"></span>Online';$('gemini').textContent=health.gemini_configured?'Configured':'Missing key';$('camera').textContent='Index '+health.camera_index;$('mode').textContent=health.dry_run?'DRY RUN':'LIVE CAPABLE';$('mode').className='mode '+(health.dry_run?'dry':'live');$('live').disabled=!health.gemini_configured||health.dry_run;$('hint').textContent=health.dry_run?'Global DRY_RUN is enabled. Live requests are locked out.':health.gemini_configured?'Live mode records the camera, uploads one clip, then deletes it.':'Add GEMINI_API_KEY to enable live analysis.'}catch(e){$('service').textContent='Offline';$('live').disabled=true;$('mode').textContent='OFFLINE';}}
+async function refresh(){try{let r=await fetch('/health');health=await r.json();$('service').innerHTML='<span class="pulse"></span>Online';$('gemini').textContent=health.gemini_configured?'Configured · '+health.gemini_model:'Missing key';$('camera').textContent='Index '+health.camera_index;$('mode').textContent=health.dry_run?'DRY RUN':'LIVE CAPABLE';$('mode').className='mode '+(health.dry_run?'dry':'live');$('live').disabled=!health.gemini_configured||health.dry_run;$('hint').textContent=health.dry_run?'Global DRY_RUN is enabled. Live requests are locked out.':health.gemini_configured?'Live mode records the camera, uploads one clip, then deletes it.':'Add GEMINI_API_KEY to enable live analysis.'}catch(e){$('service').textContent='Offline';$('live').disabled=true;$('mode').textContent='OFFLINE';}}
 async function run(dry){document.querySelectorAll('button').forEach(b=>b.disabled=true);state.textContent=dry?'Dry test':'Recording / analyzing';result.textContent=dry?'Generating mock result…':'Camera recording starts now. Drink naturally…';try{let r=await fetch('/analyze-drink'+(dry?'?dry_run=true':''),{method:'POST'}),data=await r.json();if(!r.ok)throw Error(data.detail||'Request failed');result.textContent=JSON.stringify(data,null,2);state.textContent='Complete'}catch(e){result.textContent=JSON.stringify({error:e.message},null,2);state.textContent='Failed'}finally{await refresh();$('dry').disabled=false}}
 $('dry').onclick=()=>run(true);$('live').onclick=()=>run(false);refresh();
   </script></body></html>"""
@@ -148,7 +148,7 @@ def _analyze_video(video_path: Path) -> DrinkAnalysis:
             raise RuntimeError("Gemini failed to process the recorded video")
 
         response = client.models.generate_content(
-            model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+            model=os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
             contents=[uploaded, PROMPT],
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
@@ -185,6 +185,7 @@ def health() -> dict[str, object]:
     return {
         "status": "ok",
         "gemini_configured": bool(os.getenv("GEMINI_API_KEY")),
+        "gemini_model": os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
         "camera_index": int(os.getenv("CAMERA_INDEX", "0")),
         "dry_run": _dry_run_enabled(False),
         "busy": _analysis_guard._value == 0,
