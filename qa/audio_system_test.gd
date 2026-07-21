@@ -50,8 +50,9 @@ func _run() -> void:
 	controller.set_profile("lilpoc")
 	check((controller.engine.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_FORWARD, "driving engine is configured as a continuous loop")
 	check((controller.engine_bed.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_FORWARD, "idle engine is configured as a continuous loop")
+	check((controller.engine.stream as AudioStreamWAV).loop_end > 0, "driving engine has a valid non-zero loop endpoint")
+	check((controller.engine_bed.stream as AudioStreamWAV).loop_end > 0, "idle engine has a valid non-zero loop endpoint")
 	check((controller.scrape.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_FORWARD, "scrape is configured as a continuous loop")
-	check((controller.brake.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_FORWARD, "tyre squeal is configured as a continuous loop")
 	controller.set_active(true)
 	check(controller.engine_bed.volume_db > -10.0, "engine idle becomes audible as soon as the countdown starts")
 	controller.update_vehicle(0.0, 220.0, false, false, false, 0.1)
@@ -59,9 +60,9 @@ func _run() -> void:
 	controller.update_vehicle(200.0, 220.0, true, true, true, 0.1)
 	check(controller.engine.pitch_scale > idle_pitch, "engine pitch rises progressively with speed")
 	check(controller.engine_bed.playing, "smooth and recorded engine layers play together")
-	check(controller.scrape.playing and controller.brake.playing, "generated scrape and tyre loops react to their contacts")
+	check(controller.scrape.playing, "generated scrape loop reacts to wall contact")
 	check(controller.scrape.volume_db > -30.0, "short scrape contacts start at an audible level")
-	check(controller.sideswipe.playing and controller.brake_chirp.playing, "contact onset triggers sideswipe and brake chirp one-shots")
+	check(controller.sideswipe.playing, "wall contact onset triggers its sideswipe one-shot")
 	controller.update_vehicle(200.0, 220.0, true, false, false, 1.0)
 	await process_frame
 	check(not controller.scrape.playing, "scrape loop stops when wall contact ends")
@@ -75,7 +76,7 @@ func _run() -> void:
 	check(controller.impact_players.any(func(player): return player.playing), "collision layer supports impact one-shots")
 	controller.set_active(false)
 	for player in controller.impact_players: player.stop()
-	for player in [controller.engine, controller.engine_bed, controller.scrape, controller.brake, controller.sideswipe, controller.brake_chirp, controller.powerup]: player.stream = null
+	for player in [controller.engine, controller.engine_bed, controller.scrape, controller.sideswipe, controller.powerup]: player.stream = null
 	for player in controller.impact_players: player.stream = null
 	controller.free()
 	print("AUDIO SYSTEM QA: %d failures" % failures.size())

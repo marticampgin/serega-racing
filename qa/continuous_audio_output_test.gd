@@ -27,7 +27,8 @@ func _run() -> void:
 	controller.set_profile("iskra")
 	controller.set_active(true)
 	for frame in 90:
-		controller.update_vehicle(120.0, 180.0, true, true, true, 1.0 / 60.0)
+		# Isolate the engine: no tyre, scrape, impact, or interface effects.
+		controller.update_vehicle(120.0, 180.0, true, false, false, 1.0 / 60.0)
 		await process_frame
 	var available := capture.get_frames_available()
 	var samples := capture.get_buffer(available)

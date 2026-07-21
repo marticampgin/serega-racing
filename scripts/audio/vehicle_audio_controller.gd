@@ -25,9 +25,7 @@ const ENGINE_TONES := {
 var engine: AudioStreamPlayer
 var engine_bed: AudioStreamPlayer
 var scrape: AudioStreamPlayer
-var brake: AudioStreamPlayer
 var sideswipe: AudioStreamPlayer
-var brake_chirp: AudioStreamPlayer
 var impact_players: Array[AudioStreamPlayer] = []
 var powerup: AudioStreamPlayer
 var selected_profile := "iskra"
@@ -35,24 +33,18 @@ var active := false
 var impact_cursor := 0
 var impact_duck_time := 0.0
 var was_scraping := false
-var was_braking := false
 
 
 func _ready() -> void:
 	engine = _player("Engine", -45.0)
 	engine_bed = _player("EngineBed", -45.0)
 	scrape = _player("WallScrape", -50.0)
-	brake = _player("BrakeSkid", -50.0)
 	sideswipe = _player("Sideswipe", -12.0)
-	brake_chirp = _player("BrakeChirp", -14.0)
 	powerup = _player("Powerup", -4.0)
 	scrape.stream = load("res://assets/audio/vehicle/wall_scrape_generated.wav")
-	brake.stream = load("res://assets/audio/vehicle/tire_skid.wav")
 	sideswipe.stream = load("res://assets/audio/vehicle/sideswipe.wav")
-	brake_chirp.stream = load("res://assets/audio/vehicle/brake_chirp.wav")
 	powerup.stream = load("res://assets/audio/ui/powerup_short.wav")
 	_set_loop(scrape.stream, true)
-	_set_loop(brake.stream, true)
 	for index in 3:
 		var player := _player("Impact%d" % index, -8.0)
 		impact_players.append(player)
@@ -88,14 +80,11 @@ func set_active(value: bool) -> void:
 		engine.stop()
 		engine_bed.stop()
 		scrape.stop()
-		brake.stop()
 		sideswipe.stop()
-		brake_chirp.stop()
 	was_scraping = false
-	was_braking = false
 
 
-func update_vehicle(speed_mps: float, _max_speed_mps: float, throttle: bool, braking: bool, scraping: bool, delta: float) -> void:
+func update_vehicle(speed_mps: float, _max_speed_mps: float, throttle: bool, _braking: bool, scraping: bool, delta: float) -> void:
 	if not active or not is_instance_valid(engine): return
 	impact_duck_time = maxf(0.0, impact_duck_time - delta)
 	# Audio must react at speeds the player reaches during ordinary driving. Using
@@ -118,13 +107,9 @@ func update_vehicle(speed_mps: float, _max_speed_mps: float, throttle: bool, bra
 	engine.volume_db = move_toward(engine.volume_db, target_engine_db, delta * 26.0)
 	engine_bed.volume_db = move_toward(engine_bed.volume_db, target_bed_db, delta * 22.0)
 	var scrape_now := scraping and absf(speed_mps) > 3.0
-	var brake_now := braking and absf(speed_mps) > 8.0
 	if scrape_now and not was_scraping: sideswipe.play()
-	if brake_now and not was_braking: brake_chirp.play()
 	_update_loop(scrape, scrape_now, lerpf(-14.0, -1.0, road_speed_ratio), lerpf(0.86, 1.1, road_speed_ratio), delta, 22.0, 65.0)
-	_update_loop(brake, brake_now, lerpf(-12.0, 0.0, road_speed_ratio), lerpf(0.78, 1.12, road_speed_ratio), delta)
 	was_scraping = scrape_now
-	was_braking = brake_now
 
 
 func play_impact(strength: float, heavy := false) -> void:
@@ -181,7 +166,13 @@ func _player(node_name: String, volume: float) -> AudioStreamPlayer:
 
 func _set_loop(stream: AudioStream, enabled: bool) -> void:
 	if stream is AudioStreamWAV:
-		(stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD if enabled else AudioStreamWAV.LOOP_DISABLED
+		var wav := stream as AudioStreamWAV
+		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD if enabled else AudioStreamWAV.LOOP_DISABLED
+		if enabled:
+			# Imported compressed WAVs can report forward looping while retaining a
+			# zero loop end. Godot then silently stops at EOF. Use the full sample.
+			wav.loop_begin = 0
+			wav.loop_end = maxi(1, int(round(wav.get_length() * float(wav.mix_rate))))
 	elif stream is AudioStreamOggVorbis:
 		(stream as AudioStreamOggVorbis).loop = enabled
 	elif stream is AudioStreamMP3:
