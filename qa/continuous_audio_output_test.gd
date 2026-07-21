@@ -30,10 +30,11 @@ func _run() -> void:
 			profile = argument.trim_prefix("--profile=")
 	controller.set_profile(profile)
 	controller.set_active(true)
+	var rated_max_speed := (800.0 if profile == "lilpoc" else 500.0) / 3.6
 	var started_at := Time.get_ticks_msec()
 	while Time.get_ticks_msec() - started_at < 6400:
 		# Isolate the engine: no tyre, scrape, impact, or interface effects.
-		controller.update_vehicle(180.0, 180.0, true, false, false, maxf(root.get_process_delta_time(), 1.0 / 120.0))
+		controller.update_vehicle(rated_max_speed, rated_max_speed, true, false, false, maxf(root.get_process_delta_time(), 1.0 / 120.0))
 		await process_frame
 	var available := capture.get_frames_available()
 	var samples := capture.get_buffer(available)
@@ -48,4 +49,4 @@ func _run() -> void:
 		controller.engine_bed.playing, controller.engine.playing,
 	])
 	AudioServer.remove_bus_effect(bus, 0)
-	quit(0 if available > 0 and peak > 0.001 and controller.engine_bed.playing and controller.engine.playing else 1)
+	quit(0 if available > 0 and peak > 0.001 and not controller.engine_bed.playing and controller.engine.playing else 1)

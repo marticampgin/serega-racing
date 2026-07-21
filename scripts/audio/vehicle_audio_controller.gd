@@ -21,6 +21,11 @@ const ENGINE_TONES := {
 	"iskra": 0.95, "molniya": 1.08, "prizrak": 0.88,
 	"titan": 0.8, "strela": 1.01, "lilpoc": 0.86,
 }
+const ENGINE_HIGH_TRIM_DB := {
+	# The SUV driving recording is naturally quieter than the sports recording.
+	# Normalize the source before applying the maximum-speed rating difference.
+	"lilpoc": 3.0,
+}
 
 var engine: AudioStreamPlayer
 var engine_bed: AudioStreamPlayer
@@ -34,6 +39,7 @@ var impact_cursor := 0
 var impact_duck_time := 0.0
 var was_scraping := false
 var max_rev_phase := 0.0
+var max_rev_intensity := 0.0
 
 
 func _ready() -> void:
@@ -72,12 +78,14 @@ func set_active(value: bool) -> void:
 	if not is_instance_valid(engine): return
 	if active:
 		max_rev_phase = 0.0
+		max_rev_intensity = 0.0
 		engine.volume_db = -43.0
 		engine_bed.volume_db = -1.0
 		if not engine.playing: engine.play()
 		if not engine_bed.playing: engine_bed.play()
 	else:
 		max_rev_phase = 0.0
+		max_rev_intensity = 0.0
 		engine.stop()
 		engine_bed.stop()
 		scrape.stop()
@@ -92,26 +100,44 @@ func update_vehicle(speed_mps: float, max_speed_mps: float, throttle: bool, _bra
 	# and symmetrically so sound never waits, catches up, or uses staged thresholds.
 	var speed_ratio := clampf(absf(speed_mps) / maxf(max_speed_mps, 1.0), 0.0, 1.0)
 	var tone := float(ENGINE_TONES.get(selected_profile, 0.9))
-	var limiter_blend := smoothstep(0.94, 1.0, speed_ratio) if throttle else 0.0
-	if limiter_blend > 0.0:
+	var rated_speed_kmh := max_speed_mps * 3.6
+	var rated_power := clampf(inverse_lerp(400.0, 800.0, rated_speed_kmh), 0.0, 1.0)
+	var at_max_speed := throttle and absf(speed_mps) >= max_speed_mps - 0.25
+	var limiter_target := 1.0 if at_max_speed else 0.0
+	max_rev_intensity = lerpf(max_rev_intensity, limiter_target, 1.0 - exp(-delta * 4.5))
+	if max_rev_intensity > 0.001:
 		max_rev_phase = fmod(max_rev_phase + delta * TAU / 1.65, TAU)
-	var limiter_wave := sin(max_rev_phase) * limiter_blend
-	var target_pitch := tone * lerpf(0.7, 1.16, speed_ratio) * (1.0 + 0.022 * limiter_wave)
+	var limiter_wave := sin(max_rev_phase) * max_rev_intensity
+	var limiter_pitch_depth := lerpf(0.01, 0.03, rated_power)
+	var rated_pitch := lerpf(0.97, 1.06, rated_power)
+	var target_pitch := tone * lerpf(0.7, 1.16 * rated_pitch, speed_ratio) * (1.0 + limiter_pitch_depth * limiter_wave)
 	var idle_pitch := tone * lerpf(0.92, 1.05, speed_ratio)
 	var follow := 1.0 - exp(-delta * 10.0)
+	var idle_follow := 1.0 - exp(-delta * 16.0)
 	engine.pitch_scale = lerpf(engine.pitch_scale, target_pitch, follow)
-	engine_bed.pitch_scale = lerpf(engine_bed.pitch_scale, idle_pitch, follow)
+	engine_bed.pitch_scale = lerpf(engine_bed.pitch_scale, idle_pitch, idle_follow)
 	# Amplitudes—not decibels—move linearly with speed. The high recording is
 	# naturally about 6 dB louder, hence its 0.5 ceiling. This keeps total power
 	# continuous while acceleration and deceleration remain exact mirror images.
 	var high_gain := lerpf(0.02, 0.5, speed_ratio)
-	var idle_gain := lerpf(1.0, 0.15, speed_ratio)
-	var target_engine_db := linear_to_db(high_gain) + (0.25 if throttle else 0.0) + 0.55 * limiter_wave
+	# Idle is completely gone by 72% of the car's range, preventing two engine
+	# recordings from being audible together at maximum speed.
+	var idle_gain := maxf(1.0 - speed_ratio / 0.72, 0.001)
+	# Rated maximum affects only the cap behavior: slower cars stay restrained,
+	# while 700-800 km/h cars receive a materially stronger sustained roar.
+	var limiter_roar_db := lerpf(-1.5, 3.0, rated_power) * max_rev_intensity + lerpf(0.15, 0.9, rated_power) * limiter_wave
+	var source_trim_db := float(ENGINE_HIGH_TRIM_DB.get(selected_profile, 0.0))
+	var target_engine_db := linear_to_db(high_gain) + source_trim_db + (0.25 if throttle else 0.0) + limiter_roar_db
 	var target_bed_db := linear_to_db(idle_gain)
 	if impact_duck_time > 0.0: target_engine_db -= 7.0
 	if impact_duck_time > 0.0: target_bed_db -= 5.0
 	engine.volume_db = lerpf(engine.volume_db, target_engine_db, follow)
-	engine_bed.volume_db = lerpf(engine_bed.volume_db, target_bed_db, follow)
+	engine_bed.volume_db = lerpf(engine_bed.volume_db, target_bed_db, idle_follow)
+	if speed_ratio >= 0.75 and engine_bed.volume_db <= -48.0:
+		engine_bed.stop()
+	elif speed_ratio < 0.75 and not engine_bed.playing:
+		engine_bed.volume_db = -48.0
+		engine_bed.play()
 	var scrape_now := scraping and absf(speed_mps) > 3.0
 	if scrape_now and not was_scraping: sideswipe.play()
 	_update_loop(scrape, scrape_now, lerpf(-14.0, -1.0, speed_ratio), lerpf(0.86, 1.1, speed_ratio), delta, 22.0, 65.0)

@@ -66,26 +66,44 @@ func _run() -> void:
 		max_gain_step = maxf(max_gain_step, absf(db_to_linear(controller.engine.volume_db) - previous_gain))
 	check(max_gain_step < 0.01, "linear acceleration has no abrupt engine-volume step")
 	check(controller.engine.pitch_scale > idle_pitch, "engine pitch rises progressively with speed")
-	var high_pitch := controller.engine.pitch_scale
 	controller.update_vehicle(200.0, 220.0, true, false, true, 1.0 / 60.0)
-	check(controller.engine_bed.playing, "smooth and recorded engine layers play together")
+	check(controller.engine.playing, "driving engine remains active through acceleration")
 	check(controller.scrape.playing, "generated scrape loop reacts to wall contact")
 	check(controller.scrape.volume_db > -30.0, "short scrape contacts start at an audible level")
 	check(controller.sideswipe.playing, "wall contact onset triggers its sideswipe one-shot")
 	controller.update_vehicle(200.0, 220.0, true, false, false, 1.0)
 	await process_frame
 	check(not controller.scrape.playing, "scrape loop stops when wall contact ends")
+	controller.update_vehicle(219.0, 220.0, true, false, false, 1.0 / 60.0)
+	check(controller.max_rev_intensity < 0.001, "maximum-RPM loop does not begin before the actual speed cap")
+	for frame in 120:
+		controller.update_vehicle(220.0, 220.0, true, false, false, 1.0 / 60.0)
 	var limiter_min_pitch := INF
 	var limiter_max_pitch := 0.0
 	for frame in 240:
 		controller.update_vehicle(220.0, 220.0, true, false, false, 1.0 / 60.0)
 		limiter_min_pitch = minf(limiter_min_pitch, controller.engine.pitch_scale)
 		limiter_max_pitch = maxf(limiter_max_pitch, controller.engine.pitch_scale)
-	check(limiter_max_pitch - limiter_min_pitch > 0.02 and limiter_max_pitch - limiter_min_pitch < 0.08, "maximum RPM has a subtle continuous rise-and-fall cycle")
+	var fast_limiter_range := limiter_max_pitch - limiter_min_pitch
+	check(fast_limiter_range > 0.02 and fast_limiter_range < 0.08, "maximum RPM has a subtle continuous rise-and-fall cycle")
+	check(not controller.engine_bed.playing, "idle recording fades out and stops before maximum speed")
+	var high_pitch := controller.engine.pitch_scale
 	for frame in 240:
 		var falling_speed := 200.0 * (1.0 - float(frame + 1) / 240.0)
 		controller.update_vehicle(falling_speed, 220.0, false, false, false, 1.0 / 60.0)
 	check(controller.engine.pitch_scale < high_pitch and absf(controller.engine.pitch_scale - idle_pitch) < 0.08, "linear deceleration lowers pitch back toward idle at the same pace")
+	check(controller.engine_bed.playing, "idle recording returns smoothly during deceleration")
+	controller.set_active(false)
+	controller.set_active(true)
+	for frame in 120:
+		controller.update_vehicle(400.0 / 3.6, 400.0 / 3.6, true, false, false, 1.0 / 60.0)
+	var slow_limiter_min := INF
+	var slow_limiter_max := 0.0
+	for frame in 240:
+		controller.update_vehicle(400.0 / 3.6, 400.0 / 3.6, true, false, false, 1.0 / 60.0)
+		slow_limiter_min = minf(slow_limiter_min, controller.engine.pitch_scale)
+		slow_limiter_max = maxf(slow_limiter_max, controller.engine.pitch_scale)
+	check(fast_limiter_range > (slow_limiter_max - slow_limiter_min) * 1.4, "higher-rated cars have a stronger maximum-RPM cycle")
 	controller.play_impact(0.1)
 	var light_path := controller.impact_players[0].stream.resource_path
 	controller.play_impact(0.3)
