@@ -1,0 +1,65 @@
+extends SceneTree
+
+var failures: Array[String] = []
+
+
+func _initialize() -> void:
+	call_deferred("_run")
+
+
+func check(condition: bool, message: String) -> void:
+	if condition: print("PASS: ", message)
+	else:
+		failures.append(message)
+		push_error("FAIL: " + message)
+
+
+func _run() -> void:
+	var game := (load("res://scenes/main.tscn") as PackedScene).instantiate()
+	root.add_child(game)
+	await process_frame
+	game.call("_on_mode_confirmed", "obstacle_course", true, 2, true)
+	check(bool(game.get("realistic_fueling_enabled")) and bool(game.get("fuel_enabled")), "realistic fueling activates only when selected")
+	check(int(game.get("selected_laps")) == 2, "race starts with selected lap count")
+	game.call("_on_car_confirmed", "iskra", Color("e9234f"))
+	game.set("fuel", 15.0)
+	game.call("update_hud")
+	check(game.get("fuel_warning_panel").visible, "15-percent fuel warning is visible")
+	game.call("request_refuel")
+	check(bool(game.get("refuel_pending")) and game.get("refuel_panel").visible, "F fueling begins with an in-game recording countdown")
+	game.call("_update_refuel_sequence", 1.1)
+	check(float(game.get("refuel_countdown_time")) < 2.0, "fueling countdown advances before webcam capture")
+	# Stop before the HTTP request: QA must never open the camera or spend quota.
+	game.set("refuel_pending", false)
+	game.get("refuel_panel").hide()
+	game.set("fuel", 20.0)
+	game.set("boost_time", 0.0)
+	game.set("ghost_time", 0.0)
+	game.set("shield_hits", 0)
+	game.call("apply_drink_result", "red")
+	check(is_equal_approx(float(game.get("fuel")), 60.0), "confirmed drinking adds 40 percent fuel")
+	check(is_zero_approx(float(game.get("boost_time"))) and is_zero_approx(float(game.get("ghost_time"))) and int(game.get("shield_hits")) == 0, "realistic fueling never grants colored drink buffs")
+	game.set("shield_hits", 1)
+	game.call("apply_continuous_vehicle_damage", 0.1, "wall scrape")
+	check(int(game.get("shield_hits")) == 0, "first wall-scrape tick consumes an equipped shield")
+	game.call("apply_vehicle_damage", 10.0, "TEST")
+	check(int(game.get("collision_count")) == 2 and float(game.get("damage_sustained")) > 0.0, "race statistics count hits and actual sustained damage")
+	game.set("elapsed", 125.25)
+	game.call("_complete_lap")
+	check(int(game.get("current_lap")) == 2 and game.get("lap_times").size() == 1, "crossing the line records the first lap and begins the second")
+	check(str(game.get("lap_label").text).contains("КРУГ"), "HUD exposes the current lap")
+	game.set("elapsed", 248.5)
+	game.call("_complete_lap")
+	check(not bool(game.get("race_active")) and game.get("results_overlay").visible, "final lap opens the results screen")
+	check(game.get("lap_times").size() == 2 and game.get("lap_average_speeds").size() == 2, "results retain every lap time and average speed")
+	check(game.get("results_overlay").get_node_or_null("Root/Card/Margin/Content/Actions/MainMenuButton") is Button, "results offer a main-menu action")
+	game.call("_return_from_results_to_main_menu")
+	check(game.get("main_menu").visible and not bool(game.get("game_started")), "results can return safely to the main menu")
+	game.call("_on_mode_confirmed", "obstacle_course", true, 2, true)
+	game.call("_on_car_confirmed", "iskra", Color("e9234f"))
+	game.set("fuel", 0.01)
+	game.call("update_progress", 1.0)
+	check(not bool(game.get("race_active")) and game.get("results_overlay").visible, "running out of fuel ends the race")
+	check(game.get("countdown_tick_audio").stream != null and game.get("countdown_go_audio").stream != null, "countdown has separate tick and start sounds")
+	print("RACE FLOW QA: %d failures" % failures.size())
+	quit(0 if failures.is_empty() else 1)

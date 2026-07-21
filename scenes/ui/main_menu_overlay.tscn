@@ -171,14 +171,14 @@ theme_override_colors/font_shadow_color = Color(0.96, 0.04, 0.55, 0.9)
 theme_override_constants/shadow_offset_x = 3
 theme_override_constants/shadow_offset_y = 3
 theme_override_font_sizes/font_size = 46
-text = "НОЧНАЯ ГОНКА"
+text = "Серёга Speedster"
 horizontal_alignment = 1
 
 [node name="Subtitle" type="Label" parent="Root/Card/Margin/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.86, 0.82, 0.96, 1)
 theme_override_font_sizes/font_size = 17
-text = "ОСТРОВ • СКОРОСТЬ • ПРАЗДНИК"
+text = ""
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="Root/Card/Margin/Content"]

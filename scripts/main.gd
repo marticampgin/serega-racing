@@ -8,6 +8,7 @@ const CarSelectionScene := preload("res://scenes/ui/car_selection_overlay.tscn")
 const CarFactory := preload("res://scripts/cars/car_visual_factory.gd")
 const PauseMenuScript := preload("res://scripts/ui/pause_menu_overlay.gd")
 const GameModeScript := preload("res://scripts/ui/game_mode_overlay.gd")
+const RaceResultsScript := preload("res://scripts/ui/race_results_overlay.gd")
 const VehicleAudioScript := preload("res://scripts/audio/vehicle_audio_controller.gd")
 const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
 const RUNTIME_WORLD_PATH := "res://scenes/world/runtime_world_optimized.scn"
@@ -58,6 +59,7 @@ var refuel_cooldown := 0.0
 var rng := RandomNumberGenerator.new()
 var speed_label: Label
 var timer_label: Label
+var lap_label: Label
 var distance_label: Label
 var status_label: Label
 var fuel_title: Label
@@ -67,10 +69,14 @@ var powerup_status_label: Label
 var powerup_icon_label: Label
 var powerup_status_panel: PanelContainer
 var game_over_label: Label
+var fuel_warning_panel: PanelContainer
+var refuel_panel: PanelContainer
+var refuel_label: Label
 var finish_portrait: TextureRect
 var start_position := Vector3.ZERO
 var countdown_label: Label
 var countdown_time := 3.2
+var last_countdown_number := 0
 var go_flash_time := 0.0
 var camera_orbit_yaw := 0.0
 var camera_extra_height := 0.0
@@ -81,6 +87,7 @@ var main_menu: CanvasLayer
 var car_selector: CanvasLayer
 var mode_selector: CanvasLayer
 var pause_menu: CanvasLayer
+var results_overlay: CanvasLayer
 var car_visual: Node3D
 var car_collider: CollisionShape3D
 var selected_car_id := "iskra"
@@ -93,7 +100,15 @@ var car_max_speed_mps := 500.0 / 3.6
 var durability := 100.0
 var selected_game_mode := "free_run"
 var powerups_enabled := false
-var fuel_enabled := true
+var fuel_enabled := false
+var realistic_fueling_enabled := false
+var selected_laps := 2
+var current_lap := 1
+var lap_start_time := 0.0
+var lap_times: Array[float] = []
+var lap_average_speeds: Array[float] = []
+var collision_count := 0
+var damage_sustained := 0.0
 var gameplay_content: Node3D
 var obstacle_materials: Dictionary = {}
 var powerup_toast := ""
@@ -101,6 +116,10 @@ var powerup_toast_time := 0.0
 var powerup_display_type := ""
 var vehicle_audio: VehicleAudioController
 var race_music: AudioStreamPlayer
+var countdown_tick_audio: AudioStreamPlayer
+var countdown_go_audio: AudioStreamPlayer
+var refuel_pending := false
+var refuel_countdown_time := 0.0
 
 
 func _ready() -> void:
@@ -117,6 +136,7 @@ func _ready() -> void:
 	build_car()
 	build_vehicle_audio()
 	build_race_music()
+	build_countdown_audio()
 	build_hud()
 	build_game_ui()
 	build_refuel_client()
@@ -127,6 +147,8 @@ func _ready() -> void:
 	var cars_capture_path := ""
 	var pause_capture_path := ""
 	var mode_capture_path := ""
+	var results_capture_path := ""
+	var refuel_capture_path := ""
 	var settings_capture_path := ""
 	var capture_car_index := 0
 	var capture_color_index := 0
@@ -145,6 +167,10 @@ func _ready() -> void:
 			pause_capture_path = argument.trim_prefix("--screenshot-pause=")
 		elif argument.begins_with("--screenshot-mode="):
 			mode_capture_path = argument.trim_prefix("--screenshot-mode=")
+		elif argument.begins_with("--screenshot-results="):
+			results_capture_path = argument.trim_prefix("--screenshot-results=")
+		elif argument.begins_with("--screenshot-refuel="):
+			refuel_capture_path = argument.trim_prefix("--screenshot-refuel=")
 		elif argument.begins_with("--screenshot-settings="):
 			settings_capture_path = argument.trim_prefix("--screenshot-settings=")
 		elif argument.begins_with("--game-mode="):
@@ -153,7 +179,25 @@ func _ready() -> void:
 			capture_car_index = int(argument.trim_prefix("--car-index="))
 		elif argument.begins_with("--car-color="):
 			capture_color_index = int(argument.trim_prefix("--car-color="))
-	if not settings_capture_path.is_empty():
+	if not results_capture_path.is_empty():
+		_on_mode_confirmed("free_run", false, 2, false)
+		apply_car_selection("iskra", selected_car_color)
+		_start_game()
+		countdown_time = 0.0
+		elapsed = 124.321
+		_complete_lap()
+		elapsed = 247.876
+		_complete_lap()
+		capture_qa_screenshot.call_deferred(results_capture_path)
+	elif not refuel_capture_path.is_empty():
+		_on_mode_confirmed("obstacle_course", true, 2, true)
+		apply_car_selection("iskra", selected_car_color)
+		_start_game()
+		countdown_time = 0.0
+		fuel = 15.0
+		request_refuel()
+		capture_qa_screenshot.call_deferred(refuel_capture_path)
+	elif not settings_capture_path.is_empty():
 		main_menu.call("_on_settings_pressed")
 		capture_qa_screenshot.call_deferred(settings_capture_path)
 	elif not cars_capture_path.is_empty():
@@ -163,6 +207,7 @@ func _ready() -> void:
 		capture_qa_screenshot.call_deferred(cars_capture_path)
 	elif not mode_capture_path.is_empty():
 		_open_mode_selection()
+		mode_selector.call("_select_mode", selected_game_mode)
 		capture_qa_screenshot.call_deferred(mode_capture_path)
 	elif not pause_capture_path.is_empty():
 		_start_game()
@@ -1060,6 +1105,23 @@ func build_vehicle_audio() -> void:
 	vehicle_audio.set_profile(selected_car_id)
 
 
+func build_countdown_audio() -> void:
+	countdown_tick_audio = AudioStreamPlayer.new()
+	countdown_tick_audio.name = "CountdownTick"
+	countdown_tick_audio.stream = load("res://assets/audio/ui/menu_move.wav")
+	countdown_tick_audio.volume_db = -2.0
+	countdown_tick_audio.pitch_scale = 0.82
+	countdown_tick_audio.bus = "SFX"
+	add_child(countdown_tick_audio)
+	countdown_go_audio = AudioStreamPlayer.new()
+	countdown_go_audio.name = "CountdownGo"
+	countdown_go_audio.stream = load("res://assets/audio/ui/menu_select.wav")
+	countdown_go_audio.volume_db = -1.0
+	countdown_go_audio.pitch_scale = 1.18
+	countdown_go_audio.bus = "SFX"
+	add_child(countdown_go_audio)
+
+
 func build_race_music() -> void:
 	race_music = AudioStreamPlayer.new()
 	race_music.name = "RaceMusic"
@@ -1100,6 +1162,8 @@ func build_hud() -> void:
 	margin.add_child(column)
 	timer_label = make_label("00:00.000", 32, Color.WHITE)
 	column.add_child(timer_label)
+	lap_label = make_label("КРУГ 1 / 2", 18, Color("ffe45f"))
+	column.add_child(lap_label)
 	speed_label = make_label("0 КМ/Ч", 48, Color("67e7ff"))
 	column.add_child(speed_label)
 	distance_label = make_label("0 / %d М" % int(TRACK_LENGTH), 17, Color("dce5ed"))
@@ -1187,6 +1251,44 @@ func build_hud() -> void:
 	game_over_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	game_over_label.visible = false
 	layer.add_child(game_over_label)
+	fuel_warning_panel = PanelContainer.new()
+	fuel_warning_panel.anchor_left = 0.31
+	fuel_warning_panel.anchor_top = 0.76
+	fuel_warning_panel.anchor_right = 0.69
+	fuel_warning_panel.anchor_bottom = 0.84
+	fuel_warning_panel.add_theme_stylebox_override("panel", _hud_panel(Color(0.12, 0.01, 0.03, 0.82), Color("ff4f6d")))
+	var fuel_warning := make_label("МАЛО ТОПЛИВА — НАЖМИТЕ F ДЛЯ ЗАПРАВКИ", 20, Color("fff0c7"))
+	fuel_warning.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	fuel_warning.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	fuel_warning_panel.add_child(fuel_warning)
+	fuel_warning_panel.visible = false
+	layer.add_child(fuel_warning_panel)
+	refuel_panel = PanelContainer.new()
+	refuel_panel.anchor_left = 0.33
+	refuel_panel.anchor_top = 0.38
+	refuel_panel.anchor_right = 0.67
+	refuel_panel.anchor_bottom = 0.61
+	refuel_panel.add_theme_stylebox_override("panel", _hud_panel(Color(0.02, 0.005, 0.08, 0.88), Color("58eaff")))
+	refuel_label = make_label("", 25, Color("fff27a"))
+	refuel_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	refuel_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	refuel_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	refuel_panel.add_child(refuel_label)
+	refuel_panel.visible = false
+	layer.add_child(refuel_panel)
+
+
+func _hud_panel(fill: Color, border: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = fill
+	style.border_color = border
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(12)
+	style.content_margin_left = 18
+	style.content_margin_right = 18
+	style.content_margin_top = 12
+	style.content_margin_bottom = 12
+	return style
 
 
 func build_game_ui() -> void:
@@ -1219,6 +1321,10 @@ func build_game_ui() -> void:
 	pause_menu.connect("resume_requested", Callable(self, "_resume_game"))
 	pause_menu.connect("main_menu_requested", Callable(self, "_return_from_pause_to_main_menu"))
 	pause_menu.connect("exit_requested", Callable(self, "_exit_game"))
+	results_overlay = RaceResultsScript.new()
+	add_child(results_overlay)
+	results_overlay.connect("restart_requested", Callable(self, "_restart_from_results"))
+	results_overlay.connect("main_menu_requested", Callable(self, "_return_from_results_to_main_menu"))
 
 
 func _open_car_selection() -> void:
@@ -1233,10 +1339,12 @@ func _open_mode_selection() -> void:
 	if is_instance_valid(mode_selector): mode_selector.call("show_selector")
 
 
-func _on_mode_confirmed(mode: String, _enable_powerups: bool) -> void:
+func _on_mode_confirmed(mode: String, _enable_powerups := true, laps := 2, realistic_fueling := false) -> void:
 	selected_game_mode = mode
 	powerups_enabled = mode == "obstacle_course"
-	fuel_enabled = mode == "obstacle_course"
+	selected_laps = clampi(laps, 2, 5)
+	realistic_fueling_enabled = mode == "obstacle_course" and realistic_fueling
+	fuel_enabled = realistic_fueling_enabled
 	if is_instance_valid(mode_selector): mode_selector.hide()
 	_open_car_selection()
 
@@ -1325,11 +1433,28 @@ func _return_from_pause_to_main_menu() -> void:
 	if is_instance_valid(mode_selector): mode_selector.hide()
 	if is_instance_valid(car_selector): car_selector.hide()
 	if is_instance_valid(minimap): minimap.hide()
+	refuel_pending = false
+	if refuel_in_progress and is_instance_valid(refuel_request): refuel_request.cancel_request()
+	refuel_in_progress = false
+	if is_instance_valid(refuel_panel): refuel_panel.hide()
+	if is_instance_valid(fuel_warning_panel): fuel_warning_panel.hide()
+	if is_instance_valid(results_overlay): results_overlay.hide()
 	if is_instance_valid(main_menu):
 		main_menu.show()
 		main_menu.call_deferred("focus_start_button")
 	if is_instance_valid(vehicle_audio): vehicle_audio.set_active(false)
 	stop_race_music()
+
+
+func _restart_from_results() -> void:
+	if is_instance_valid(results_overlay): results_overlay.hide()
+	reset_car()
+	if is_instance_valid(vehicle_audio): vehicle_audio.set_active(true)
+
+
+func _return_from_results_to_main_menu() -> void:
+	if is_instance_valid(results_overlay): results_overlay.hide()
+	_return_from_pause_to_main_menu()
 
 
 func build_refuel_client() -> void:
@@ -1363,8 +1488,9 @@ func _physics_process(delta: float) -> void:
 			visual.rotate_y(delta * 1.55)
 			visual.position.y = sin(Time.get_ticks_msec() * 0.0022 + float(pickup.get_meta("float_phase", 0.0))) * 0.12
 	refuel_cooldown = maxf(0.0, refuel_cooldown - delta)
+	_update_refuel_sequence(delta)
 	car.collision_mask = 0 if ghost_time > 0.0 else 1
-	var refuel_pressed := fuel_enabled and Input.is_key_pressed(KEY_F)
+	var refuel_pressed := realistic_fueling_enabled and race_active and countdown_time <= 0.0 and Input.is_key_pressed(KEY_F)
 	if refuel_pressed and not refuel_key_down:
 		request_refuel()
 	refuel_key_down = refuel_pressed
@@ -1376,24 +1502,37 @@ func _physics_process(delta: float) -> void:
 		reset_car()
 	if countdown_time > 0.0:
 		countdown_time = maxf(0.0, countdown_time - delta)
-		countdown_label.text = str(maxi(1, ceili(minf(countdown_time, 3.0))))
+		var countdown_number := maxi(1, ceili(minf(countdown_time, 3.0)))
+		countdown_label.text = str(countdown_number)
+		if countdown_number != last_countdown_number:
+			last_countdown_number = countdown_number
+			if is_instance_valid(countdown_tick_audio): countdown_tick_audio.play()
 		speed = 0.0
 		car.velocity = Vector3.ZERO
 		if countdown_time <= 0.0:
 			go_flash_time = 0.8
 			countdown_label.text = "СТАРТ!"
+			if is_instance_valid(countdown_go_audio): countdown_go_audio.play()
 			start_race_music()
 	elif go_flash_time > 0.0:
 		go_flash_time = maxf(0.0, go_flash_time - delta)
 		countdown_label.modulate.a = clampf(go_flash_time * 2.0, 0.0, 1.0)
-		elapsed += delta
-		update_car(delta)
-		update_progress(delta)
+		if refuel_pending or refuel_in_progress:
+			update_car(delta)
+		else:
+			elapsed += delta
+			update_car(delta)
+			update_progress(delta)
 	elif race_active:
 		countdown_label.visible = false
-		elapsed += delta
-		update_car(delta)
-		update_progress(delta)
+		if refuel_pending or refuel_in_progress:
+			# Network/model latency must not affect race time or consume fuel. The car
+			# remains safely stopped until the recording result arrives.
+			update_car(delta)
+		else:
+			elapsed += delta
+			update_car(delta)
+			update_progress(delta)
 	update_camera(delta)
 	update_hud()
 	if is_instance_valid(vehicle_audio):
@@ -1404,7 +1543,7 @@ func _physics_process(delta: float) -> void:
 
 
 func update_car(delta: float) -> void:
-	if refuel_in_progress:
+	if refuel_pending or refuel_in_progress:
 		speed = move_toward(speed, 0.0, 28.0 * delta)
 		car.velocity = -car.global_transform.basis.z.normalized() * speed
 		car.velocity.y = -1.0
@@ -1596,9 +1735,17 @@ func handle_road_edge_contact(impact_speed: float, scrape_speed: float, delta: f
 
 
 func apply_continuous_vehicle_damage(base_damage: float, _source: String) -> bool:
-	if ghost_time > 0.0 or shield_hits > 0 or base_damage <= 0.0:
+	if ghost_time > 0.0 or base_damage <= 0.0:
 		return false
-	durability = maxf(0.0, durability - base_damage * car_damage_mult)
+	if shield_hits > 0:
+		shield_hits -= 1
+		collision_count += 1
+		status_label.text = "ТРЕНИЕ О СТЕНУ | ЩИТ ПОГЛОТИЛ УДАР"
+		return false
+	var actual_damage := base_damage * car_damage_mult
+	var durability_before := durability
+	durability = maxf(0.0, durability - actual_damage)
+	damage_sustained += durability_before - durability
 	if durability <= 0.0: wreck_car()
 	return true
 
@@ -1609,22 +1756,20 @@ func apply_vehicle_damage(base_damage: float, source: String) -> bool:
 		return false
 	if shield_hits > 0:
 		shield_hits -= 1
+		collision_count += 1
 		status_label.text = "%s | ЩИТ ПОГЛОТИЛ УДАР" % source
 		return false
+	collision_count += 1
+	var durability_before := durability
 	durability = maxf(0.0, durability - base_damage * car_damage_mult)
+	damage_sustained += durability_before - durability
 	if durability <= 0.0:
 		wreck_car()
 	return true
 
 
 func wreck_car() -> void:
-	race_active = false
-	speed = 0.0
-	car.velocity = Vector3.ZERO
-	game_over_label.text = "МАШИНА РАЗБИТА\nR — ПОВТОРИТЬ ГОНКУ"
-	game_over_label.visible = true
-	status_label.text = "ГОНКА ОКОНЧЕНА | ПРОЧНОСТЬ 0%"
-	stop_race_music()
+	_finish_race(false, "МАШИНА РАЗБИТА")
 
 
 func update_progress(delta: float) -> void:
@@ -1636,15 +1781,45 @@ func update_progress(delta: float) -> void:
 	elif offset_delta < -TRACK_LENGTH * 0.5:
 		offset_delta += TRACK_LENGTH
 	course_offset = next_offset
-	distance = clampf(distance + offset_delta, 0.0, TRACK_LENGTH)
+	distance = maxf(0.0, distance + offset_delta)
 	if fuel_enabled:
-		fuel = maxf(0.0, fuel - delta * (1.0 + distance / TRACK_LENGTH * 0.5) * car_fuel_mult)
+		fuel = maxf(0.0, fuel - delta * (0.42 + clampf(distance / TRACK_LENGTH, 0.0, 1.0) * 0.18) * car_fuel_mult)
+		if fuel <= 0.0:
+			_finish_race(false, "ТОПЛИВО ЗАКОНЧИЛОСЬ")
+			return
 	if distance >= TRACK_LENGTH - 2.0:
-		race_active = false
-		speed = 0.0
-		finish_portrait.visible = finish_portrait.texture != null
-		status_label.text = "ФИНИШ!  %s  |  НАЖМИТЕ R, ЧТОБЫ НАЧАТЬ ЗАНОВО" % format_time(elapsed)
-		stop_race_music()
+		_complete_lap()
+
+
+func _complete_lap() -> void:
+	var lap_time := maxf(0.001, elapsed - lap_start_time)
+	lap_times.append(lap_time)
+	lap_average_speeds.append(TRACK_LENGTH / lap_time * 3.6)
+	if current_lap >= selected_laps:
+		_finish_race(true, "ФИНИШ!")
+		return
+	current_lap += 1
+	lap_start_time = elapsed
+	distance = 0.0
+	status_label.text = "КРУГ %d / %d | ПРЕДЫДУЩИЙ %s" % [current_lap, selected_laps, format_time(lap_time)]
+
+
+func _finish_race(completed: bool, reason: String) -> void:
+	if not race_active: return
+	race_active = false
+	speed = 0.0
+	car.velocity = Vector3.ZERO
+	refuel_pending = false
+	if refuel_in_progress and is_instance_valid(refuel_request): refuel_request.cancel_request()
+	refuel_in_progress = false
+	if is_instance_valid(refuel_panel): refuel_panel.hide()
+	if is_instance_valid(fuel_warning_panel): fuel_warning_panel.hide()
+	finish_portrait.visible = completed and finish_portrait.texture != null
+	status_label.text = reason
+	if is_instance_valid(vehicle_audio): vehicle_audio.set_active(false)
+	stop_race_music()
+	if is_instance_valid(results_overlay):
+		results_overlay.call("show_results", lap_times, lap_average_speeds, collision_count, damage_sustained, elapsed, completed)
 
 
 func update_camera(delta: float) -> void:
@@ -1670,10 +1845,13 @@ func update_camera(delta: float) -> void:
 func update_hud() -> void:
 	speed_label.text = ("ЗАД %03d КМ/Ч" % int(absf(speed) * 3.6)) if speed < -0.5 else ("%03d КМ/Ч" % int(speed * 3.6))
 	timer_label.text = format_time(elapsed)
+	lap_label.text = "КРУГ %d / %d   •   %s" % [current_lap, selected_laps, format_time(maxf(0.0, elapsed - lap_start_time))]
 	distance_label.text = "%04d / %d М" % [int(distance), int(TRACK_LENGTH)]
 	fuel_title.visible = fuel_enabled
 	fuel_bar.visible = fuel_enabled
 	fuel_bar.value = fuel
+	if is_instance_valid(fuel_warning_panel):
+		fuel_warning_panel.visible = realistic_fueling_enabled and race_active and fuel <= 15.0 and not refuel_pending and not refuel_in_progress
 	durability_bar.value = durability
 	if is_instance_valid(minimap):
 		minimap.call("set_player_distance", course_offset, TRACK_LENGTH)
@@ -1735,6 +1913,12 @@ func reset_car() -> void:
 	elapsed = 0.0
 	distance = 0.0
 	course_offset = 0.0
+	current_lap = 1
+	lap_start_time = 0.0
+	lap_times.clear()
+	lap_average_speeds.clear()
+	collision_count = 0
+	damage_sustained = 0.0
 	shield_hits = 0
 	boost_time = 0.0
 	ghost_time = 0.0
@@ -1753,33 +1937,25 @@ func reset_car() -> void:
 	finish_portrait.visible = false
 	status_label.text = driving_help_text()
 	refuel_in_progress = false
+	refuel_pending = false
+	refuel_countdown_time = 0.0
 	refuel_cooldown = 0.0
 	countdown_time = 3.2
+	last_countdown_number = 0
 	go_flash_time = 0.0
 	countdown_label.visible = true
 	countdown_label.modulate.a = 1.0
 	countdown_label.text = "3"
+	if is_instance_valid(results_overlay): results_overlay.hide()
+	if is_instance_valid(refuel_panel): refuel_panel.hide()
+	if is_instance_valid(fuel_warning_panel): fuel_warning_panel.hide()
 
 
-# Public hook for the webcam/Gemini service integration.
-func apply_drink_result(color_name: String) -> void:
-	var normalized := color_name.strip_edges().to_lower()
-	fuel = minf(100.0, fuel + 35.0)
-	match normalized:
-		"blue", "cyan":
-			shield_hits += 1
-			status_label.text = "СИНЕЕ ТОПЛИВО | ЩИТ ЗАРЯЖЕН"
-		"red", "orange":
-			boost_time = 8.0
-			status_label.text = "КРАСНОЕ ТОПЛИВО | ТУРБОУСКОРЕНИЕ"
-		"purple", "violet":
-			ghost_time = 8.0
-			status_label.text = "ФИОЛЕТОВОЕ ТОПЛИВО | РЕЖИМ ПРИЗРАКА"
-		"green":
-			fuel = minf(100.0, fuel + 20.0)
-			status_label.text = "ЗЕЛЁНОЕ ТОПЛИВО | ДОПОЛНИТЕЛЬНАЯ ЗАПРАВКА"
-		_:
-			status_label.text = "ТОПЛИВО ДОБАВЛЕНО"
+# Public hook for the webcam/Gemini service integration. Realistic fueling is
+# deliberately binary: a confirmed drinking gesture adds fuel, never a buff.
+func apply_drink_result(_color_name := "unknown") -> void:
+	fuel = minf(100.0, fuel + 40.0)
+	status_label.text = "ЗАПРАВКА ПОДТВЕРЖДЕНА | ТОПЛИВО +40%"
 
 
 func debug_refill() -> void:
@@ -1788,14 +1964,37 @@ func debug_refill() -> void:
 
 
 func request_refuel() -> void:
+	if not realistic_fueling_enabled or not race_active:
+		return
 	if refuel_in_progress:
 		status_label.text = "ГОНОЧНЫЙ ЦЕНТР УЖЕ АНАЛИЗИРУЕТ ВИДЕО..."
 		return
 	if refuel_cooldown > 0.0:
 		status_label.text = "СИСТЕМА ЗАПРАВКИ ОХЛАЖДАЕТСЯ"
 		return
+	refuel_pending = true
+	refuel_countdown_time = 3.0
+	refuel_panel.visible = true
+	refuel_label.text = "ПОДГОТОВЬТЕ КАНИСТРУ\nЗАПИСЬ НАЧНЁТСЯ ЧЕРЕЗ 3"
+	status_label.text = "ПОДГОТОВКА К ЗАПРАВКЕ"
+
+
+func _update_refuel_sequence(delta: float) -> void:
+	if not refuel_pending:
+		return
+	refuel_countdown_time = maxf(0.0, refuel_countdown_time - delta)
+	var seconds_left := maxi(1, ceili(refuel_countdown_time))
+	refuel_label.text = "ПОДГОТОВЬТЕ КАНИСТРУ\nЗАПИСЬ НАЧНЁТСЯ ЧЕРЕЗ %d" % seconds_left
+	if refuel_countdown_time <= 0.0:
+		refuel_pending = false
+		_begin_refuel_request()
+
+
+func _begin_refuel_request() -> void:
 	refuel_in_progress = true
-	status_label.text = "ПИТ-ЛИМИТЕР | ПЕЙТЕ СЕЙЧАС | ЗАПИСЬ 5 СЕКУНД..."
+	refuel_panel.visible = true
+	refuel_label.text = "ПЕЙТЕ СЕЙЧАС\nЗАПИСЬ 5 СЕКУНД • ЗАТЕМ АНАЛИЗ GEMINI"
+	status_label.text = "ЗАПИСЬ ВИДЕО ДЛЯ ЗАПРАВКИ..."
 	var error := refuel_request.request(
 		"http://127.0.0.1:8765/analyze-drink",
 		PackedStringArray(["Accept: application/json"]),
@@ -1804,15 +2003,16 @@ func request_refuel() -> void:
 	)
 	if error != OK:
 		refuel_in_progress = false
+		refuel_panel.visible = false
 		status_label.text = "СЕРВИС ЗАПРАВКИ НЕДОСТУПЕН | ЗАПУСТИТЕ PYTHON-СЕРВИС"
 
 
 func _on_refuel_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	refuel_in_progress = false
 	refuel_cooldown = 8.0
+	refuel_panel.visible = false
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
-		fuel = minf(100.0, fuel + 10.0)
-		status_label.text = "ОШИБКА ГОНОЧНОГО ЦЕНТРА | АВАРИЙНОЕ ТОПЛИВО +10"
+		status_label.text = "ОШИБКА GEMINI | ТОПЛИВО НЕ ДОБАВЛЕНО"
 		return
 	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
 	if not parsed is Dictionary:
@@ -1822,4 +2022,4 @@ func _on_refuel_request_completed(result: int, response_code: int, _headers: Pac
 	if not bool(report.get("drinking_detected", false)):
 		status_label.text = "НАПИТОК НЕ ОБНАРУЖЕН | ПОПРОБУЙТЕ ЕЩЁ РАЗ"
 		return
-	apply_drink_result(str(report.get("selected_color", "unknown")))
+	apply_drink_result()

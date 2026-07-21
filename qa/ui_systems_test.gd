@@ -19,6 +19,8 @@ func _run() -> void:
 	await process_frame
 	_expect(menu.get_node("Root/Card/Margin/Content/StartButton").text == "НАЧАТЬ ГОНКУ", "Start button must be Russian")
 	_expect(menu.get_node("Root/Card/Margin/Content/ExitButton").text == "ВЫХОД", "Exit button must be Russian")
+	_expect(menu.get_node("Root/Card/Margin/Content/Title").text == "Серёга Speedster", "main menu uses the new game title")
+	_expect(menu.get_node("Root/Card/Margin/Content/Subtitle").text.is_empty(), "obsolete island-speed-party subtitle is removed")
 	var signal_counts := {"start": 0}
 	menu.start_requested.connect(func() -> void: signal_counts["start"] += 1)
 	menu.get_node("Root/Card/Margin/Content/StartButton").pressed.emit()

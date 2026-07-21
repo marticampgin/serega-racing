@@ -73,7 +73,7 @@ func _run() -> void:
 	game.set("shield_hits", 0)
 	game.set("ghost_time", 0.0)
 	game.call("apply_vehicle_damage", 30.0, "TEST")
-	check(not bool(game.get("race_active")) and game.get("game_over_label").visible, "zero durability wrecks the car and ends the run")
+	check(not bool(game.get("race_active")) and game.get("results_overlay").visible, "zero durability opens results and ends the run")
 	game.call("reset_car")
 	check(is_equal_approx(float(game.get("durability")), 100.0) and bool(game.get("race_active")), "reset fully repairs the car")
 	game.set("selected_game_mode", "free_run")

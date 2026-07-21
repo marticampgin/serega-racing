@@ -1,7 +1,7 @@
 class_name GameModeOverlay
 extends CanvasLayer
 
-signal mode_confirmed(mode: String, powerups: bool)
+signal mode_confirmed(mode: String, powerups: bool, laps: int, realistic_fueling: bool)
 signal back_requested
 
 const FREE_IMAGE := "res://assets/generated/ui/mode-free-run-v1.png"
@@ -15,6 +15,9 @@ var obstacle_panel: PanelContainer
 var background: TextureRect
 var ui_move: AudioStreamPlayer
 var ui_select: AudioStreamPlayer
+var lap_count := 2
+var lap_value_label: Label
+var realistic_fueling_toggle: CheckButton
 
 
 func _ready() -> void:
@@ -84,6 +87,28 @@ func _build_interface() -> void:
 	obstacle_panel = obstacle.panel
 	obstacle_button = obstacle.button
 	cards.add_child(obstacle_panel)
+	var options := HBoxContainer.new()
+	options.alignment = BoxContainer.ALIGNMENT_CENTER
+	options.add_theme_constant_override("separation", 14)
+	content.add_child(options)
+	options.add_child(_label("КРУГИ", 18, Color("dfe8ff"), HORIZONTAL_ALIGNMENT_CENTER))
+	var fewer_laps := _button("‹", false)
+	fewer_laps.custom_minimum_size = Vector2(54, 44)
+	fewer_laps.pressed.connect(_change_laps.bind(-1))
+	options.add_child(fewer_laps)
+	lap_value_label = _label(str(lap_count), 25, Color("ffe45f"), HORIZONTAL_ALIGNMENT_CENTER)
+	lap_value_label.custom_minimum_size = Vector2(54, 44)
+	lap_value_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	options.add_child(lap_value_label)
+	var more_laps := _button("›", false)
+	more_laps.custom_minimum_size = Vector2(54, 44)
+	more_laps.pressed.connect(_change_laps.bind(1))
+	options.add_child(more_laps)
+	realistic_fueling_toggle = CheckButton.new()
+	realistic_fueling_toggle.text = "РЕАЛИСТИЧНАЯ ЗАПРАВКА ЧЕРЕЗ КАМЕРУ"
+	realistic_fueling_toggle.add_theme_font_size_override("font_size", 17)
+	realistic_fueling_toggle.tooltip_text = "F — записать 5-секундное видео; Gemini подтвердит жест питья"
+	options.add_child(realistic_fueling_toggle)
 	var actions := HBoxContainer.new()
 	actions.alignment = BoxContainer.ALIGNMENT_CENTER
 	actions.add_theme_constant_override("separation", 18)
@@ -125,7 +150,13 @@ func _select_mode(mode: String) -> void:
 func _confirm_mode() -> void:
 	if is_instance_valid(ui_select): ui_select.play()
 	hide()
-	mode_confirmed.emit(selected_mode, selected_mode == "obstacle_course")
+	mode_confirmed.emit(selected_mode, selected_mode == "obstacle_course", lap_count, realistic_fueling_toggle.button_pressed and selected_mode == "obstacle_course")
+
+
+func _change_laps(delta: int) -> void:
+	lap_count = clampi(lap_count + delta, 2, 5)
+	lap_value_label.text = str(lap_count)
+	if is_instance_valid(ui_move): ui_move.play()
 
 
 func _refresh() -> void:
@@ -134,6 +165,8 @@ func _refresh() -> void:
 	obstacle_panel.add_theme_stylebox_override("panel", _panel(Color("21102f"), Color("ffe45f") if selected_mode == "obstacle_course" else Color("ee57b4"), 16))
 	free_button.modulate = Color.WHITE if selected_mode == "free_run" else Color(0.62, 0.62, 0.7)
 	obstacle_button.modulate = Color.WHITE if selected_mode == "obstacle_course" else Color(0.62, 0.62, 0.7)
+	if is_instance_valid(realistic_fueling_toggle):
+		realistic_fueling_toggle.visible = selected_mode == "obstacle_course"
 
 
 func _button(text: String, primary: bool) -> Button:
