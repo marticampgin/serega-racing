@@ -48,6 +48,10 @@ func _run() -> void:
 	root.add_child(controller)
 	await process_frame
 	controller.set_profile("lilpoc")
+	check((controller.engine.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_FORWARD, "driving engine is configured as a continuous loop")
+	check((controller.engine_bed.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_FORWARD, "idle engine is configured as a continuous loop")
+	check((controller.scrape.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_FORWARD, "scrape is configured as a continuous loop")
+	check((controller.brake.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_FORWARD, "tyre squeal is configured as a continuous loop")
 	controller.set_active(true)
 	check(controller.engine_bed.volume_db > -10.0, "engine idle becomes audible as soon as the countdown starts")
 	controller.update_vehicle(0.0, 220.0, false, false, false, 0.1)
