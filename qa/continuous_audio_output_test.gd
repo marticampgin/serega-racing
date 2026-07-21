@@ -24,11 +24,16 @@ func _run() -> void:
 	var controller := AudioController.new()
 	root.add_child(controller)
 	await process_frame
-	controller.set_profile("iskra")
+	var profile := "iskra"
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--profile="):
+			profile = argument.trim_prefix("--profile=")
+	controller.set_profile(profile)
 	controller.set_active(true)
-	for frame in 90:
+	var started_at := Time.get_ticks_msec()
+	while Time.get_ticks_msec() - started_at < 6400:
 		# Isolate the engine: no tyre, scrape, impact, or interface effects.
-		controller.update_vehicle(120.0, 180.0, true, false, false, 1.0 / 60.0)
+		controller.update_vehicle(120.0, 180.0, true, false, false, maxf(root.get_process_delta_time(), 1.0 / 120.0))
 		await process_frame
 	var available := capture.get_frames_available()
 	var samples := capture.get_buffer(available)
@@ -38,6 +43,9 @@ func _run() -> void:
 		peak = maxf(peak, maxf(absf(sample.x), absf(sample.y)))
 		sum_squared += sample.length_squared() * 0.5
 	var rms := sqrt(sum_squared / maxf(float(samples.size()), 1.0))
-	print("CONTINUOUS AUDIO OUTPUT: driver=%s frames=%d peak=%.5f rms=%.5f" % [AudioServer.get_driver_name(), available, peak, rms])
+	print("CONTINUOUS AUDIO OUTPUT: profile=%s driver=%s frames=%d peak=%.5f rms=%.5f idle_playing=%s drive_playing=%s" % [
+		profile, AudioServer.get_driver_name(), available, peak, rms,
+		controller.engine_bed.playing, controller.engine.playing,
+	])
 	AudioServer.remove_bus_effect(bus, 0)
-	quit(0 if available > 0 and peak > 0.001 else 1)
+	quit(0 if available > 0 and peak > 0.001 and controller.engine_bed.playing and controller.engine.playing else 1)

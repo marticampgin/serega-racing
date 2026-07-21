@@ -2,20 +2,20 @@ class_name VehicleAudioController
 extends Node
 
 const ENGINE_PATHS := {
-	"iskra": "res://assets/audio/engine/sports_high.wav",
-	"molniya": "res://assets/audio/engine/sports_high.wav",
-	"prizrak": "res://assets/audio/engine/sports_high.wav",
-	"titan": "res://assets/audio/engine/sports_high.wav",
-	"strela": "res://assets/audio/engine/sports_high.wav",
-	"lilpoc": "res://assets/audio/engine/suv_high.wav",
+	"iskra": "res://assets/audio/engine/sports_high_loop.wav",
+	"molniya": "res://assets/audio/engine/sports_high_loop.wav",
+	"prizrak": "res://assets/audio/engine/sports_high_loop.wav",
+	"titan": "res://assets/audio/engine/sports_high_loop.wav",
+	"strela": "res://assets/audio/engine/sports_high_loop.wav",
+	"lilpoc": "res://assets/audio/engine/suv_high_loop.wav",
 }
 const ENGINE_BED_PATHS := {
-	"iskra": "res://assets/audio/engine/sports_idle.wav",
-	"molniya": "res://assets/audio/engine/sports_idle.wav",
-	"prizrak": "res://assets/audio/engine/sports_idle.wav",
-	"titan": "res://assets/audio/engine/sports_idle.wav",
-	"strela": "res://assets/audio/engine/sports_idle.wav",
-	"lilpoc": "res://assets/audio/engine/suv_idle.wav",
+	"iskra": "res://assets/audio/engine/sports_idle_loop.wav",
+	"molniya": "res://assets/audio/engine/sports_idle_loop.wav",
+	"prizrak": "res://assets/audio/engine/sports_idle_loop.wav",
+	"titan": "res://assets/audio/engine/sports_idle_loop.wav",
+	"strela": "res://assets/audio/engine/sports_idle_loop.wav",
+	"lilpoc": "res://assets/audio/engine/suv_idle_loop.wav",
 }
 const ENGINE_TONES := {
 	"iskra": 0.95, "molniya": 1.08, "prizrak": 0.88,
@@ -33,6 +33,7 @@ var active := false
 var impact_cursor := 0
 var impact_duck_time := 0.0
 var was_scraping := false
+var smoothed_speed_ratio := 0.0
 
 
 func _ready() -> void:
@@ -70,13 +71,13 @@ func set_active(value: bool) -> void:
 	active = value
 	if not is_instance_valid(engine): return
 	if active:
-		# Start from an audible idle. Beginning at the generic -45 dB construction
-		# volume made the first seconds of every race effectively silent.
-		engine.volume_db = -26.0
-		engine_bed.volume_db = -2.5
+		smoothed_speed_ratio = 0.0
+		engine.volume_db = -43.0
+		engine_bed.volume_db = -1.0
 		if not engine.playing: engine.play()
 		if not engine_bed.playing: engine_bed.play()
 	else:
+		smoothed_speed_ratio = 0.0
 		engine.stop()
 		engine_bed.stop()
 		scrape.stop()
@@ -90,22 +91,28 @@ func update_vehicle(speed_mps: float, _max_speed_mps: float, throttle: bool, _br
 	# Audio must react at speeds the player reaches during ordinary driving. Using
 	# the 500-800 km/h car cap kept every continuous layer near silence until the
 	# extreme end of a run. About 320 km/h now spans the useful sound range.
-	var road_speed_ratio := clampf(absf(speed_mps) / 90.0, 0.0, 1.0)
+	var target_speed_ratio := clampf(absf(speed_mps) / 105.0, 0.0, 1.0)
+	var response_rate := 0.48 if target_speed_ratio > smoothed_speed_ratio else 0.72
+	smoothed_speed_ratio = lerpf(smoothed_speed_ratio, target_speed_ratio, 1.0 - exp(-delta * response_rate))
+	var road_speed_ratio := smoothstep(0.0, 1.0, smoothed_speed_ratio)
 	# Speed, not the throttle key, drives the engine. This gives a calm idle and a
 	# progressive rise instead of an instant full-volume roar on the first frame.
 	var tone := float(ENGINE_TONES.get(selected_profile, 0.9))
-	var target_pitch := tone * lerpf(0.62, 1.2, pow(road_speed_ratio, 0.68))
-	engine.pitch_scale = move_toward(engine.pitch_scale, target_pitch, delta * 1.65)
-	engine_bed.pitch_scale = move_toward(engine_bed.pitch_scale, tone * lerpf(0.92, 1.08, minf(road_speed_ratio / 0.55, 1.0)), delta * 1.45)
-	# Crossfade the matching idle and high-RPM recordings. The high recording is
-	# pitched down at low speed, then rises smoothly instead of switching engines.
-	var high_mix := smoothstep(0.02, 0.8, road_speed_ratio)
-	var target_engine_db := lerpf(-26.0, 1.0, high_mix) + (1.5 if throttle else 0.0)
-	var target_bed_db := lerpf(-2.0, -17.0, smoothstep(0.0, 0.7, road_speed_ratio))
+	var target_pitch := tone * lerpf(0.68, 1.16, road_speed_ratio)
+	engine.pitch_scale = move_toward(engine.pitch_scale, target_pitch, delta * 0.3)
+	engine_bed.pitch_scale = move_toward(engine_bed.pitch_scale, tone * lerpf(0.92, 1.05, road_speed_ratio), delta * 0.24)
+	# Equal-power gains avoid the sudden loud middle of a dB-linear crossfade.
+	# A slow filtered speed value above makes both pitch and volume continuous.
+	var angle := road_speed_ratio * PI * 0.5
+	var high_gain := maxf(sin(angle), 0.01)
+	var idle_gain := maxf(cos(angle), 0.01)
+	var master_db := lerpf(-1.0, 2.0, road_speed_ratio)
+	var target_engine_db := linear_to_db(high_gain) - 3.0 + master_db + (0.5 if throttle else 0.0)
+	var target_bed_db := linear_to_db(idle_gain) + master_db
 	if impact_duck_time > 0.0: target_engine_db -= 7.0
 	if impact_duck_time > 0.0: target_bed_db -= 5.0
-	engine.volume_db = move_toward(engine.volume_db, target_engine_db, delta * 26.0)
-	engine_bed.volume_db = move_toward(engine_bed.volume_db, target_bed_db, delta * 22.0)
+	engine.volume_db = move_toward(engine.volume_db, target_engine_db, delta * 6.0)
+	engine_bed.volume_db = move_toward(engine_bed.volume_db, target_bed_db, delta * 5.0)
 	var scrape_now := scraping and absf(speed_mps) > 3.0
 	if scrape_now and not was_scraping: sideswipe.play()
 	_update_loop(scrape, scrape_now, lerpf(-14.0, -1.0, road_speed_ratio), lerpf(0.86, 1.1, road_speed_ratio), delta, 22.0, 65.0)

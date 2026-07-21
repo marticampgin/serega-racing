@@ -28,10 +28,10 @@ func _run() -> void:
 	check(loaded_paths.size() == 2, "sports cars share one source while Cadillac keeps its SUV source")
 	check(AudioController.ENGINE_BED_PATHS.size() == 6, "every car has a smooth supporting engine loop")
 	for path in [
-		"res://assets/audio/engine/sports_idle.wav",
-		"res://assets/audio/engine/sports_high.wav",
-		"res://assets/audio/engine/suv_idle.wav",
-		"res://assets/audio/engine/suv_high.wav",
+		"res://assets/audio/engine/sports_idle_loop.wav",
+		"res://assets/audio/engine/sports_high_loop.wav",
+		"res://assets/audio/engine/suv_idle_loop.wav",
+		"res://assets/audio/engine/suv_high_loop.wav",
 		"res://assets/audio/vehicle/wall_scrape_generated.wav",
 		"res://assets/audio/vehicle/sideswipe.wav",
 		"res://assets/audio/vehicle/tire_skid.wav",
@@ -55,9 +55,14 @@ func _run() -> void:
 	check((controller.scrape.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_FORWARD, "scrape is configured as a continuous loop")
 	controller.set_active(true)
 	check(controller.engine_bed.volume_db > -10.0, "engine idle becomes audible as soon as the countdown starts")
-	controller.update_vehicle(0.0, 220.0, false, false, false, 0.1)
+	for frame in 60:
+		controller.update_vehicle(0.0, 220.0, false, false, false, 1.0 / 60.0)
 	var idle_pitch := controller.engine.pitch_scale
-	controller.update_vehicle(200.0, 220.0, true, true, true, 0.1)
+	var before_ramp_db := controller.engine.volume_db
+	controller.update_vehicle(200.0, 220.0, true, false, true, 1.0 / 60.0)
+	check(absf(controller.engine.volume_db - before_ramp_db) <= 0.11, "engine volume begins its speed ramp without an abrupt jump")
+	for frame in 240:
+		controller.update_vehicle(200.0, 220.0, true, false, true, 1.0 / 60.0)
 	check(controller.engine.pitch_scale > idle_pitch, "engine pitch rises progressively with speed")
 	check(controller.engine_bed.playing, "smooth and recorded engine layers play together")
 	check(controller.scrape.playing, "generated scrape loop reacts to wall contact")
