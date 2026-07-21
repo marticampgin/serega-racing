@@ -32,6 +32,8 @@ func _run() -> void:
 		"res://assets/audio/engine/sports_high_loop.wav",
 		"res://assets/audio/engine/suv_idle_loop.wav",
 		"res://assets/audio/engine/suv_high_loop.wav",
+		"res://assets/audio/engine/sports_max_roar_loop.wav",
+		"res://assets/audio/engine/suv_max_roar_loop.wav",
 		"res://assets/audio/vehicle/wall_scrape_generated.wav",
 		"res://assets/audio/vehicle/sideswipe.wav",
 		"res://assets/audio/vehicle/tire_skid.wav",
@@ -50,6 +52,7 @@ func _run() -> void:
 	controller.set_profile("lilpoc")
 	check((controller.engine.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_FORWARD, "driving engine is configured as a continuous loop")
 	check((controller.engine_bed.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_FORWARD, "idle engine is configured as a continuous loop")
+	check((controller.max_roar.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_FORWARD, "maximum-speed roar is configured as a continuous loop")
 	check((controller.engine.stream as AudioStreamWAV).loop_end > 0, "driving engine has a valid non-zero loop endpoint")
 	check((controller.engine_bed.stream as AudioStreamWAV).loop_end > 0, "idle engine has a valid non-zero loop endpoint")
 	check((controller.scrape.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_FORWARD, "scrape is configured as a continuous loop")
@@ -75,35 +78,34 @@ func _run() -> void:
 	await process_frame
 	check(not controller.scrape.playing, "scrape loop stops when wall contact ends")
 	controller.update_vehicle(219.0, 220.0, true, false, false, 1.0 / 60.0)
-	check(controller.max_rev_intensity < 0.001, "maximum-RPM loop does not begin before the actual speed cap")
+	check(controller.max_roar_blend < 0.001 and not controller.max_roar.playing, "maximum-speed roar does not begin before the actual speed cap")
 	for frame in 120:
 		controller.update_vehicle(220.0, 220.0, true, false, false, 1.0 / 60.0)
 	var limiter_min_pitch := INF
 	var limiter_max_pitch := 0.0
 	for frame in 240:
 		controller.update_vehicle(220.0, 220.0, true, false, false, 1.0 / 60.0)
-		limiter_min_pitch = minf(limiter_min_pitch, controller.engine.pitch_scale)
-		limiter_max_pitch = maxf(limiter_max_pitch, controller.engine.pitch_scale)
-	var fast_limiter_range := limiter_max_pitch - limiter_min_pitch
-	check(fast_limiter_range > 0.02 and fast_limiter_range < 0.08, "maximum RPM has a subtle continuous rise-and-fall cycle")
+		limiter_min_pitch = minf(limiter_min_pitch, controller.max_roar.pitch_scale)
+		limiter_max_pitch = maxf(limiter_max_pitch, controller.max_roar.pitch_scale)
+	var fast_roar_db := controller.max_roar.volume_db
+	check(limiter_max_pitch - limiter_min_pitch < 0.002, "maximum-speed roar stays monotone instead of cycling")
+	check(controller.max_roar.playing and not controller.engine.playing, "maximum-speed micro-loop fully replaces the driving recording after its crossfade")
 	check(not controller.engine_bed.playing, "idle recording fades out and stops before maximum speed")
-	var high_pitch := controller.engine.pitch_scale
+	var high_pitch := controller.max_roar.pitch_scale
 	for frame in 240:
 		var falling_speed := 200.0 * (1.0 - float(frame + 1) / 240.0)
 		controller.update_vehicle(falling_speed, 220.0, false, false, false, 1.0 / 60.0)
 	check(controller.engine.pitch_scale < high_pitch and absf(controller.engine.pitch_scale - idle_pitch) < 0.08, "linear deceleration lowers pitch back toward idle at the same pace")
 	check(controller.engine_bed.playing, "idle recording returns smoothly during deceleration")
+	check(controller.engine.playing and not controller.max_roar.playing, "driving and idle layers return after leaving the speed cap")
 	controller.set_active(false)
 	controller.set_active(true)
 	for frame in 120:
 		controller.update_vehicle(400.0 / 3.6, 400.0 / 3.6, true, false, false, 1.0 / 60.0)
-	var slow_limiter_min := INF
-	var slow_limiter_max := 0.0
 	for frame in 240:
 		controller.update_vehicle(400.0 / 3.6, 400.0 / 3.6, true, false, false, 1.0 / 60.0)
-		slow_limiter_min = minf(slow_limiter_min, controller.engine.pitch_scale)
-		slow_limiter_max = maxf(slow_limiter_max, controller.engine.pitch_scale)
-	check(fast_limiter_range > (slow_limiter_max - slow_limiter_min) * 1.4, "higher-rated cars have a stronger maximum-RPM cycle")
+	var slow_roar_db := controller.max_roar.volume_db
+	check(fast_roar_db > slow_roar_db + 3.0, "higher-rated cars have a materially stronger maximum-speed roar")
 	controller.play_impact(0.1)
 	var light_path := controller.impact_players[0].stream.resource_path
 	controller.play_impact(0.3)
@@ -114,7 +116,7 @@ func _run() -> void:
 	check(controller.impact_players.any(func(player): return player.playing), "collision layer supports impact one-shots")
 	controller.set_active(false)
 	for player in controller.impact_players: player.stop()
-	for player in [controller.engine, controller.engine_bed, controller.scrape, controller.sideswipe, controller.powerup]: player.stream = null
+	for player in [controller.engine, controller.engine_bed, controller.max_roar, controller.scrape, controller.sideswipe, controller.powerup]: player.stream = null
 	for player in controller.impact_players: player.stream = null
 	controller.free()
 	print("AUDIO SYSTEM QA: %d failures" % failures.size())
