@@ -26,6 +26,7 @@ const BOOST_ACCELERATION_MULTIPLIER := 1.4
 const BOOST_MAX_SPEED_MULTIPLIER := 1.05
 const WALL_SLIDE_PENALTY_DELAY := 0.45
 const WALL_SLIDE_SPEED_CAP := 55.0 # 198 km/h: still movable, never a fast line.
+const REFUEL_CAPTURE_SECONDS := 5.0
 
 var course: CourseLayout
 var course_curve: Curve3D
@@ -120,6 +121,7 @@ var countdown_tick_audio: AudioStreamPlayer
 var countdown_go_audio: AudioStreamPlayer
 var refuel_pending := false
 var refuel_countdown_time := 0.0
+var refuel_request_elapsed := 0.0
 
 
 func _ready() -> void:
@@ -196,6 +198,10 @@ func _ready() -> void:
 		countdown_time = 0.0
 		fuel = 15.0
 		request_refuel()
+		refuel_pending = false
+		refuel_in_progress = true
+		refuel_request_elapsed = REFUEL_CAPTURE_SECONDS + 0.1
+		_update_refuel_sequence(0.0)
 		capture_qa_screenshot.call_deferred(refuel_capture_path)
 	elif not settings_capture_path.is_empty():
 		main_menu.call("_on_settings_pressed")
@@ -1436,6 +1442,7 @@ func _return_from_pause_to_main_menu() -> void:
 	refuel_pending = false
 	if refuel_in_progress and is_instance_valid(refuel_request): refuel_request.cancel_request()
 	refuel_in_progress = false
+	refuel_request_elapsed = 0.0
 	if is_instance_valid(refuel_panel): refuel_panel.hide()
 	if is_instance_valid(fuel_warning_panel): fuel_warning_panel.hide()
 	if is_instance_valid(results_overlay): results_overlay.hide()
@@ -1812,6 +1819,7 @@ func _finish_race(completed: bool, reason: String) -> void:
 	refuel_pending = false
 	if refuel_in_progress and is_instance_valid(refuel_request): refuel_request.cancel_request()
 	refuel_in_progress = false
+	refuel_request_elapsed = 0.0
 	if is_instance_valid(refuel_panel): refuel_panel.hide()
 	if is_instance_valid(fuel_warning_panel): fuel_warning_panel.hide()
 	finish_portrait.visible = completed and finish_portrait.texture != null
@@ -1939,6 +1947,7 @@ func reset_car() -> void:
 	refuel_in_progress = false
 	refuel_pending = false
 	refuel_countdown_time = 0.0
+	refuel_request_elapsed = 0.0
 	refuel_cooldown = 0.0
 	countdown_time = 3.2
 	last_countdown_number = 0
@@ -1980,6 +1989,16 @@ func request_refuel() -> void:
 
 
 func _update_refuel_sequence(delta: float) -> void:
+	if refuel_in_progress:
+		refuel_request_elapsed += delta
+		if refuel_request_elapsed < REFUEL_CAPTURE_SECONDS:
+			var recording_left := maxi(1, ceili(REFUEL_CAPTURE_SECONDS - refuel_request_elapsed))
+			refuel_label.text = "ИДЁТ ЗАПИСЬ — ПЕЙТЕ СЕЙЧАС\nОСТАЛОСЬ %d СЕКУНД" % recording_left
+		else:
+			var dots := ".".repeat(1 + int(refuel_request_elapsed * 2.0) % 3)
+			refuel_label.text = "GEMINI АНАЛИЗИРУЕТ ВИДЕО%s\nПОЖАЛУЙСТА, ПОДОЖДИТЕ" % dots
+			status_label.text = "ОЖИДАНИЕ ОТВЕТА GEMINI..."
+		return
 	if not refuel_pending:
 		return
 	refuel_countdown_time = maxf(0.0, refuel_countdown_time - delta)
@@ -1992,8 +2011,9 @@ func _update_refuel_sequence(delta: float) -> void:
 
 func _begin_refuel_request() -> void:
 	refuel_in_progress = true
+	refuel_request_elapsed = 0.0
 	refuel_panel.visible = true
-	refuel_label.text = "ПЕЙТЕ СЕЙЧАС\nЗАПИСЬ 5 СЕКУНД • ЗАТЕМ АНАЛИЗ GEMINI"
+	refuel_label.text = "ИДЁТ ЗАПИСЬ — ПЕЙТЕ СЕЙЧАС\nОСТАЛОСЬ 5 СЕКУНД"
 	status_label.text = "ЗАПИСЬ ВИДЕО ДЛЯ ЗАПРАВКИ..."
 	var error := refuel_request.request(
 		"http://127.0.0.1:8765/analyze-drink",
@@ -2003,12 +2023,14 @@ func _begin_refuel_request() -> void:
 	)
 	if error != OK:
 		refuel_in_progress = false
+		refuel_request_elapsed = 0.0
 		refuel_panel.visible = false
 		status_label.text = "СЕРВИС ЗАПРАВКИ НЕДОСТУПЕН | ЗАПУСТИТЕ PYTHON-СЕРВИС"
 
 
 func _on_refuel_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	refuel_in_progress = false
+	refuel_request_elapsed = 0.0
 	refuel_cooldown = 8.0
 	refuel_panel.visible = false
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
