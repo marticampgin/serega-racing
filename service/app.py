@@ -7,17 +7,18 @@ import time
 import uuid
 from pathlib import Path
 import cv2
+import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse
-from google import genai
-from google.genai import types
 from pydantic import BaseModel, Field
 
 load_dotenv()
 
-app = FastAPI(title="Seryoga Speedster Video Service", version="0.3.0")
+app = FastAPI(title="Seryoga Speedster Video Service", version="0.4.0")
 CAPTURE_DIR = Path(os.getenv("CAPTURE_DIR", "captures"))
+POLL_UPLOAD_URL = "https://media.pollinations.ai/upload"
+POLL_CHAT_URL = "https://gen.pollinations.ai/v1/chat/completions"
 _analysis_guard = threading.BoundedSemaphore(value=1)
 logger = logging.getLogger("uvicorn.error")
 
@@ -26,7 +27,9 @@ Analyze the complete video as an action sequence. Answer drinking_detected=true 
 when a person visibly brings the opening or spout of a bottle, can, cup, or canister
 to their mouth and holds or tilts it as if drinking. The container may be opaque and
 actual swallowing does not need to be visible. Otherwise answer false. Return the
-schema only and keep reason under 160 characters.
+following JSON object only:
+{"drinking_detected": boolean, "confidence": number from 0 to 1, "reason": string}
+Keep reason under 160 characters.
 """.strip()
 
 
@@ -67,7 +70,7 @@ CONTROL_PANEL = r"""<!doctype html>
   <section>
     <div class="status">
       <div class="tile"><div class="label">Service</div><div class="value" id="service"><span class="pulse"></span>Connecting</div></div>
-      <div class="tile"><div class="label">Gemini API</div><div class="value" id="gemini">—</div></div>
+      <div class="tile"><div class="label">Pollinations API</div><div class="value" id="provider">—</div></div>
       <div class="tile"><div class="label">Camera</div><div class="value" id="camera">—</div></div>
     </div>
     <div class="actions">
@@ -79,7 +82,7 @@ CONTROL_PANEL = r"""<!doctype html>
   </section>
 </main><script>
 const $=id=>document.getElementById(id), result=$('result'), state=$('state'); let health={};
-async function refresh(){try{let r=await fetch('/health');health=await r.json();$('service').innerHTML='<span class="pulse"></span>Online';$('gemini').textContent=health.gemini_configured?'Configured · '+health.gemini_model:'Missing key';$('camera').textContent='Index '+health.camera_index;$('mode').textContent=health.dry_run?'DRY RUN':'LIVE CAPABLE';$('mode').className='mode '+(health.dry_run?'dry':'live');$('live').disabled=!health.gemini_configured||health.dry_run;$('hint').textContent=health.dry_run?'Global DRY_RUN is enabled. Live requests are locked out.':health.gemini_configured?'Live mode records the camera, uploads one clip, then deletes it.':'Add GEMINI_API_KEY to enable live analysis.'}catch(e){$('service').textContent='Offline';$('live').disabled=true;$('mode').textContent='OFFLINE';}}
+async function refresh(){try{let r=await fetch('/health');health=await r.json();$('service').innerHTML='<span class="pulse"></span>Online';$('provider').textContent=health.pollinations_configured?'Configured · '+health.pollinations_model:'Missing key';$('camera').textContent='Index '+health.camera_index;$('mode').textContent=health.dry_run?'DRY RUN':'LIVE CAPABLE';$('mode').className='mode '+(health.dry_run?'dry':'live');$('live').disabled=!health.pollinations_configured||health.dry_run;$('hint').textContent=health.dry_run?'Global DRY_RUN is enabled. Live requests are locked out.':health.pollinations_configured?'The local clip is deleted after analysis; Pollinations retains the unlisted upload under its media policy.':'Add POLL_API_KEY to enable live analysis.'}catch(e){$('service').textContent='Offline';$('live').disabled=true;$('mode').textContent='OFFLINE';}}
 async function run(dry){document.querySelectorAll('button').forEach(b=>b.disabled=true);state.textContent=dry?'Dry test':'Recording / analyzing';result.textContent=dry?'Generating mock result…':'Camera recording starts now. Drink naturally…';try{let r=await fetch('/analyze-drink'+(dry?'?dry_run=true':''),{method:'POST'}),data=await r.json();if(!r.ok)throw Error(data.detail||'Request failed');result.textContent=JSON.stringify(data,null,2);state.textContent='Complete'}catch(e){result.textContent=JSON.stringify({error:e.message},null,2);state.textContent='Failed'}finally{await refresh();$('dry').disabled=false}}
 $('dry').onclick=()=>run(true);$('live').onclick=()=>run(false);refresh();
   </script></body></html>"""
@@ -127,48 +130,66 @@ def _record_clip(output_path: Path, seconds: float, camera_index: int) -> None:
         raise RuntimeError("Camera produced no usable video frames")
 
 
-def _analyze_video(video_path: Path) -> DrinkAnalysis:
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        raise RuntimeError("GEMINI_API_KEY is missing from .env")
+def _pollinations_client(api_key: str) -> httpx.Client:
+    request_timeout = _env_float("POLL_REQUEST_TIMEOUT_SECONDS", 75, 5, 180)
+    return httpx.Client(
+        headers={"Authorization": f"Bearer {api_key}"},
+        timeout=httpx.Timeout(request_timeout, connect=15),
+        follow_redirects=True,
+    )
 
-    request_timeout = int(_env_float("GEMINI_REQUEST_TIMEOUT_SECONDS", 45, 5, 180) * 1000)
-    processing_timeout = _env_float("GEMINI_PROCESSING_TIMEOUT_SECONDS", 45, 5, 180)
-    client = genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=request_timeout))
-    uploaded = None
+
+def _response_content(payload: dict[str, object]) -> str:
     try:
-        uploaded = client.files.upload(file=video_path)
-        deadline = time.monotonic() + processing_timeout
-        while uploaded.state and uploaded.state.name == "PROCESSING":
-            if time.monotonic() >= deadline:
-                raise TimeoutError("Gemini video processing timed out")
-            time.sleep(min(1.0, max(0.05, deadline - time.monotonic())))
-            uploaded = client.files.get(name=uploaded.name)
-        if uploaded.state and uploaded.state.name == "FAILED":
-            raise RuntimeError("Gemini failed to process the recorded video")
+        content = payload["choices"][0]["message"]["content"]  # type: ignore[index]
+    except (KeyError, IndexError, TypeError) as exc:
+        raise RuntimeError("Pollinations returned an invalid chat response") from exc
+    if isinstance(content, str):
+        cleaned = content.strip()
+        if cleaned.startswith("```") and cleaned.endswith("```"):
+            cleaned = cleaned.removeprefix("```json").removeprefix("```")
+            cleaned = cleaned.removesuffix("```").strip()
+        return cleaned
+    raise RuntimeError("Pollinations returned non-text analysis content")
 
-        response = client.models.generate_content(
-            model=os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
-            contents=[uploaded, PROMPT],
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=DrinkAnalysis,
-                temperature=0,
-                max_output_tokens=300,
-            ),
+
+def _analyze_video(video_path: Path) -> DrinkAnalysis:
+    api_key = os.getenv("POLL_API_KEY")
+    if not api_key:
+        raise RuntimeError("POLL_API_KEY is missing from .env")
+
+    with _pollinations_client(api_key) as client:
+        with video_path.open("rb") as video:
+            upload_response = client.post(
+                POLL_UPLOAD_URL,
+                files={"file": (video_path.name, video, "video/mp4")},
+            )
+        upload_response.raise_for_status()
+        uploaded_url = str(upload_response.json().get("url", ""))
+        if not uploaded_url.startswith("https://media.pollinations.ai/"):
+            raise RuntimeError("Pollinations upload returned no usable media URL")
+
+        analysis_response = client.post(
+            POLL_CHAT_URL,
+            json={
+                "model": os.getenv("POLL_MODEL", "gemini-3-flash"),
+                "messages": [{
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": PROMPT},
+                        {"type": "video_url", "video_url": {"url": uploaded_url}},
+                    ],
+                }],
+                "temperature": 0,
+                "max_tokens": 300,
+                "tools": [],
+                "response_format": {"type": "json_object"},
+            },
         )
-        if response.parsed is not None:
-            return DrinkAnalysis.model_validate(response.parsed)
-        if not response.text:
-            raise RuntimeError("Gemini returned an empty response")
-        return DrinkAnalysis.model_validate_json(response.text)
-    finally:
-        if uploaded is not None and uploaded.name:
-            try:
-                client.files.delete(name=uploaded.name)
-            except Exception:
-                pass  # Temporary remote files expire; cleanup failure must not hide the result.
-        client.close()
+        analysis_response.raise_for_status()
+        return DrinkAnalysis.model_validate_json(
+            _response_content(analysis_response.json())
+        )
 
 
 def _dry_run_enabled(requested: bool) -> bool:
@@ -184,8 +205,8 @@ def control_panel() -> HTMLResponse:
 def health() -> dict[str, object]:
     return {
         "status": "ok",
-        "gemini_configured": bool(os.getenv("GEMINI_API_KEY")),
-        "gemini_model": os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
+        "pollinations_configured": bool(os.getenv("POLL_API_KEY")),
+        "pollinations_model": os.getenv("POLL_MODEL", "gemini-3-flash"),
         "camera_index": int(os.getenv("CAMERA_INDEX", "0")),
         "dry_run": _dry_run_enabled(False),
         "busy": _analysis_guard._value == 0,
@@ -210,7 +231,7 @@ def analyze_drink(dry_run: bool = Query(False)) -> DrinkAnalysis:
             _env_float("CAPTURE_SECONDS", 5, 1, 15),
             int(os.getenv("CAMERA_INDEX", "0")),
         )
-        stage = "Gemini video analysis"
+        stage = "Pollinations Gemini video analysis"
         return _analyze_video(video_path)
     except HTTPException:
         raise

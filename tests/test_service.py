@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import os
+import json
 import tempfile
 import threading
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import httpx
 from fastapi.testclient import TestClient
 
 from service import app as service
@@ -23,7 +25,7 @@ class ServiceTests(unittest.TestCase):
         response = self.client.get("/health")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["status"], "ok")
-        self.assertEqual(response.json()["gemini_model"], "gemini-3.5-flash")
+        self.assertEqual(response.json()["pollinations_model"], "gemini-3-flash")
 
     def test_control_panel_is_self_contained_and_exposes_both_modes(self) -> None:
         response = self.client.get("/")
@@ -36,6 +38,49 @@ class ServiceTests(unittest.TestCase):
         self.assertIn("?dry_run=true", response.text)
         self.assertNotIn("<script src=", response.text)
         self.assertNotIn("<link rel=", response.text)
+        self.assertIn("POLL_API_KEY", response.text)
+
+    def test_pollinations_uploads_video_and_requests_structured_gemini_analysis(self) -> None:
+        requests: list[httpx.Request] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            requests.append(request)
+            self.assertEqual(request.headers["authorization"], "Bearer poll-test-key")
+            if str(request.url) == service.POLL_UPLOAD_URL:
+                self.assertIn("multipart/form-data", request.headers["content-type"])
+                return httpx.Response(
+                    200,
+                    json={"url": "https://media.pollinations.ai/fuel-test.mp4"},
+                )
+            self.assertEqual(str(request.url), service.POLL_CHAT_URL)
+            payload = json.loads(request.content)
+            self.assertEqual(payload["model"], "gemini-3-flash")
+            self.assertEqual(payload["messages"][0]["content"][1]["type"], "video_url")
+            return httpx.Response(
+                200,
+                json={
+                    "choices": [{
+                        "message": {
+                            "content": service.MOCK_RESULT.model_dump_json()
+                        }
+                    }]
+                },
+            )
+
+        with tempfile.TemporaryDirectory() as temp:
+            clip = Path(temp) / "drink.mp4"
+            clip.write_bytes(b"video")
+            client = httpx.Client(
+                transport=httpx.MockTransport(handler),
+                headers={"Authorization": "Bearer poll-test-key"},
+            )
+            with patch.dict(
+                os.environ,
+                {"POLL_API_KEY": "poll-test-key", "POLL_MODEL": "gemini-3-flash"},
+            ), patch.object(service, "_pollinations_client", return_value=client):
+                result = service._analyze_video(clip)
+        self.assertTrue(result.drinking_detected)
+        self.assertEqual(len(requests), 2)
 
     def test_dry_run_never_records_or_calls_api(self) -> None:
         with patch.object(service, "_record_clip") as record, patch.object(
