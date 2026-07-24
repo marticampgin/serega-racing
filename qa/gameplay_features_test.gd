@@ -58,6 +58,12 @@ func _run() -> void:
 	check(is_equal_approx(float(game.get("car_max_speed_mps")) * 3.6, 650.0), "maximum-speed stat reaches gameplay")
 	check(game.get("vehicle_audio") != null and str(game.get("vehicle_audio").get("selected_profile")) == "molniya", "selected car receives its own engine profile")
 	check(game.get("vehicle_audio").get("active") and game.get("vehicle_audio").get("engine_bed").playing, "engine idle begins with the countdown")
+	var camera_look_before := game.get("camera_smoothed_look_target") as Vector3
+	var player_car := game.get("car") as CharacterBody3D
+	player_car.global_position += Vector3(0.0, 0.8, 0.0)
+	game.call("update_camera", 1.0 / 60.0)
+	var camera_look_after := game.get("camera_smoothed_look_target") as Vector3
+	check(camera_look_after.y > camera_look_before.y and camera_look_after.y < camera_look_before.y + 0.8, "camera aim smoothly absorbs bridge-height corrections")
 	game.call("handle_wall_hit", Vector3.LEFT, Vector3(12.0, 0.0, 30.0), 1.0 / 60.0)
 	check(float(game.get("wall_scrape_audio_time")) > 0.0, "physical wall contact keeps scrape audio alive across collision gaps")
 	check(not game.get("race_music").playing, "race music remains silent during the countdown")
@@ -136,6 +142,10 @@ func _run() -> void:
 		check(game.get("race_music").playing, "Cadillac music starts when the countdown ends")
 	else:
 		check(true, "Cadillac music hook tolerates a deliberately untracked local song")
+	var no_result_laps: Array[float] = []
+	var no_result_speeds: Array[float] = []
+	game.get("results_overlay").call("show_results", no_result_laps, no_result_speeds, 0, 100.0, 12.0, false, "МАШИНА РАЗБИТА")
+	check(game.get("results_overlay").get("title_label").text == "МАШИНА РАЗБИТА", "broken cars are identified directly instead of showing generic game-over text")
 
 	print("GAMEPLAY FEATURES QA: %d failures" % failures.size())
 	quit(0 if failures.is_empty() else 1)

@@ -85,6 +85,10 @@ var go_flash_time := 0.0
 var camera_orbit_yaw := 0.0
 var camera_extra_height := 0.0
 var camera_dragging := false
+var camera_smoothed_look_target := Vector3.ZERO
+var camera_smoothed_back := Vector3.BACK
+var camera_tunnel_blend := 0.0
+var camera_rig_initialized := false
 var game_started := false
 var minimap: Control
 var main_menu: CanvasLayer
@@ -1881,7 +1885,7 @@ func _finish_race(completed: bool, reason: String) -> void:
 	# lower it enough that the statistics remain the focus.
 	_music_controller().call("set_ducked", true)
 	if is_instance_valid(results_overlay):
-		results_overlay.call("show_results", lap_times, lap_average_speeds, collision_count, damage_sustained, elapsed, completed)
+		results_overlay.call("show_results", lap_times, lap_average_speeds, collision_count, damage_sustained, elapsed, completed, reason)
 
 
 func update_camera(delta: float) -> void:
@@ -1890,14 +1894,29 @@ func update_camera(delta: float) -> void:
 	# beneath the tunnel roof and could put the camera inside a portal/ceiling panel
 	# on the entrance grades. Use a closer, lower rig for the complete tunnel zone.
 	var in_tunnel := course.zone_at(course_offset) == "underwater_tunnel"
-	var camera_distance := 8.4 if in_tunnel else 10.5
-	var base_height := 4.15 if in_tunnel else 5.2
-	var allowed_extra_height := clampf(camera_extra_height, -0.8, 0.0) if in_tunnel else camera_extra_height
-	var orbit_back := basis.z.rotated(Vector3.UP, camera_orbit_yaw)
-	var target_position := car.global_position + orbit_back * camera_distance + Vector3.UP * (base_height + allowed_extra_height)
-	chase_camera.global_position = chase_camera.global_position.lerp(target_position, 1.0 - exp(-delta * 11.0))
-	var look_target := car.global_position - orbit_back * 3.2 + Vector3.UP * (0.55 + allowed_extra_height * 0.18)
-	chase_camera.look_at(look_target, Vector3.UP)
+	var camera_follow_weight := 1.0 - exp(-delta * 11.0)
+	var look_follow_weight := 1.0 - exp(-delta * 14.0)
+	var rig_follow_weight := 1.0 - exp(-delta * 5.5)
+	camera_tunnel_blend = lerpf(camera_tunnel_blend, 1.0 if in_tunnel else 0.0, rig_follow_weight)
+	var camera_distance := lerpf(10.5, 8.4, camera_tunnel_blend)
+	var base_height := lerpf(5.2, 4.15, camera_tunnel_blend)
+	var tunnel_extra_height := clampf(camera_extra_height, -0.8, 0.0)
+	var allowed_extra_height := lerpf(camera_extra_height, tunnel_extra_height, camera_tunnel_blend)
+	var desired_back := basis.z.rotated(Vector3.UP, camera_orbit_yaw).normalized()
+	var desired_look_target := car.global_position - desired_back * 3.2 + Vector3.UP * (0.55 + allowed_extra_height * 0.18)
+	if not camera_rig_initialized:
+		camera_smoothed_back = desired_back
+		camera_smoothed_look_target = desired_look_target
+		camera_rig_initialized = true
+	else:
+		# The chassis is occasionally corrected by a few centimetres where elevated
+		# road modules meet. Smooth both orientation and aim so those valid physics
+		# corrections do not appear as a brief camera snap.
+		camera_smoothed_back = camera_smoothed_back.slerp(desired_back, look_follow_weight).normalized()
+		camera_smoothed_look_target = camera_smoothed_look_target.lerp(desired_look_target, look_follow_weight)
+	var target_position := car.global_position + camera_smoothed_back * camera_distance + Vector3.UP * (base_height + allowed_extra_height)
+	chase_camera.global_position = chase_camera.global_position.lerp(target_position, camera_follow_weight)
+	chase_camera.look_at(camera_smoothed_look_target, Vector3.UP)
 	var before := course.tangent_at(course_offset - 8.0)
 	var after := course.tangent_at(course_offset + 8.0)
 	var curve_bank := clampf(atan2(before.cross(after).y, before.dot(after)) * 0.35, -0.16, 0.16)
@@ -1971,6 +1990,8 @@ func reset_car() -> void:
 	car.global_position = start_position
 	car.global_transform.basis = start_frame.basis
 	car.velocity = Vector3.ZERO
+	camera_rig_initialized = false
+	camera_tunnel_blend = 0.0
 	speed = 0.0
 	fuel = 100.0
 	durability = 100.0

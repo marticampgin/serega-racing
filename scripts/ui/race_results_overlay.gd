@@ -16,8 +16,8 @@ func _ready() -> void:
 	hide()
 
 
-func show_results(lap_times: Array[float], lap_speeds: Array[float], hits: int, damage: float, total_time: float, completed: bool) -> void:
-	title_label.text = "ФИНИШ!" if completed else "ГОНКА ОКОНЧЕНА"
+func show_results(lap_times: Array[float], lap_speeds: Array[float], hits: int, damage: float, total_time: float, completed: bool, finish_reason := "") -> void:
+	title_label.text = "ФИНИШ!" if completed else (finish_reason if not finish_reason.is_empty() else "МАШИНА РАЗБИТА")
 	var rows: Array[String] = []
 	for index in lap_times.size():
 		var speed := lap_speeds[index] if index < lap_speeds.size() else 0.0
