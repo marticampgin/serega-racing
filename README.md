@@ -42,7 +42,12 @@ Set `DRY_RUN=true` in `.env` while developing to return a deterministic blue-bot
 
 Open the repository root in Godot 4.7 and run the project. The downloaded Godot executables under `godot/` are local-only and ignored by Git.
 
-Controls: `W` accelerate, `S`/`Space` brake, `A`/`D` steer, `F` begin realistic refueling when that obstacle-mode option is enabled, `G` instantly refill to 100% for debugging, `R` reset, and `Esc` pause. Start the Python service before using `F`; `G` works without it.
+Controls: `W` accelerate, `S`/`Space` brake, `A`/`D` steer, `F` begin realistic refueling when that obstacle-mode option is enabled, `G` instantly refill to 100% for debugging, `O`/`P` select the previous/next race song, `R` reset, and `Esc` pause. Start the Python service before using `F`; `G` works without it.
+
+Music defaults to 30% and sound effects to 40%. Normal races shuffle the 20
+local race tracks into a new order, while the Cadillac keeps its exclusive
+looping song. The boot sequence displays two local splash cards before fading
+into the main menu.
 
 `S` brakes while moving forward and engages reverse near a standstill. Forward acceleration has no normal gameplay cap; steering becomes less responsive and collision movement is sub-stepped as speed rises.
 

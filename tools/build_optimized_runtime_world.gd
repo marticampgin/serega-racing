@@ -61,6 +61,7 @@ func _build() -> void:
 	_remove_editor_only_nodes(world)
 	print("RUNTIME WORLD: loaded source; collecting static meshes...")
 	_collect_static_meshes(world)
+	_replace_batched_external_roots(world)
 	print("RUNTIME WORLD: collected %d meshes; committing %d batches..." % [_batched_meshes, _batches.size()])
 	var batch_root := Node3D.new()
 	batch_root.name = "StaticRuntimeBatches"
@@ -188,9 +189,41 @@ func _belongs_to_external_instance(node: Node, world: Node) -> bool:
 	var cursor := node.get_parent()
 	while cursor != null and cursor != world:
 		if not cursor.scene_file_path.is_empty():
-			return true
+			# Friend artwork and moving aircraft must remain independent so their
+			# Sprite3D textures/scripts survive. Static buildings and props retain
+			# their authored catalog root, but their mesh children can be batched.
+			var catalog_id := str(cursor.get("catalog_id"))
+			var moving: bool = cursor.get("movement_enabled") == true
+			return catalog_id.begins_with("art_") or moving
 		cursor = cursor.get_parent()
 	return false
+
+
+func _replace_batched_external_roots(world: Node3D) -> void:
+	var replacements: Array[Node3D] = []
+	for value in world.find_children("*", "ManualSceneryItem", true, false):
+		var item := value as Node3D
+		var catalog_id := str(item.get("catalog_id"))
+		if catalog_id.begins_with("art_") or item.get("movement_enabled") == true:
+			continue
+		replacements.append(item)
+	for item in replacements:
+		var parent := item.get_parent()
+		if parent == null:
+			continue
+		var sibling_index := item.get_index()
+		var shell := Node3D.new()
+		shell.name = item.name
+		shell.transform = item.transform
+		for metadata_name in item.get_meta_list():
+			shell.set_meta(metadata_name, item.get_meta(metadata_name))
+		for group_name in item.get_groups():
+			shell.add_to_group(group_name, true)
+		parent.remove_child(item)
+		item.free()
+		parent.add_child(shell)
+		parent.move_child(shell, sibling_index)
+		shell.owner = world
 
 
 func _collect_owned_nodes(node: Node, scene_owner: Node, result: Array[Node]) -> void:
@@ -228,6 +261,8 @@ func _prune_empty_local_nodes(node: Node, world: Node) -> void:
 	for child in node.get_children():
 		_prune_empty_local_nodes(child, world)
 	if node == world or node.get_child_count() > 0:
+		return
+	if not str(node.get_meta("catalog_id", "")).is_empty():
 		return
 	if not node.scene_file_path.is_empty() or node.get_script() != null:
 		return

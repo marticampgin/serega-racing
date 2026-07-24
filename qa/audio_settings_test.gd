@@ -18,6 +18,8 @@ func check(condition: bool, message: String) -> void:
 
 func _run() -> void:
 	var settings := SettingsScript.new()
+	check(is_equal_approx(float(settings.music_percent), 30.0), "default music volume is 30 percent")
+	check(is_equal_approx(float(settings.sfx_percent), 40.0), "default SFX volume is 40 percent")
 	root.add_child(settings)
 	await process_frame
 	var old_music: float = settings.music_percent

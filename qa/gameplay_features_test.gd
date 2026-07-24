@@ -85,6 +85,16 @@ func _run() -> void:
 		for value in motorcycle.find_children("*", "GeometryInstance3D", true, false):
 			carrier_ranges_ok = carrier_ranges_ok and (value as GeometryInstance3D).visibility_range_end >= 3200.0
 	check(carrier_ranges_ok, "motorcycle billboard structure and poster share a long render range")
+	var friend_carriers_ok := true
+	var friend_carrier_count := 0
+	for value in world.find_children("*", "ManualSceneryItem", true, false):
+		var carrier := value as Node3D
+		if not str(carrier.get("catalog_id")).begins_with("art_"):
+			continue
+		friend_carrier_count += 1
+		friend_carriers_ok = friend_carriers_ok and carrier.transform.basis.determinant() > 0.0
+		friend_carriers_ok = friend_carriers_ok and not carrier.find_children("*", "GeometryInstance3D", true, false).is_empty()
+	check(friend_carrier_count > 10 and friend_carriers_ok, "all authored friend poster towers and carriers retain visible support geometry")
 
 	var press := InputEventMouseButton.new()
 	press.button_index = MOUSE_BUTTON_RIGHT

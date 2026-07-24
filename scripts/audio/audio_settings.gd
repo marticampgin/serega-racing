@@ -3,9 +3,10 @@ extends Node
 const SAVE_PATH := "user://audio_settings.cfg"
 const MUSIC_BUS := "Music"
 const SFX_BUS := "SFX"
+const SETTINGS_VERSION := 2
 
-var music_percent := 70.0
-var sfx_percent := 85.0
+var music_percent := 30.0
+var sfx_percent := 40.0
 
 
 func _ready() -> void:
@@ -52,12 +53,18 @@ func _load_settings() -> void:
 	var config := ConfigFile.new()
 	if config.load(SAVE_PATH) != OK:
 		return
+	# Version 2 establishes the intended launch mix (30% music / 40% SFX).
+	# Migrate the old 70/85 defaults once, then preserve all later user choices.
+	if int(config.get_value("audio", "version", 0)) < SETTINGS_VERSION:
+		_save_settings()
+		return
 	music_percent = clampf(float(config.get_value("audio", "music", music_percent)), 0.0, 100.0)
 	sfx_percent = clampf(float(config.get_value("audio", "sfx", sfx_percent)), 0.0, 100.0)
 
 
 func _save_settings() -> void:
 	var config := ConfigFile.new()
+	config.set_value("audio", "version", SETTINGS_VERSION)
 	config.set_value("audio", "music", music_percent)
 	config.set_value("audio", "sfx", sfx_percent)
 	config.save(SAVE_PATH)

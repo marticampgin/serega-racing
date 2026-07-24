@@ -11,12 +11,13 @@ config_version=5
 [application]
 
 config/name="Серёга Speedster"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/ui/boot_splash.tscn"
 config/features=PackedStringArray("4.7")
 
 [autoload]
 
 AudioSettings="*res://scripts/audio/audio_settings.gd"
+MusicController="*res://scripts/audio/music_controller.gd"
 
 [display]
 

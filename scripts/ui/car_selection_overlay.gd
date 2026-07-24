@@ -67,12 +67,12 @@ func _build_interface() -> void:
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	background.modulate = Color(0.38, 0.28, 0.5, 0.42)
+	background.modulate = Color(0.82, 0.82, 0.9, 0.8)
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root_control.add_child(background)
 	var tint := ColorRect.new()
 	tint.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	tint.color = Color(0.025, 0.008, 0.09, 0.72)
+	tint.color = Color(0.025, 0.008, 0.09, 0.42)
 	tint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root_control.add_child(tint)
 
@@ -87,7 +87,7 @@ func _build_interface() -> void:
 	card.anchor_top = 0.12
 	card.anchor_right = 0.96
 	card.anchor_bottom = 0.9
-	card.add_theme_stylebox_override("panel", _panel_style(Color(0.025, 0.015, 0.11, 0.9), Color("43d9f5"), 20))
+	card.add_theme_stylebox_override("panel", _panel_style(Color(0.025, 0.015, 0.11, 0.76), Color("43d9f5"), 20))
 	root_control.add_child(card)
 	var layout := HBoxContainer.new()
 	layout.add_theme_constant_override("separation", 24)
@@ -194,7 +194,7 @@ func _build_preview(container: SubViewportContainer) -> void:
 	viewport = SubViewport.new()
 	viewport.size = Vector2i(900, 560)
 	viewport.own_world_3d = true
-	viewport.transparent_bg = false
+	viewport.transparent_bg = true
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	container.add_child(viewport)
 	var world := Node3D.new()
@@ -202,7 +202,7 @@ func _build_preview(container: SubViewportContainer) -> void:
 	var environment := WorldEnvironment.new()
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color("08051b")
+	env.background_color = Color(0.0, 0.0, 0.0, 0.0)
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color("a99bd8")
 	env.ambient_light_energy = 1.15
@@ -219,8 +219,6 @@ func _build_preview(container: SubViewportContainer) -> void:
 	fill.omni_range = 12.0
 	fill.light_energy = 5.0
 	world.add_child(fill)
-	_build_retro_backdrop(world)
-	_build_synthwave_grid(world)
 	var platform := MeshInstance3D.new()
 	var cylinder := CylinderMesh.new()
 	cylinder.top_radius = 3.8

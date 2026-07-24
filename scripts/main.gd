@@ -13,6 +13,7 @@ const VehicleAudioScript := preload("res://scripts/audio/vehicle_audio_controlle
 const EDITABLE_WORLD_PATH := "res://scenes/world/editable_world.tscn"
 const RUNTIME_WORLD_PATH := "res://scenes/world/runtime_world_optimized.scn"
 const MENU_BACKGROUND_PATH := "res://assets/generated/ui/main-menu-synthwave-v1.png"
+const CAR_SELECTION_BACKGROUND_PATH := "res://assets/generated/ui/car-selection-retro-grid.png"
 const CADILLAC_MUSIC_PATH := "res://assets/audio/music/cadillac.mp3"
 const GENERATED_SCENERY_PATHS := [
 	"res://scenes/world/neighborhood_details.tscn",
@@ -124,6 +125,10 @@ var countdown_go_audio: AudioStreamPlayer
 var refuel_pending := false
 var refuel_countdown_time := 0.0
 var refuel_request_elapsed := 0.0
+
+
+func _music_controller() -> Node:
+	return get_node("/root/MusicController")
 
 
 func _ready() -> void:
@@ -251,6 +256,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("ui_cancel"):
 		_pause_game()
+		get_viewport().set_input_as_handled()
+	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_P and countdown_time <= 0.0:
+		_music_controller().call("next_track")
+		get_viewport().set_input_as_handled()
+	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_O and countdown_time <= 0.0:
+		_music_controller().call("previous_track")
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
 		camera_dragging = event.pressed
@@ -597,28 +608,41 @@ func _configure_authored_runtime_scenery(editable_world: Node3D) -> void:
 	for vehicle_node in editable_world.find_children("*", "ManualSceneryItem", true, false):
 		var vehicle := vehicle_node as Node3D
 		var catalog_id := str(vehicle.get("catalog_id"))
+		var moving_aircraft := false
 		if catalog_id.ends_with("__banner_plane"):
 			vehicle.set("movement_axis", vehicle.transform.basis.x.normalized())
 			vehicle.set("movement_span", 650.0)
 			vehicle.set("movement_speed", 13.0)
 			vehicle.set("movement_bob", 0.6)
 			vehicle.set("movement_enabled", true)
+			moving_aircraft = true
 		elif catalog_id.ends_with("__zeppelin"):
 			vehicle.set("movement_axis", vehicle.transform.basis.x.normalized())
 			vehicle.set("movement_span", 400.0)
 			vehicle.set("movement_speed", 4.0)
 			vehicle.set("movement_bob", 1.2)
 			vehicle.set("movement_enabled", true)
+			moving_aircraft = true
+		# Static authored presets do not need an idle _process callback. Hundreds
+		# of decorative scripts can otherwise consume frame time doing no work.
+		vehicle.set_process(moving_aircraft)
+		vehicle.set_notify_transform(false)
+
+		# Any friend-media carrier may have been mirrored or non-uniformly scaled
+		# in the editor. Repair reflected winding for the supports, not just the
+		# original motorcycle billboard, so towers and frames stay renderable.
+		if catalog_id.begins_with("art_") and vehicle.transform.basis.determinant() < 0.0:
+			var repaired := vehicle.transform
+			repaired.basis.z = -repaired.basis.z
+			vehicle.transform = repaired
+		if catalog_id.begins_with("art_"):
+			for geometry_node in vehicle.find_children("*", "GeometryInstance3D", true, false):
+				var geometry := geometry_node as GeometryInstance3D
+				geometry.visibility_range_end = maxf(geometry.visibility_range_end, 3200.0)
+				geometry.visibility_range_end_margin = maxf(geometry.visibility_range_end_margin, 250.0)
 
 	var motorcycle_carrier := editable_world.get_node_or_null("MotorcycleRiderBillboard") as Node3D
 	if motorcycle_carrier != null:
-		# The editor-saved carrier has a reflected, highly non-uniform basis. Its
-		# poster is two-sided, while the support meshes otherwise disappear due to
-		# reversed triangle winding at runtime.
-		if motorcycle_carrier.transform.basis.determinant() < 0.0:
-			var repaired := motorcycle_carrier.transform
-			repaired.basis.z = -repaired.basis.z
-			motorcycle_carrier.transform = repaired
 		for geometry_node in motorcycle_carrier.find_children("*", "GeometryInstance3D", true, false):
 			var geometry := geometry_node as GeometryInstance3D
 			geometry.visibility_range_end = maxf(geometry.visibility_range_end, 3200.0)
@@ -1158,27 +1182,17 @@ func build_countdown_audio() -> void:
 
 
 func build_race_music() -> void:
-	race_music = AudioStreamPlayer.new()
-	race_music.name = "RaceMusic"
-	race_music.bus = "Music"
-	race_music.volume_db = -5.0
-	if ResourceLoader.exists(CADILLAC_MUSIC_PATH):
-		race_music.stream = load(CADILLAC_MUSIC_PATH)
-		if race_music.stream is AudioStreamMP3:
-			(race_music.stream as AudioStreamMP3).loop = true
-	add_child(race_music)
+	# Preserve the public QA/runtime hook while the persistent controller owns
+	# menu music, shuffled race playlists and the Cadillac-exclusive loop.
+	race_music = _music_controller().get("player") as AudioStreamPlayer
 
 
 func start_race_music() -> void:
-	if selected_car_id != "lilpoc" or not is_instance_valid(race_music) or race_music.stream == null:
-		return
-	if not race_music.playing:
-		race_music.play()
+	_music_controller().call("start_prepared_race")
 
 
 func stop_race_music() -> void:
-	if is_instance_valid(race_music):
-		race_music.stop()
+	_music_controller().call("stop")
 
 
 func build_hud() -> void:
@@ -1348,7 +1362,7 @@ func build_game_ui() -> void:
 	mode_selector.connect("back_requested", Callable(self, "_return_to_main_menu"))
 	car_selector = CarSelectionScene.instantiate() as CanvasLayer
 	add_child(car_selector)
-	car_selector.call("set_background_path", MENU_BACKGROUND_PATH)
+	car_selector.call("set_background_path", CAR_SELECTION_BACKGROUND_PATH)
 	car_selector.connect("car_confirmed", Callable(self, "_on_car_confirmed"))
 	car_selector.connect("back_requested", Callable(self, "_back_to_main_menu"))
 	pause_menu = PauseMenuScript.new()
@@ -1360,6 +1374,11 @@ func build_game_ui() -> void:
 	add_child(results_overlay)
 	results_overlay.connect("restart_requested", Callable(self, "_restart_from_results"))
 	results_overlay.connect("main_menu_requested", Callable(self, "_return_from_results_to_main_menu"))
+	var menu_root := main_menu.get_node_or_null("Root") as CanvasItem
+	if menu_root != null:
+		menu_root.modulate.a = 0.0
+		var menu_fade := create_tween()
+		menu_fade.tween_property(menu_root, "modulate:a", 1.0, 0.8)
 
 
 func _open_car_selection() -> void:
@@ -1479,7 +1498,7 @@ func _return_from_pause_to_main_menu() -> void:
 		main_menu.show()
 		main_menu.call_deferred("focus_start_button")
 	if is_instance_valid(vehicle_audio): vehicle_audio.set_active(false)
-	stop_race_music()
+	_music_controller().call("play_menu")
 
 
 func _restart_from_results() -> void:
@@ -1936,12 +1955,13 @@ func format_time(value: float) -> String:
 
 func driving_help_text() -> String:
 	if fuel_enabled:
-		return "WASD — ЕЗДА | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | ESC — ПАУЗА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС"
-	return "WASD — ЕЗДА | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | ESC — ПАУЗА | R — СБРОС"
+		return "WASD — ЕЗДА | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | O/P — МУЗЫКА | ESC — ПАУЗА | F — ЗАПРАВКА | G — ПОЛНЫЙ БАК | R — СБРОС"
+	return "WASD — ЕЗДА | ПРОБЕЛ — ТОРМОЗ | ПКМ — КАМЕРА | O/P — МУЗЫКА | ESC — ПАУЗА | R — СБРОС"
 
 
 func reset_car() -> void:
 	stop_race_music()
+	_music_controller().call("prepare_race", selected_car_id)
 	var start_frame := course.sample_course(0.0)
 	car.global_position = start_position
 	car.global_transform.basis = start_frame.basis

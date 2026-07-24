@@ -34,3 +34,7 @@ artifacts/
 # publishing the commercial recording in the source repository.
 /assets/audio/music/cadillac.mp3
 /assets/audio/music/cadillac.mp3.import
+/assets/audio/music/menu_slow.mp3
+/assets/audio/music/menu_slow.mp3.import
+/assets/audio/music/race_*.mp3
+/assets/audio/music/race_*.mp3.import

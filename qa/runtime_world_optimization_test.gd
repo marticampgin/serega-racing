@@ -59,6 +59,12 @@ func _run() -> void:
 	_check(runtime_meshes <= int(source_meshes * MAX_RUNTIME_MESH_RATIO), "mesh-instance count is reduced by at least 62 percent")
 	_check(runtime_nodes <= int(source_nodes * MAX_RUNTIME_NODE_RATIO), "scene-node count is reduced by at least 52 percent")
 	_check(runtime_catalog == source_catalog, "all externally instanced catalog objects and placements are preserved")
+	if runtime_catalog != source_catalog:
+		var missing := source_catalog.keys().filter(func(key): return not runtime_catalog.has(key))
+		var added := runtime_catalog.keys().filter(func(key): return not source_catalog.has(key))
+		print("INFO: catalog source=%d runtime=%d missing=%d added=%d" % [source_catalog.size(), runtime_catalog.size(), missing.size(), added.size()])
+		for key in missing.slice(0, mini(5, missing.size())): print("INFO: missing catalog ", key)
+		for key in added.slice(0, mini(5, added.size())): print("INFO: added catalog ", key)
 	_check(runtime_sprites == source_sprites, "all authored Sprite3D friend artwork is preserved")
 	_check(_has_catalog(runtime, "art_friend_dark_hair__banner_plane"), "authored friend banner plane remains independent")
 	_check(_has_catalog(runtime, "art_friend_beard__zeppelin"), "authored friend zeppelin remains independent")
