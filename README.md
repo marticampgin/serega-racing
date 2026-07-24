@@ -48,7 +48,7 @@ Controls: `W` accelerate, `S`/`Space` brake, `A`/`D` steer, `F` begin realistic 
 
 Music defaults to 30% and sound effects to 40%. Normal races shuffle the 20
 local race tracks into a new order, while the Cadillac keeps its exclusive
-looping song. The boot sequence displays two local splash cards before fading
+looping song. The boot sequence displays three local splash cards before fading
 into the main menu.
 
 `S` brakes while moving forward and engages reverse near a standstill. Forward acceleration has no normal gameplay cap; steering becomes less responsive and collision movement is sub-stepped as speed rises.

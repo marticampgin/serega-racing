@@ -3,6 +3,7 @@ extends CanvasLayer
 const MAIN_SCENE := "res://scenes/main.tscn"
 const FIRST_SPLASH := preload("res://assets/generated/ui/loading-vladikus-clean.png")
 const SECOND_SPLASH := preload("res://assets/generated/ui/loading-bralis-games.png")
+const THIRD_SPLASH := preload("res://assets/generated/ui/loading-top-production.png")
 const FADE_SECONDS := 1.0
 const HOLD_SECONDS := 4.0
 
@@ -10,12 +11,13 @@ const HOLD_SECONDS := 4.0
 
 
 func _ready() -> void:
-	# Begin loading the main scene while the two branded cards are visible.
+	# Begin loading the main scene while the three branded cards are visible.
 	ResourceLoader.load_threaded_request(MAIN_SCENE)
 	get_node("/root/MusicController").call("play_menu")
 	await _show_card(FIRST_SPLASH, TextureRect.STRETCH_KEEP_ASPECT_COVERED, true)
-	await _fade_in_card(SECOND_SPLASH, TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
-	var second_card_started := Time.get_ticks_msec()
+	await _show_card(SECOND_SPLASH, TextureRect.STRETCH_KEEP_ASPECT_CENTERED, true)
+	await _fade_in_card(THIRD_SPLASH, TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
+	var third_card_started := Time.get_ticks_msec()
 	while ResourceLoader.load_threaded_get_status(MAIN_SCENE) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
 		await get_tree().process_frame
 	var packed := ResourceLoader.load_threaded_get(MAIN_SCENE) as PackedScene
@@ -23,15 +25,15 @@ func _ready() -> void:
 		push_error("Could not load the main game scene after the splash sequence.")
 		get_tree().quit(1)
 		return
-	# Keep splash 2 on the top canvas while the heavy world _ready() work runs.
+	# Keep splash 3 on the top canvas while the heavy world _ready() work runs.
 	# Once the complete menu is ready underneath, cross-fade directly into it.
 	var main := packed.instantiate()
 	get_tree().root.add_child(main)
 	get_tree().current_scene = main
-	# World construction is intentionally covered by splash 2. Count that work
-	# toward its three-second hold instead of adding a second full wait afterward.
-	var second_elapsed := (Time.get_ticks_msec() - second_card_started) * 0.001
-	var remaining_hold := maxf(0.0, HOLD_SECONDS - second_elapsed)
+	# World construction is intentionally covered by splash 3. Count that work
+	# toward its four-second hold instead of adding a second full wait afterward.
+	var third_elapsed := (Time.get_ticks_msec() - third_card_started) * 0.001
+	var remaining_hold := maxf(0.0, HOLD_SECONDS - third_elapsed)
 	if remaining_hold > 0.0:
 		await get_tree().create_timer(remaining_hold).timeout
 	var final_fade := create_tween()

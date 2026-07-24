@@ -16,12 +16,14 @@ func check(condition: bool, message: String) -> void:
 
 
 func _run() -> void:
-	check(load("res://scenes/ui/boot_splash.tscn") is PackedScene, "two-card boot scene loads")
+	check(load("res://scenes/ui/boot_splash.tscn") is PackedScene, "three-card boot scene loads")
 	var boot_constants := (load("res://scripts/ui/boot_splash.gd") as Script).get_script_constant_map()
 	check(is_equal_approx(float(boot_constants.FADE_SECONDS), 1.0), "loading cards use a slower one-second fade")
 	check(is_equal_approx(float(boot_constants.HOLD_SECONDS), 4.0), "each loading card remains fully visible for four seconds")
 	check(ResourceLoader.exists("res://assets/generated/ui/loading-vladikus-clean.png"), "clean first loading card is imported")
 	check(ResourceLoader.exists("res://assets/generated/ui/loading-bralis-games.png"), "second loading card is imported")
+	check(ResourceLoader.exists("res://assets/generated/ui/loading-top-production.png"), "third loading card is imported")
+	check(boot_constants.THIRD_SPLASH is Texture2D, "third loading card is wired into the boot sequence")
 	check(str(ProjectSettings.get_setting("application/run/main_scene")).ends_with("boot_splash.tscn"), "boot sequence is the project entry scene")
 	check(ResourceLoader.exists("res://assets/generated/ui/car-selection-retro-grid.png"), "car selector uses a dedicated retro backdrop")
 
