@@ -2016,7 +2016,7 @@ func reset_car() -> void:
 	if is_instance_valid(fuel_warning_panel): fuel_warning_panel.hide()
 
 
-# Public hook for the webcam/Gemini service integration. Realistic fueling is
+# Public hook for the webcam fueling service integration. Realistic fueling is
 # deliberately binary: a confirmed drinking gesture adds fuel, never a buff.
 func apply_drink_result(_color_name := "unknown") -> void:
 	fuel = minf(100.0, fuel + 40.0)
@@ -2032,12 +2032,13 @@ func request_refuel() -> void:
 	if not realistic_fueling_enabled or not race_active:
 		return
 	if refuel_in_progress:
-		status_label.text = "ГОНОЧНЫЙ ЦЕНТР УЖЕ АНАЛИЗИРУЕТ ВИДЕО..."
+		status_label.text = "МАШИНУ УЖЕ ЗАПРАВЛЯЮТ..."
 		return
 	if refuel_cooldown > 0.0:
 		status_label.text = "СИСТЕМА ЗАПРАВКИ ОХЛАЖДАЕТСЯ"
 		return
 	refuel_pending = true
+	_music_controller().call("set_ducked", true)
 	refuel_countdown_time = 3.0
 	refuel_feedback_time = 0.0
 	speed = 0.0
@@ -2057,8 +2058,8 @@ func _update_refuel_sequence(delta: float) -> void:
 			refuel_label.text = "ИДЁТ ЗАПИСЬ — ПЕЙТЕ СЕЙЧАС\nОСТАЛОСЬ %d СЕКУНД" % recording_left
 		else:
 			var dots := ".".repeat(1 + int(refuel_request_elapsed * 2.0) % 3)
-			refuel_label.text = "GEMINI АНАЛИЗИРУЕТ ВИДЕО%s\nПОЖАЛУЙСТА, ПОДОЖДИТЕ" % dots
-			status_label.text = "ОЖИДАНИЕ ОТВЕТА GEMINI..."
+			refuel_label.text = "ЗАПРАВЛЯЕМ МАШИНУ%s" % dots
+			status_label.text = "ИДЁТ ЗАПРАВКА%s" % dots
 		return
 	if not refuel_pending:
 		return
@@ -2075,7 +2076,7 @@ func _begin_refuel_request() -> void:
 	refuel_request_elapsed = 0.0
 	refuel_panel.visible = true
 	refuel_label.text = "ИДЁТ ЗАПИСЬ — ПЕЙТЕ СЕЙЧАС\nОСТАЛОСЬ 5 СЕКУНД"
-	status_label.text = "ЗАПИСЬ ВИДЕО ДЛЯ ЗАПРАВКИ..."
+	status_label.text = "ЗАПРАВКА НАЧАЛАСЬ..."
 	var error := refuel_request.request(
 		"http://127.0.0.1:8765/analyze-drink",
 		PackedStringArray(["Accept: application/json"]),
@@ -2085,6 +2086,7 @@ func _begin_refuel_request() -> void:
 	if error != OK:
 		refuel_in_progress = false
 		refuel_request_elapsed = 0.0
+		_music_controller().call("set_ducked", false)
 		_show_refuel_error("HTTPRequest could not start (error %d)" % error)
 		status_label.text = "СЕРВИС ЗАПРАВКИ НЕДОСТУПЕН | ЗАПУСТИТЕ PYTHON-СЕРВИС"
 
@@ -2094,6 +2096,7 @@ func _on_refuel_request_completed(result: int, response_code: int, _headers: Pac
 	refuel_request_elapsed = 0.0
 	refuel_cooldown = 8.0
 	refuel_panel.visible = false
+	_music_controller().call("set_ducked", false)
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
 		var raw_body := body.get_string_from_utf8()
 		var detail := raw_body
@@ -2101,7 +2104,7 @@ func _on_refuel_request_completed(result: int, response_code: int, _headers: Pac
 		if error_report is Dictionary:
 			detail = str((error_report as Dictionary).get("detail", raw_body))
 		_show_refuel_error("HTTP %d / result %d\n%s" % [response_code, result, detail])
-		status_label.text = "ОШИБКА GEMINI | ТОПЛИВО НЕ ДОБАВЛЕНО"
+		status_label.text = "ЗАПРАВКА НЕ УДАЛАСЬ | ТОПЛИВО НЕ ДОБАВЛЕНО"
 		return
 	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
 	if not parsed is Dictionary:
@@ -2122,4 +2125,6 @@ func _show_refuel_error(detail: String) -> void:
 	push_error("Fueling failed: %s" % safe_detail)
 	refuel_feedback_time = 12.0
 	refuel_panel.visible = true
-	refuel_label.text = "ЗАПРАВКА НЕ УДАЛАСЬ\n%s" % safe_detail.left(700)
+	# Technical provider details remain in the console for troubleshooting, while
+	# the birthday-game UI stays entirely in-world.
+	refuel_label.text = "ЗАПРАВКА НЕ УДАЛАСЬ\nПОПРОБУЙТЕ ЕЩЁ РАЗ"
