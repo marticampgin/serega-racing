@@ -1462,12 +1462,14 @@ func _pause_game() -> void:
 		return
 	camera_dragging = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_music_controller().call("set_ducked", true)
 	get_tree().paused = true
 	pause_menu.call("show_pause")
 
 
 func _resume_game() -> void:
 	get_tree().paused = false
+	_music_controller().call("set_ducked", false)
 	if is_instance_valid(pause_menu):
 		pause_menu.hide()
 
@@ -1875,7 +1877,9 @@ func _finish_race(completed: bool, reason: String) -> void:
 	finish_portrait.visible = completed and finish_portrait.texture != null
 	status_label.text = reason
 	if is_instance_valid(vehicle_audio): vehicle_audio.set_active(false)
-	stop_race_music()
+	# Keep the current soundtrack and position through the results screen, but
+	# lower it enough that the statistics remain the focus.
+	_music_controller().call("set_ducked", true)
 	if is_instance_valid(results_overlay):
 		results_overlay.call("show_results", lap_times, lap_average_speeds, collision_count, damage_sustained, elapsed, completed)
 
@@ -1961,6 +1965,7 @@ func driving_help_text() -> String:
 
 func reset_car() -> void:
 	stop_race_music()
+	_music_controller().call("set_ducked", false, false)
 	_music_controller().call("prepare_race", selected_car_id)
 	var start_frame := course.sample_course(0.0)
 	car.global_position = start_position

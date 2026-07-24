@@ -63,10 +63,14 @@ func _run() -> void:
 	check(not game.get("race_music").playing, "race music remains silent during the countdown")
 	var capped := float(game.call("compute_drive_speed", 999.0, 1.0, false, false, 0.5, 0.1))
 	check(capped <= float(game.get("car_max_speed_mps")), "drive speed respects the selected car cap")
+	game.call("start_race_music")
+	var paused_track := (game.get("race_music").stream as AudioStream).resource_path
 	game.call("_pause_game")
 	check(paused and game.get("pause_menu").visible, "Escape pause stops the race and shows its menu")
+	check(game.get("race_music").playing and bool(game._music_controller().get("ducked")), "pause keeps the current soundtrack playing at reduced volume")
 	game.call("_resume_game")
 	check(not paused and not game.get("pause_menu").visible, "Continue returns to the race")
+	check((game.get("race_music").stream as AudioStream).resource_path == paused_track and not bool(game._music_controller().get("ducked")), "resume restores the same soundtrack without restarting it")
 
 	var plane := world.get_node_or_null("FriendDarkHairBannerPlane") as Node3D
 	var zeppelin := world.get_node_or_null("FriendBeardZeppelin") as Node3D

@@ -110,7 +110,9 @@ func _build_interface() -> void:
 		info.add_child(stat_label)
 		stat_labels.append(stat_label)
 		var bar := ProgressBar.new()
-		bar.max_value = 5.0
+		# Maximum speed uses its real 0–800 km/h scale; the remaining ratings
+		# retain their shared five-point scale.
+		bar.max_value = 800.0 if stat == "МАКС. СКОРОСТЬ" else 5.0
 		bar.show_percentage = false
 		bar.custom_minimum_size = Vector2(390, 12)
 		bar.add_theme_stylebox_override("background", _panel_style(Color(0.12, 0.08, 0.2, 0.9), Color(0,0,0,0), 6))
@@ -395,7 +397,7 @@ func _refresh_selection() -> void:
 	subtitle_label.text = str(profile.subtitle)
 	description_label.text = str(profile.description)
 	stat_bars[0].value = float(profile.control)
-	stat_bars[1].value = float(profile.speed)
+	stat_bars[1].value = float(profile.max_speed_kmh)
 	stat_bars[2].value = float(profile.acceleration)
 	stat_bars[3].value = float(profile.efficiency)
 	stat_bars[4].value = float(profile.tolerance)

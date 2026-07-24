@@ -2,6 +2,8 @@ extends Node
 
 const MENU_TRACK := "res://assets/audio/music/menu_slow.mp3"
 const CADILLAC_TRACK := "res://assets/audio/music/cadillac.mp3"
+const DUCK_VOLUME_DB := -10.5 # Roughly 30% linear volume: a 70% reduction.
+const DUCK_FADE_SECONDS := 0.28
 const RACE_TRACKS := [
 	"res://assets/audio/music/race_01.mp3",
 	"res://assets/audio/music/race_02.mp3",
@@ -30,18 +32,24 @@ var race_sequence: Array[String] = []
 var race_index := 0
 var cadillac_race := false
 var menu_active := false
+var ducked := false
+var track_volume_db := 0.0
+var volume_tween: Tween
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	player = AudioStreamPlayer.new()
 	player.name = "SoundtrackPlayer"
 	player.bus = "Music"
+	player.process_mode = Node.PROCESS_MODE_ALWAYS
 	player.finished.connect(_on_track_finished)
 	add_child(player)
 	play_menu()
 
 
 func play_menu() -> void:
+	set_ducked(false, false)
 	menu_active = true
 	cadillac_race = false
 	race_sequence.clear()
@@ -76,6 +84,21 @@ func start_prepared_race() -> void:
 func stop() -> void:
 	if is_instance_valid(player):
 		player.stop()
+
+
+func set_ducked(value: bool, animated := true) -> void:
+	ducked = value
+	if not is_instance_valid(player):
+		return
+	if is_instance_valid(volume_tween):
+		volume_tween.kill()
+	var target := track_volume_db + (DUCK_VOLUME_DB if ducked else 0.0)
+	if not animated:
+		player.volume_db = target
+		return
+	volume_tween = create_tween()
+	volume_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	volume_tween.tween_property(player, "volume_db", target, DUCK_FADE_SECONDS)
 
 
 func next_track() -> void:
@@ -115,5 +138,6 @@ func _play_path(path: String, looped: bool, volume_db: float) -> void:
 		(stream as AudioStreamMP3).loop = looped
 	player.stop()
 	player.stream = stream
-	player.volume_db = volume_db
+	track_volume_db = volume_db
+	player.volume_db = track_volume_db + (DUCK_VOLUME_DB if ducked else 0.0)
 	player.play()

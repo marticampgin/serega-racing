@@ -14,7 +14,8 @@ func _ready() -> void:
 	ResourceLoader.load_threaded_request(MAIN_SCENE)
 	get_node("/root/MusicController").call("play_menu")
 	await _show_card(FIRST_SPLASH, TextureRect.STRETCH_KEEP_ASPECT_COVERED, true)
-	await _show_card(SECOND_SPLASH, TextureRect.STRETCH_KEEP_ASPECT_CENTERED, false)
+	await _fade_in_card(SECOND_SPLASH, TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
+	var second_card_started := Time.get_ticks_msec()
 	while ResourceLoader.load_threaded_get_status(MAIN_SCENE) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
 		await get_tree().process_frame
 	var packed := ResourceLoader.load_threaded_get(MAIN_SCENE) as PackedScene
@@ -27,6 +28,12 @@ func _ready() -> void:
 	var main := packed.instantiate()
 	get_tree().root.add_child(main)
 	get_tree().current_scene = main
+	# World construction is intentionally covered by splash 2. Count that work
+	# toward its three-second hold instead of adding a second full wait afterward.
+	var second_elapsed := (Time.get_ticks_msec() - second_card_started) * 0.001
+	var remaining_hold := maxf(0.0, HOLD_SECONDS - second_elapsed)
+	if remaining_hold > 0.0:
+		await get_tree().create_timer(remaining_hold).timeout
 	var final_fade := create_tween()
 	final_fade.tween_property(splash, "modulate:a", 0.0, FADE_SECONDS)
 	await final_fade.finished
@@ -34,15 +41,19 @@ func _ready() -> void:
 
 
 func _show_card(texture: Texture2D, stretch: TextureRect.StretchMode, fade_out: bool) -> void:
-	splash.texture = texture
-	splash.stretch_mode = stretch
-	splash.modulate.a = 0.0
-	var fade_in := create_tween()
-	fade_in.tween_property(splash, "modulate:a", 1.0, FADE_SECONDS)
-	await fade_in.finished
+	await _fade_in_card(texture, stretch)
 	await get_tree().create_timer(HOLD_SECONDS).timeout
 	if not fade_out:
 		return
 	var fade_out_tween := create_tween()
 	fade_out_tween.tween_property(splash, "modulate:a", 0.0, FADE_SECONDS)
 	await fade_out_tween.finished
+
+
+func _fade_in_card(texture: Texture2D, stretch: TextureRect.StretchMode) -> void:
+	splash.texture = texture
+	splash.stretch_mode = stretch
+	splash.modulate.a = 0.0
+	var fade_in := create_tween()
+	fade_in.tween_property(splash, "modulate:a", 1.0, FADE_SECONDS)
+	await fade_in.finished

@@ -39,7 +39,7 @@ const PROFILES := [
 	},
 	{
 		"id": "lilpoc", "name": "CADILLAC", "subtitle": "Секретный городской внедорожник",
-		"description": "Тяжёлый чёрный SUV с огромной решёткой, вертикальной оптикой и почти запредельными характеристиками.",
+		"description": "Тяжёлый SUV с огромной решёткой, вертикальной оптикой и почти запредельными характеристиками.",
 		"control": 5, "speed": 5, "max_speed_kmh": 800.0, "acceleration": 5, "efficiency": 5, "tolerance": 5,
 		"steering_mult": 1.25, "acceleration_mult": 1.42, "fuel_mult": 0.65, "damage_mult": 0.3,
 		"collider_size": Vector3(2.3, 1.1, 5.15), "locked": true,
