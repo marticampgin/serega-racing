@@ -53,6 +53,20 @@ into the main menu.
 
 `S` brakes while moving forward and engages reverse near a standstill. Forward acceleration has no normal gameplay cap; steering becomes less responsive and collision movement is sub-stepped as speed rises.
 
+### Windows release
+
+The `Windows Desktop` export preset creates a single embedded 64-bit executable
+that starts at 1920×1080 in fullscreen mode:
+
+```powershell
+.\tools\export_windows.ps1
+```
+
+The finished game is written to `build\windows\Serega Speedster.exe`. It can be
+launched directly without opening Godot. Realistic webcam fueling still requires
+the local Python fueling service to be running; all other game modes work from
+the executable alone.
+
 The 11.9 km course now follows an authored closed curve instead of a single
 forward world axis. Progress and recovery use local curve distance, preventing
 the car from jumping between branches at Loop 3's elevated crossing.
