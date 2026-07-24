@@ -3,8 +3,8 @@ extends CanvasLayer
 const MAIN_SCENE := "res://scenes/main.tscn"
 const FIRST_SPLASH := preload("res://assets/generated/ui/loading-vladikus-clean.png")
 const SECOND_SPLASH := preload("res://assets/generated/ui/loading-bralis-games.png")
-const FADE_SECONDS := 0.65
-const HOLD_SECONDS := 3.0
+const FADE_SECONDS := 1.0
+const HOLD_SECONDS := 4.0
 
 @onready var splash: TextureRect = $Root/Splash
 
